@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "simpleminer",
+  "version": "${version}",
+  "name": "SimpleMiner",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "GPL-3.0",
+  "icon": "assets/simpleminer/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "com.wishtoday.ts.simpleminer.client.SimpleminerClient"
+    ],
+    "main": [
+      "com.wishtoday.ts.simpleminer.Simpleminer"
+    ]
+  },
+  "mixins": [
+    "simpleminer.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
