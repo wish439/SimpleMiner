@@ -4,6 +4,8 @@
   "package": "com.wishtoday.ts.simpleminer.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "WorldChunkMixin",
+    "WorldMixin"
   ],
   "client": [
   ],

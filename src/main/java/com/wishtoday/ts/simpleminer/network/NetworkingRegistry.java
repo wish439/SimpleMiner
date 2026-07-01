@@ -5,6 +5,10 @@ import com.wishtoday.simpleservices.services.annotation.PostConstruct;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
+import com.wishtoday.ts.simpleminer.config.ConfigType;
+import com.wishtoday.ts.simpleminer.config.IndividualConfig;
+import com.wishtoday.ts.simpleminer.config.ServerConfig;
+import com.wishtoday.ts.simpleminer.network.config.SyncConfigC2SPayload;
 import com.wishtoday.ts.simpleminer.shape.Shape;
 import com.wishtoday.ts.simpleminer.shape.ShapeContext;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
@@ -18,16 +22,19 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 @Service
 public class NetworkingRegistry {
+    private ServerConfig serverConfig;
     private PressManager pressManager;
     private Shapes shapes;
 
     @CreateConstruction
-    public NetworkingRegistry(PressManager pressManager, Shapes shapes) {
+    public NetworkingRegistry(ServerConfig serverConfig, PressManager pressManager, Shapes shapes) {
+        this.serverConfig = serverConfig;
         this.pressManager = pressManager;
         this.shapes = shapes;
     }
@@ -36,6 +43,17 @@ public class NetworkingRegistry {
     public void registerChannels() {
         PayloadTypeRegistry.playC2S().register(KeywordPressedPayload.ID, KeywordPressedPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(KeywordPressedPayload.ID, this::handleKeywordPayload);
+        PayloadTypeRegistry.playC2S().register(SyncConfigC2SPayload.ID, SyncConfigC2SPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(SyncConfigC2SPayload.ID, this::handleSyncConfigPayload);
+    }
+
+    private void handleSyncConfigPayload(SyncConfigC2SPayload payload, ServerPlayNetworking.Context context) {
+        if (payload.type() == ConfigType.SERVER) {
+            this.serverConfig.setFromConfig((ServerConfig) payload.config());
+            return;
+        }
+        PlayerMinerInfo info = pressManager.getPlayerMinerInfo(context.player());
+        info.setCurrentIndividualConfig((IndividualConfig) payload.config());
     }
 
     private void handleKeywordPayload(KeywordPressedPayload payload, ServerPlayNetworking.Context context) {
@@ -43,13 +61,20 @@ public class NetworkingRegistry {
         if (!payload.press()) {
             return;
         }
-        PlayerMinerInfo info = pressManager.getPlayerMinerInfo(context.player());
-        //if (info == null) return;
+        PlayerMinerInfo info = pressManager.getPressedPlayerMinerInfo(context.player());
+        if (info == null) return;
         Shape shape = shapes.getFromIndex(info.getCurrentShape());
-        ShapeContext shapeContext = this.getShapeContext(context.player(), 100 * 500);
+        ShapeContext shapeContext = this.getShapeContext(context.player(), serverConfig.getMaxSize());
         if (shapeContext == null) return;
+        PlayerEntity player = info.getPlayer();
         Set<BlockPos> blockPoses = shape.walk(shapeContext);
-        info.setBlockPoses(blockPoses);
+        ArrayList<BlockPos> blockPos = new ArrayList<>(blockPoses);
+        blockPos.sort((a, b) -> {
+            double da = player.getBlockPos().getSquaredDistance(a);
+            double db = player.getBlockPos().getSquaredDistance(b);
+            return Double.compare(da, db);
+        });
+        info.setBlockPoses(new ShapeResult(blockPoses, blockPos));
     }
 
     private @Nullable ShapeContext getShapeContext(@NotNull PlayerEntity player, int maxSize) {

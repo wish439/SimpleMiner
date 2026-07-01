@@ -1,5 +1,7 @@
 package com.wishtoday.ts.simpleminer;
 
+import com.wishtoday.ts.simpleminer.config.IndividualConfig;
+import com.wishtoday.ts.simpleminer.shape.ShapeResult;
 import lombok.Data;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
@@ -13,20 +15,23 @@ import java.util.Set;
 
 @Data
 public class PlayerMinerInfo {
-    private final int currentShape;
-    private final boolean isKeyPressed;
+    private int currentShape;
+    private boolean isKeyPressed;
     @NotNull
-    private final PlayerEntity player;
-    @NotNull
-    private Set<BlockPos> blockPoses;
+    private PlayerEntity player;
+    @Nullable
+    private ShapeResult blockPoses;
     @Nullable
     private BlockPos currentBlockPos;
 
-    public PlayerMinerInfo(int currentShape, boolean isKeyPressed, PlayerEntity player) {
+    private IndividualConfig currentIndividualConfig;
+
+    public PlayerMinerInfo(int currentShape, boolean isKeyPressed, PlayerEntity player, IndividualConfig individualConfig) {
         this.currentShape = currentShape;
         this.isKeyPressed = isKeyPressed;
         this.player = player;
-        this.blockPoses = new HashSet<>();
+        this.blockPoses = null;
         this.currentBlockPos = null;
+        this.currentIndividualConfig = individualConfig;
     }
 }
