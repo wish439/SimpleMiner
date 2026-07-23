@@ -4,9 +4,9 @@ import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.PostConstruct;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.command.MainCommand;
-import com.wishtoday.ts.simpleminer.config.IndividualConfig;
+import com.wishtoday.ts.simpleminer.command.TestCommands;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
-import com.wishtoday.ts.simpleminer.core.BlockBreaker;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.BlockBreaker;
 import com.wishtoday.ts.simpleminer.core.ShapeRefresher;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -20,13 +20,15 @@ public class EventRegistry {
     private final ServerConfig serverConfig;
     private final ShapeRefresher shapeRefresher;
     private final BlockBreaker blockBreaker;
+    private final TestCommands testCommands;
 
     @CreateConstruction
-    public EventRegistry(PressManager manager, ServerConfig serverConfig, BlockBreaker blockBreaker, ShapeRefresher shapeRefresher) {
+    public EventRegistry(PressManager manager, ServerConfig serverConfig, BlockBreaker blockBreaker, ShapeRefresher shapeRefresher, TestCommands testCommands) {
         this.manager = manager;
         this.serverConfig = serverConfig;
         this.blockBreaker = blockBreaker;
         this.shapeRefresher = shapeRefresher;
+        this.testCommands = testCommands;
     }
 
     @PostConstruct
@@ -35,10 +37,14 @@ public class EventRegistry {
         PlayerBlockBreakEvents.BEFORE.register(this.blockBreaker::breakBlock);
         CommandRegistrationCallback.EVENT.register((dispatcher, dedicated, registrationEnvironment) -> {
             MainCommand.register(dispatcher, player -> serverConfig, player -> this.manager.getPlayerMinerInfo(player).getCurrentIndividualConfig());
+            this.testCommands.register(dispatcher);
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
             this.manager.togglePlayerState(false, player, 0);
+            System.out.println("toggled" + player.getName());
+            System.out.println(this.manager.getPlayerMinerInfo(player));
+            System.out.println(this.manager.hashCode());
         });
     }
 }

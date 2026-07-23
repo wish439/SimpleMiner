@@ -4,15 +4,18 @@
   "package": "com.wishtoday.ts.simpleminer.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "ItemScatterMixin",
     "WorldChunkMixin",
     "WorldMixin"
   ],
   "client": [
+    "HandledScreensMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "overwrites": {
     "requireAnnotations": true
-  }
+  },
+  "plugin": "com.wishtoday.ts.simpleminer.MixinExtension"
 }

@@ -17,7 +17,6 @@ public record SyncConfigC2SPayload(ConfigType type, Object config) implements Cu
     }
     private static void encode(SyncConfigC2SPayload value, PacketByteBuf buf) {
         buf.writeEnumConstant(value.type);
-        System.out.println("AAA");
         if (value.type == ConfigType.SERVER) {
             ServerConfig.CODEC.encode(buf, (ServerConfig) value.config);
         }

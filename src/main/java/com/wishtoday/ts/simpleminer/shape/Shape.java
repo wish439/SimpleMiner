@@ -1,5 +1,6 @@
 package com.wishtoday.ts.simpleminer.shape;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.Set;
 import java.util.SortedSet;
 
 public interface Shape {
-    Set<BlockPos> walk(ShapeContext context);
+    LongOpenHashSet walk(ShapeContext context);
 
     int index();
 }

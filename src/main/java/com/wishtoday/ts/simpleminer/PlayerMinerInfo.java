@@ -1,17 +1,13 @@
 package com.wishtoday.ts.simpleminer;
 
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
+import com.wishtoday.ts.simpleminer.undo.UndoStorage;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
 import lombok.Data;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @Data
 public class PlayerMinerInfo {
@@ -26,6 +22,8 @@ public class PlayerMinerInfo {
 
     private IndividualConfig currentIndividualConfig;
 
+    private UndoStorage undoStorage;
+
     public PlayerMinerInfo(int currentShape, boolean isKeyPressed, PlayerEntity player, IndividualConfig individualConfig) {
         this.currentShape = currentShape;
         this.isKeyPressed = isKeyPressed;
@@ -33,5 +31,6 @@ public class PlayerMinerInfo {
         this.blockPoses = null;
         this.currentBlockPos = null;
         this.currentIndividualConfig = individualConfig;
+        this.undoStorage = null;
     }
 }

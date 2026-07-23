@@ -14,6 +14,8 @@ import com.wishtoday.ts.simpleminer.shape.ShapeContext;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
 import com.wishtoday.ts.simpleminer.shape.Shapes;
 import com.wishtoday.ts.simpleminer.utils.WorldUtils;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
@@ -22,21 +24,21 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class NetworkingRegistry {
-    private ServerConfig serverConfig;
-    private PressManager pressManager;
-    private Shapes shapes;
+    private final ServerConfig serverConfig;
+    private final PressManager pressManager;
+    private final Shapes shapes;
+    private final List<ServerNetworkExtendFutures> futures;
 
     @CreateConstruction
-    public NetworkingRegistry(ServerConfig serverConfig, PressManager pressManager, Shapes shapes) {
+    public NetworkingRegistry(ServerConfig serverConfig, PressManager pressManager, Shapes shapes, List<ServerNetworkExtendFutures> futures) {
         this.serverConfig = serverConfig;
         this.pressManager = pressManager;
         this.shapes = shapes;
+        this.futures = futures;
     }
 
     @PostConstruct
@@ -45,6 +47,7 @@ public class NetworkingRegistry {
         ServerPlayNetworking.registerGlobalReceiver(KeywordPressedPayload.ID, this::handleKeywordPayload);
         PayloadTypeRegistry.playC2S().register(SyncConfigC2SPayload.ID, SyncConfigC2SPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(SyncConfigC2SPayload.ID, this::handleSyncConfigPayload);
+        this.futures.forEach(ServerNetworkExtendFutures::initialize);
     }
 
     private void handleSyncConfigPayload(SyncConfigC2SPayload payload, ServerPlayNetworking.Context context) {
@@ -67,11 +70,13 @@ public class NetworkingRegistry {
         ShapeContext shapeContext = this.getShapeContext(context.player(), serverConfig.getMaxSize());
         if (shapeContext == null) return;
         PlayerEntity player = info.getPlayer();
-        Set<BlockPos> blockPoses = shape.walk(shapeContext);
-        ArrayList<BlockPos> blockPos = new ArrayList<>(blockPoses);
+        LongOpenHashSet blockPoses = shape.walk(shapeContext);
+        LongArrayList blockPos = new LongArrayList(blockPoses);
         blockPos.sort((a, b) -> {
-            double da = player.getBlockPos().getSquaredDistance(a);
-            double db = player.getBlockPos().getSquaredDistance(b);
+            BlockPos pos = BlockPos.fromLong(a);
+            BlockPos pos2 = BlockPos.fromLong(b);
+            double da = player.getBlockPos().getSquaredDistance(pos);
+            double db = player.getBlockPos().getSquaredDistance(pos2);
             return Double.compare(da, db);
         });
         info.setBlockPoses(new ShapeResult(blockPoses, blockPos));
@@ -85,4 +90,6 @@ public class NetworkingRegistry {
         }
         return new ShapeContext(maxSize, player, raycast, world.getBlockState(raycast), world);
     }
+
+
 }

@@ -4,4 +4,5 @@ import net.minecraft.block.BlockState;
 
 public interface WorldExtension {
     BlockState simpleMiner$getBlockState(int x, int y, int z);
+    BlockState simpleMiner$getBlockState(long pos);
 }

@@ -18,21 +18,27 @@ public class ServerConfig implements ConfigData {
     //@ConfigEntry.BoundedDiscrete(min = 1, max = 100000)
     private int maxSize;
 
+    private boolean allowUndo;
+
     public ServerConfig() {
         this.maxSize = 64;
+        this.allowUndo = false;
     }
 
     private void write(PacketByteBuf buf) {
         buf.writeVarInt(this.maxSize);
+        buf.writeBoolean(this.allowUndo);
     }
 
     private static ServerConfig read(PacketByteBuf buf) {
         ServerConfig config = new ServerConfig();
         config.maxSize = buf.readVarInt();
+        config.allowUndo = buf.readBoolean();
         return config;
     }
 
     public void setFromConfig(ServerConfig config) {
         this.maxSize = config.maxSize;
+        this.allowUndo = config.allowUndo;
     }
 }

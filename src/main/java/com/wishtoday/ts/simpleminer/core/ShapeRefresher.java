@@ -10,6 +10,8 @@ import com.wishtoday.ts.simpleminer.shape.ShapeContext;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
 import com.wishtoday.ts.simpleminer.shape.Shapes;
 import com.wishtoday.ts.simpleminer.utils.WorldUtils;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
@@ -60,11 +62,13 @@ public class ShapeRefresher {
 
         ShapeContext shapeContext = this.getShapeContext(player, i, raycast);
 
-        Set<BlockPos> blockPoses = shape.walk(shapeContext);
-        ArrayList<BlockPos> blockPos = new ArrayList<>(blockPoses);
+        LongOpenHashSet blockPoses = shape.walk(shapeContext);
+        LongArrayList blockPos = new LongArrayList(blockPoses);
         blockPos.sort((a, b) -> {
-            double da = player.getBlockPos().getSquaredDistance(a);
-            double db = player.getBlockPos().getSquaredDistance(b);
+            BlockPos pos = BlockPos.fromLong(a);
+            BlockPos pos2 = BlockPos.fromLong(b);
+            double da = player.getBlockPos().getSquaredDistance(pos);
+            double db = player.getBlockPos().getSquaredDistance(pos2);
             return Double.compare(da, db);
         });
         info.setBlockPoses(new ShapeResult(blockPoses, blockPos));

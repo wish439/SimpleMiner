@@ -1,16 +1,13 @@
 package com.wishtoday.ts.simpleminer.config;
 
-import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.client.RangedIntegerField;
 import lombok.Getter;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
-import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
 @Getter
-@Service
 @Config(name = "simpleminer/individual")
 public class IndividualConfig implements ConfigData {
     public static final PacketCodec<PacketByteBuf, IndividualConfig> CODEC = PacketCodec.of(IndividualConfig::write, IndividualConfig::read);

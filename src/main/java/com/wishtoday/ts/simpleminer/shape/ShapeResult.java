@@ -1,5 +1,7 @@
 package com.wishtoday.ts.simpleminer.shape;
 
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import lombok.Getter;
 import net.minecraft.util.math.BlockPos;
 
@@ -8,10 +10,10 @@ import java.util.Set;
 
 @Getter
 public class ShapeResult {
-    private final Set<BlockPos> blockPoses;
-    private final List<BlockPos> sortedBlockPoses;
+    private final LongOpenHashSet blockPoses;
+    private final LongArrayList sortedBlockPoses;
 
-    public ShapeResult(Set<BlockPos> blockPoses, List<BlockPos> sortedBlockPoses) {
+    public ShapeResult(LongOpenHashSet blockPoses, LongArrayList sortedBlockPoses) {
         this.blockPoses = blockPoses;
         this.sortedBlockPoses = sortedBlockPoses;
     }
