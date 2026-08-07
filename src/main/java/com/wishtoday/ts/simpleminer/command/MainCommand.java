@@ -2,6 +2,8 @@ package com.wishtoday.ts.simpleminer.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
+import com.wishtoday.simpleservices.services.annotation.Service;
+import com.wishtoday.ts.simpleminer.Router;
 import com.wishtoday.ts.simpleminer.config.ConfigType;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
@@ -11,12 +13,22 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import java.util.List;
 import java.util.function.Function;
 
 import static net.minecraft.server.command.CommandManager.literal;
 
+@Service
 public class MainCommand {
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, Function<PlayerEntity, ServerConfig> configSupplier, Function<PlayerEntity, IndividualConfig> individualConfigSupplier) {
+    private final List<Router> routers;
+    private final ServerConfig serverConfig;
+
+    public MainCommand(List<Router> routers, ServerConfig serverConfig) {
+        this.routers = routers;
+        this.serverConfig = serverConfig;
+    }
+
+    public void register(CommandDispatcher<ServerCommandSource> dispatcher, Function<PlayerEntity, ServerConfig> configSupplier, Function<PlayerEntity, IndividualConfig> individualConfigSupplier) {
         dispatcher.register(literal("simpleminer")
                 .then(literal("config")
                         .then(literal("individual")
@@ -30,8 +42,13 @@ public class MainCommand {
                                     ServerPlayerEntity player = context.getSource().getPlayer();
                                     if (player == null) return -1;
                                     return executeOpenGUI(ConfigType.SERVER, context, configSupplier.apply(player));
-                                })))
-        );
+                                })
+                                .then(literal("reload")
+                                        .executes(context -> {
+                                            this.routers.forEach(router -> router.reload(serverConfig));
+                                            return 1;
+                                        })))
+                ));
     }
 
     private static int executeOpenGUI(ConfigType type, CommandContext<ServerCommandSource> context, Object supplier) {

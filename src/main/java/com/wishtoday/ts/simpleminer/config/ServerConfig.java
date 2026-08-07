@@ -2,6 +2,7 @@ package com.wishtoday.ts.simpleminer.config;
 
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.client.RangedIntegerField;
+import com.wishtoday.ts.simpleminer.client.StringSelectionList;
 import lombok.Getter;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
@@ -20,25 +21,39 @@ public class ServerConfig implements ConfigData {
 
     private boolean allowUndo;
 
+    @StringSelectionList({"PUREAPI", "INTERCEPT"})
+    private String collectStrategy;
+
+    @StringSelectionList({"PUREAPI", "VANILLA"})
+    private String blockBreakStrategy;
+
     public ServerConfig() {
         this.maxSize = 64;
         this.allowUndo = false;
+        this.collectStrategy = "PUREAPI";
+        this.blockBreakStrategy = "PUREAPI";
     }
 
     private void write(PacketByteBuf buf) {
         buf.writeVarInt(this.maxSize);
         buf.writeBoolean(this.allowUndo);
+        buf.writeString(this.collectStrategy);
+        buf.writeString(this.blockBreakStrategy);
     }
 
     private static ServerConfig read(PacketByteBuf buf) {
         ServerConfig config = new ServerConfig();
         config.maxSize = buf.readVarInt();
         config.allowUndo = buf.readBoolean();
+        config.collectStrategy = buf.readString();
+        config.blockBreakStrategy = buf.readString();
         return config;
     }
 
     public void setFromConfig(ServerConfig config) {
         this.maxSize = config.maxSize;
         this.allowUndo = config.allowUndo;
+        this.collectStrategy = config.collectStrategy;
+        this.blockBreakStrategy = config.blockBreakStrategy;
     }
 }

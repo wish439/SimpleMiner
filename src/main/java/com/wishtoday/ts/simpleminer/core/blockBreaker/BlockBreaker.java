@@ -2,37 +2,23 @@ package com.wishtoday.ts.simpleminer.core.blockBreaker;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
-import com.wishtoday.ts.simpleminer.ItemStackKey;
 import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
-import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.core.ShapeAnalyzer;
 import com.wishtoday.ts.simpleminer.core.ShapeRefresher;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldExtension;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
-import com.wishtoday.ts.simpleminer.utils.MathUtils;
-import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.*;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenCustomHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ToolComponent;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -44,6 +30,7 @@ public class BlockBreaker {
     private final List<BlockBreakerFeature> features;
     private final ItemCollectorRouter collector;
     private final ItemDropper dropper;
+    private final SingleBlockBreakerRouter blockBreaker;
     private static final ThreadLocal<Boolean> blockBreaking = ThreadLocal.withInitial(() -> false);
 
     @CreateConstruction
@@ -52,7 +39,7 @@ public class BlockBreaker {
             , List<BlockBreakerFeature> features
             , ShapeAnalyzer shapeAnalyzer
             , ItemCollectorRouter collector
-            , ItemDropper dropper
+            , ItemDropper dropper, SingleBlockBreakerRouter blockBreaker
     ) {
         this.pressManager = pressManager;
         this.shapeRefresher = shapeRefresher;
@@ -60,6 +47,7 @@ public class BlockBreaker {
         this.features = features;
         this.collector = collector;
         this.dropper = dropper;
+        this.blockBreaker = blockBreaker;
     }
 
     public static boolean getBlockBreaking() {
@@ -67,6 +55,9 @@ public class BlockBreaker {
     }
 
     public boolean breakBlock(World world, PlayerEntity player, BlockPos pos, BlockState state, BlockEntity blockEntity) {
+        if (blockBreaking.get()) {
+            return true;
+        }
         ItemStack mainHandStack = player.getMainHandStack();
         PlayerMinerInfo info = this.pressManager.getPressedPlayerMinerInfo(player);
         if (info == null) return true;
@@ -88,11 +79,20 @@ public class BlockBreaker {
         for (long blockPose : sortedBlockPoses) {
 
             mutable.set(blockPose);
+            context.setCurrentPos(mutable);
+            context.setCurrentState(((WorldExtension)world).simpleMiner$getBlockState(blockPose));
 
-            this.forEachFeatures(b -> b.beforeBlockBreak(context, blockPose, mutable));
+            this.forEachFeatures(b -> b.beforeBlockBreak(context));
 
             collectContext.setPos(mutable);
-            if (this.collector.shouldCollectItem(collectContext)) {
+            boolean collectItem = true;
+            for (BlockBreakerFeature feature : this.features) {
+                if (!feature.allowCollectItem(context, collectContext)) {
+                    collectItem = false;
+                    break;
+                }
+            }
+            if (this.collector.shouldCollectItem(collectContext) && collectItem) {
                 this.collector.collectItem(collectContext);
             }
 
@@ -101,7 +101,7 @@ public class BlockBreaker {
             boolean breakBlock = true;
 
             for (BlockBreakerFeature feature : this.features) {
-                if (!feature.allowBreak(context, blockPose, mutable)) {
+                if (!feature.allowBreak(context)) {
                     breakBlock = false;
                 }
             }
@@ -109,7 +109,7 @@ public class BlockBreaker {
             boolean empty = mainHandStack.isEmpty();
 
             if (breakBlock)
-                this.breakBlock(mutable, ((WorldExtension) world).simpleMiner$getBlockState(blockPose), world, player, mainHandStack, !internal.contains(blockPose));
+                this.breakBlock(mutable, context.getCurrentState(), world, player, mainHandStack, !internal.contains(blockPose));
 
 
             if (!empty && player.getMainHandStack().isEmpty()) {
@@ -117,7 +117,7 @@ public class BlockBreaker {
             }
 
             for (BlockBreakerFeature feature : this.features) {
-                if (!feature.afterBlockBreakAllowContinue(context, blockPose, mutable)) {
+                if (!feature.afterBlockBreakAllowContinue(context)) {
                     break MAINCYCLE;
                 }
             }
@@ -144,12 +144,13 @@ public class BlockBreaker {
     private void breakBlock(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update) {
         //world.setBlockState(pos, Blocks.AIR.getDefaultState(), 0);
         blockBreaking.set(true);
-        int flag = update ? Block.NOTIFY_ALL : Block.NOTIFY_LISTENERS;
+        /*int flag = update ? Block.NOTIFY_ALL : Block.NOTIFY_LISTENERS;
         state.getBlock().onBreak(world, pos, state, player);
         world.setBlockState(pos, Blocks.AIR.getDefaultState(), flag);
         if (!player.isCreative()) {
             mainHandStack.postMine(world, state, pos, player);
-        }
+        }*/
+        this.blockBreaker.breakBlock(pos, state, world, player, mainHandStack, update);
         blockBreaking.set(false);
     }
 }

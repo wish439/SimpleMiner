@@ -1,6 +1,7 @@
 package com.wishtoday.ts.simpleminer.shape;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.List;
@@ -12,4 +13,6 @@ public interface Shape {
     LongOpenHashSet walk(ShapeContext context);
 
     int index();
+
+    Text getDisplayName();
 }

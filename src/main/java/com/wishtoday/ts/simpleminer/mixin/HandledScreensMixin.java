@@ -1,6 +1,6 @@
 package com.wishtoday.ts.simpleminer.mixin;
 
-import com.wishtoday.ts.simpleminer.undo.client.UndoScreen;
+import com.wishtoday.ts.simpleminer.undo.gui.UndoScreen;
 import com.wishtoday.ts.simpleminer.gui.MinerScreenHandlerTypes;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;

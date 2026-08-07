@@ -9,6 +9,10 @@ import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+
 @Data
 public class PlayerMinerInfo {
     private int currentShape;
@@ -22,7 +26,7 @@ public class PlayerMinerInfo {
 
     private IndividualConfig currentIndividualConfig;
 
-    private UndoStorage undoStorage;
+    private final List<UndoStorage> undoStorages;
 
     public PlayerMinerInfo(int currentShape, boolean isKeyPressed, PlayerEntity player, IndividualConfig individualConfig) {
         this.currentShape = currentShape;
@@ -31,6 +35,10 @@ public class PlayerMinerInfo {
         this.blockPoses = null;
         this.currentBlockPos = null;
         this.currentIndividualConfig = individualConfig;
-        this.undoStorage = null;
+        this.undoStorages = new ArrayList<>();
+    }
+
+    public void addUndoStorage(UndoStorage undoStorage) {
+        this.undoStorages.add(undoStorage);
     }
 }

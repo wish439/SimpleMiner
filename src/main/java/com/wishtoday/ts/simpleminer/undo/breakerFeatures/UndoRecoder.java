@@ -3,7 +3,7 @@ package com.wishtoday.ts.simpleminer.undo.breakerFeatures;
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
-import com.wishtoday.ts.simpleminer.MaterialInfo;
+import com.wishtoday.ts.simpleminer.undo.MaterialInfo;
 import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.BlockBreakContext;
@@ -13,7 +13,6 @@ import com.wishtoday.ts.simpleminer.mixinInterface.WorldExtension;
 import com.wishtoday.ts.simpleminer.undo.UndoStorage;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenCustomHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -39,9 +38,9 @@ public class UndoRecoder implements BlockBreakerFeature {
     }
 
     @Override
-    public boolean allowBreak(BlockBreakContext blockBreakContext, long breakBlockPos, BlockPos.Mutable blockPosMutable) {
+    public boolean allowBreak(BlockBreakContext blockBreakContext) {
         if (!config.isAllowUndo()) return true;
-        map.put(breakBlockPos, this.getBlockStorage(blockBreakContext.world(), blockPosMutable, breakBlockPos));
+        map.put(blockBreakContext.getCurrentBlockPos(), this.getBlockStorage(blockBreakContext.getWorld(), blockBreakContext.getCurrentPos(), blockBreakContext.getCurrentState()));
         return true;
     }
 
@@ -49,12 +48,11 @@ public class UndoRecoder implements BlockBreakerFeature {
     public void afterCycle(BlockBreakContext blockBreakContext, List<ItemStack> droppedStacks, Object2IntOpenHashMap<ItemStackKey> droppedItemsWithCount) {
         if (!config.isAllowUndo()) return;
         Long2ObjectLinkedOpenHashMap<BlockStorage> copy = new Long2ObjectLinkedOpenHashMap<>(this.map);
-        this.makeUndoForPlayer(blockBreakContext.info(), copy, droppedItemsWithCount);
+        this.makeUndoForPlayer(blockBreakContext.getInfo(), copy, droppedItemsWithCount);
         this.map.clear();
     }
 
-    private BlockStorage getBlockStorage(World world, BlockPos.Mutable pos, long posLong) {
-        BlockState blockState = ((WorldExtension) world).simpleMiner$getBlockState(posLong);
+    private BlockStorage getBlockStorage(World world, BlockPos pos, BlockState blockState) {
         BlockEntity blockEntity = world.getBlockEntity(pos);
         NbtCompound nbtComponent = null;
         if (blockEntity != null) nbtComponent = blockEntity.createNbt(world.getRegistryManager());
@@ -69,6 +67,6 @@ public class UndoRecoder implements BlockBreakerFeature {
             MaterialInfo info = new MaterialInfo(key.itemStack(), intValue, 0);
             newMap.put(key, info);
         }
-        playerMinerInfo.setUndoStorage(new UndoStorage(blockPoses, newMap));
+        playerMinerInfo.addUndoStorage(new UndoStorage(blockPoses, newMap, System.currentTimeMillis()));
     }
 }

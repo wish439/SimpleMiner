@@ -1,7 +1,7 @@
-package com.wishtoday.ts.simpleminer.undo.client;
+package com.wishtoday.ts.simpleminer.undo.gui;
 
 import com.wishtoday.ts.simpleminer.ItemStackKey;
-import com.wishtoday.ts.simpleminer.MaterialInfo;
+import com.wishtoday.ts.simpleminer.undo.MaterialInfo;
 import com.wishtoday.ts.simpleminer.undo.gui.screenHandler.UndoScreenHandler;
 import com.wishtoday.ts.simpleminer.undo.network.payloads.TakeItemSyncC2SPayload;
 import lombok.Getter;
@@ -109,6 +109,9 @@ public class MaterialListEntry extends AlwaysSelectedEntryListWidget<MaterialLis
             String s = info.getCurrentCount() + "/" + info.getMaxCount();
             int color = info.isFinished() ? 0x00FF00 : 0xFF0000;
             context.drawText(minecraftClient.textRenderer, s, x + 32, y, color, false);
+            if (!this.isMouseOver(mouseX, mouseY)) return;
+            if ((this.x + 20) < mouseX) return;
+            context.drawItemTooltip(minecraftClient.textRenderer, itemStack, mouseX, mouseY);
         }
 
         @Override

@@ -7,6 +7,7 @@ import org.lwjgl.glfw.GLFW;
 
 public class KeyBindings {
     public static KeyBinding MINE_KEY;
+    public static KeyBinding UNDO_KEY;
 
     public static void register() {
         MINE_KEY = KeyBindingHelper.registerKeyBinding(
@@ -14,6 +15,14 @@ public class KeyBindings {
                         "key.simpleminer.mine",
                         InputUtil.Type.KEYSYM,
                         GLFW.GLFW_KEY_GRAVE_ACCENT,
+                        "simpleminer.category"
+                )
+        );
+        UNDO_KEY = KeyBindingHelper.registerKeyBinding(
+                new KeyBinding(
+                        "key.simpleminer.undo",
+                        InputUtil.Type.KEYSYM,
+                        GLFW.GLFW_KEY_Z,
                         "simpleminer.category"
                 )
         );

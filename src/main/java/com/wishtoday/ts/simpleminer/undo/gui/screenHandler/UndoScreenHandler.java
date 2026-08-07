@@ -1,13 +1,14 @@
 package com.wishtoday.ts.simpleminer.undo.gui.screenHandler;
 
 import com.wishtoday.ts.simpleminer.ItemStackKey;
-import com.wishtoday.ts.simpleminer.MaterialInfo;
+import com.wishtoday.ts.simpleminer.undo.MaterialInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
 import com.wishtoday.ts.simpleminer.gui.MinerScreenHandlerTypes;
 import com.wishtoday.ts.simpleminer.gui.EmptyInventory;
 import com.wishtoday.ts.simpleminer.undo.gui.SubmitSlot;
 import com.wishtoday.ts.simpleminer.undo.gui.UndoGuiStorageContext;
 import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -37,17 +38,21 @@ public class UndoScreenHandler extends ScreenHandler {
         this.pressManager = null;
     }
 
-    public UndoScreenHandler(int syncId, PlayerInventory playerInventory, Map<ItemStackKey, MaterialInfo> undoMaterialInfoMap, PressManager pressManager, int completedCount) {
+    public UndoScreenHandler(int syncId, PlayerInventory playerInventory, Map<ItemStackKey, MaterialInfo> undoMaterialInfoMap, PressManager pressManager, int completedCount, int index) {
         this(syncId, playerInventory);
         this.setUndoStorage(undoMaterialInfoMap);
         this.pressManager = pressManager;
         this.setCompletedCount(completedCount);
+        this.index = index;
     }
 
     @Getter
     private UndoGuiStorageContext undoStorage;
     private final SubmitSlot submitSlot;
     private PressManager pressManager;
+    @Setter
+    @Getter
+    private int index;
 
     public void setUndoStorage(Map<ItemStackKey, MaterialInfo> undoStorage) {
         this.undoStorage.setUndoStorage(undoStorage);
@@ -106,7 +111,7 @@ public class UndoScreenHandler extends ScreenHandler {
         if (player.getWorld().isClient) {
             return;
         }
-        this.undoStorage.saveToStorage(pressManager, player);
+        this.undoStorage.saveToStorage(pressManager, player, index);
     }
 
     @Override

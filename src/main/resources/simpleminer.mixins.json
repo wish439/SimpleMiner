@@ -4,7 +4,8 @@
   "package": "com.wishtoday.ts.simpleminer.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ItemScatterMixin",
+    "INTERCEPT_ServerEntityManagerMixin",
+    "PUREAPI_ItemScatterMixin",
     "WorldChunkMixin",
     "WorldMixin"
   ],

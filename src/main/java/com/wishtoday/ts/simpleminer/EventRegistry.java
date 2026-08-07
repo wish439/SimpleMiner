@@ -21,14 +21,16 @@ public class EventRegistry {
     private final ShapeRefresher shapeRefresher;
     private final BlockBreaker blockBreaker;
     private final TestCommands testCommands;
+    private final MainCommand mainCommand;
 
     @CreateConstruction
-    public EventRegistry(PressManager manager, ServerConfig serverConfig, BlockBreaker blockBreaker, ShapeRefresher shapeRefresher, TestCommands testCommands) {
+    public EventRegistry(PressManager manager, ServerConfig serverConfig, BlockBreaker blockBreaker, ShapeRefresher shapeRefresher, TestCommands testCommands, MainCommand mainCommand) {
         this.manager = manager;
         this.serverConfig = serverConfig;
         this.blockBreaker = blockBreaker;
         this.shapeRefresher = shapeRefresher;
         this.testCommands = testCommands;
+        this.mainCommand = mainCommand;
     }
 
     @PostConstruct
@@ -36,15 +38,12 @@ public class EventRegistry {
         ServerTickEvents.START_SERVER_TICK.register(this.shapeRefresher::onTick);
         PlayerBlockBreakEvents.BEFORE.register(this.blockBreaker::breakBlock);
         CommandRegistrationCallback.EVENT.register((dispatcher, dedicated, registrationEnvironment) -> {
-            MainCommand.register(dispatcher, player -> serverConfig, player -> this.manager.getPlayerMinerInfo(player).getCurrentIndividualConfig());
+            mainCommand.register(dispatcher, player -> serverConfig, player -> this.manager.getPlayerMinerInfo(player).getCurrentIndividualConfig());
             this.testCommands.register(dispatcher);
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
             this.manager.togglePlayerState(false, player, 0);
-            System.out.println("toggled" + player.getName());
-            System.out.println(this.manager.getPlayerMinerInfo(player));
-            System.out.println(this.manager.hashCode());
         });
     }
 }

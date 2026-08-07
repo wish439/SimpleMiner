@@ -1,8 +1,7 @@
-package com.wishtoday.ts.simpleminer.undo.client;
+package com.wishtoday.ts.simpleminer.undo.gui;
 
 import com.wishtoday.ts.simpleminer.ItemStackKey;
-import com.wishtoday.ts.simpleminer.MaterialInfo;
-import com.wishtoday.ts.simpleminer.undo.gui.UndoGuiStorageContext;
+import com.wishtoday.ts.simpleminer.undo.MaterialInfo;
 import com.wishtoday.ts.simpleminer.undo.gui.screenHandler.UndoScreenHandler;
 import com.wishtoday.ts.simpleminer.undo.network.payloads.RequestReturnAllC2SPayload;
 import com.wishtoday.ts.simpleminer.undo.network.payloads.RequestUndoC2SPayload;

@@ -1,4 +1,4 @@
-package com.wishtoday.ts.simpleminer;
+package com.wishtoday.ts.simpleminer.undo;
 
 import lombok.Data;
 import net.minecraft.item.Item;

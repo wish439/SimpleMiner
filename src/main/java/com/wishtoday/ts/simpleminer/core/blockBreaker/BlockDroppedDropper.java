@@ -1,8 +1,9 @@
 package com.wishtoday.ts.simpleminer.core.blockBreaker;
 
+import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
+import com.wishtoday.simpleservices.services.annotation.Name;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
-import com.wishtoday.ts.simpleminer.utils.ItemStackUtils;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
 import net.minecraft.block.Block;
@@ -16,12 +17,13 @@ import net.minecraft.world.World;
 
 import java.util.List;
 
-@Getter
+@Name("PUREAPI")
 @Service
 public class BlockDroppedDropper implements ItemCollector{
 
     private final Object2IntOpenHashMap<ItemStackKey> map;
 
+    @CreateConstruction
     public BlockDroppedDropper() {
         this.map = new Object2IntOpenHashMap<>();
     }
@@ -51,12 +53,13 @@ public class BlockDroppedDropper implements ItemCollector{
     }
 
     @Override
-    public boolean shouldApplyMixin(CollectContext context) {
+    public boolean shouldApplyMixin(CollectContext context, String mixinName) {
         return context.getPos() != null
                 && context.getPlayer() == null
                 && context.getWorld() != null
                 && context.getHandStack() == null
-                && context.getItemEntity() == null;
+                && context.getItemEntity() == null
+                && mixinName.startsWith("PUREAPI");
     }
 
     public void collectItemStack(CollectContext context) {

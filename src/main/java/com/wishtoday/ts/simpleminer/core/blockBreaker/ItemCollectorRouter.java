@@ -1,35 +1,47 @@
 package com.wishtoday.ts.simpleminer.core.blockBreaker;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
+import com.wishtoday.simpleservices.services.annotation.DependOn;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.Router;
+import com.wishtoday.ts.simpleminer.config.ServerConfig;
+import lombok.Getter;
 import lombok.experimental.Delegate;
 
+import java.util.Map;
+
 @Service
+@DependOn(ItemCollector.class)
 public class ItemCollectorRouter implements Router {
     @Delegate
-    private ItemCollector collector;
+    @Getter
+    private volatile ItemCollector collector;
+    private final Map<String, ItemCollector> delegates;
+    private static final String DEFAULT_IMPLEMENTATION_KEY = "PUREAPI";
+    private static ItemCollector defaultCollector;
 
     @CreateConstruction
-    public ItemCollectorRouter(ItemCollector collector) {
-        this.collector = collector;
+    public ItemCollectorRouter(ServerConfig config, Map<String, ItemCollector> map) {
+        this.delegates = map;
+        this.reload(config);
     }
-
-    //public void start() {
-    //    this.collector.start();
-    //}
-    //public boolean shouldCollectItem(CollectContext context) {
-    //    return this.collector.shouldCollectItem(context);
-    //}
-    //public void collectItem(CollectContext context) {
-    //    this.collector.collectItem(context);
-    //}
-    //public CollectedResult finish() {
-    //    return this.collector.finish();
-    //}
 
     @Override
-    public void reload() {
-
+    public boolean reload(ServerConfig config) {
+        ItemCollector c = delegates.get(config.getCollectStrategy().toUpperCase());
+        if (c != null) {
+            this.collector = c;
+            return true;
+        }
+        if (defaultCollector == null) {
+            ItemCollector itemCollector = this.delegates.get(DEFAULT_IMPLEMENTATION_KEY);
+            if (itemCollector == null) throw new IllegalStateException("No ItemCollector implementation defined");
+            defaultCollector = itemCollector;
+        }
+        this.collector = defaultCollector;
+        return false;
+        //Optional<ItemCollector> first = Container.getInstance().getFirst(ItemCollector.class);
+        //first.ifPresent(itemCollector -> this.collector = itemCollector);
     }
+
 }

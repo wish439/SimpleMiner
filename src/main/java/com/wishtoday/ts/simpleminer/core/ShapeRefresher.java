@@ -5,6 +5,7 @@ import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
+import com.wishtoday.ts.simpleminer.network.MineBlockSyncS2CPayload;
 import com.wishtoday.ts.simpleminer.shape.Shape;
 import com.wishtoday.ts.simpleminer.shape.ShapeContext;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
@@ -12,8 +13,10 @@ import com.wishtoday.ts.simpleminer.shape.Shapes;
 import com.wishtoday.ts.simpleminer.utils.WorldUtils;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
@@ -72,6 +75,7 @@ public class ShapeRefresher {
             return Double.compare(da, db);
         });
         info.setBlockPoses(new ShapeResult(blockPoses, blockPos));
+        ServerPlayNetworking.send((ServerPlayerEntity) player, new MineBlockSyncS2CPayload(blockPos.size()));
     }
 
     private @NotNull ShapeContext getShapeContext(@NotNull PlayerEntity player, int maxSize, BlockPos raycast) {

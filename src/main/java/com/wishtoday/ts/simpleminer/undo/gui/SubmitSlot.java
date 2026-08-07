@@ -1,7 +1,7 @@
 package com.wishtoday.ts.simpleminer.undo.gui;
 
 import com.wishtoday.ts.simpleminer.ItemStackKey;
-import com.wishtoday.ts.simpleminer.MaterialInfo;
+import com.wishtoday.ts.simpleminer.undo.MaterialInfo;
 import lombok.Getter;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;

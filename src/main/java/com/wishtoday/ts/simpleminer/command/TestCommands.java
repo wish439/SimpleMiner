@@ -4,7 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
-import com.wishtoday.ts.simpleminer.MaterialInfo;
+import com.wishtoday.ts.simpleminer.undo.MaterialInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
 import com.wishtoday.ts.simpleminer.undo.UndoConductor;
 import com.wishtoday.ts.simpleminer.undo.UndoStorage;
@@ -52,12 +52,11 @@ public class TestCommands {
     private int executeUndo(CommandContext<ServerCommandSource> commandContext) {
         ServerPlayerEntity player = commandContext.getSource().getPlayer();
         if (player == null) return -1;
-        undoConductor.undo(player);
         return 1;
     }
 
     private int executeTryOpenGui(CommandContext<ServerCommandSource> commandContext) {
-        try {
+        /*try {
             ServerPlayerEntity player = commandContext.getSource().getPlayer();
             if (player == null) return -1;
             UndoStorage storage = this.pressManager.getPlayerMinerInfo(player).getUndoStorage();
@@ -75,7 +74,8 @@ public class TestCommands {
         } catch (Exception e) {
             log.error("e: ", e);
             throw new RuntimeException(e);
-        }
+        }*/
+        return 1;
     }
 
     private Map<ItemStackKey, MaterialInfo> genTestDataFroStack(@Nullable Object2IntOpenCustomHashMap<ItemStackKey> itemStacks) {

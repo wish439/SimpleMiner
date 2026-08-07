@@ -3,7 +3,6 @@ package com.wishtoday.ts.simpleminer.undo;
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
-import com.wishtoday.ts.simpleminer.MaterialInfo;
 import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
 import com.wishtoday.ts.simpleminer.core.BlockStorage;
@@ -33,14 +32,14 @@ public class UndoConductor {
     }
 
     @Nullable
-    public UndoStorage getUndoStorage(PlayerEntity player) {
+    public UndoStorage getUndoStorage(PlayerEntity player, int index) {
         PlayerMinerInfo info = pressManager.getPlayerMinerInfo(player);
-        return info.getUndoStorage();
+        return info.getUndoStorages().get(index);
     }
 
-    public boolean returnAllMaterial(PlayerEntity player) {
+    public boolean returnAllMaterial(PlayerEntity player, int index) {
         PlayerMinerInfo info = pressManager.getPlayerMinerInfo(player);
-        UndoStorage undoStorage = info.getUndoStorage();
+        UndoStorage undoStorage = info.getUndoStorages().get(index);
         if (undoStorage == null) return false;
         Map<ItemStackKey, MaterialInfo> map = undoStorage.getItems();
         return this.returnAllMaterial(map, player);
@@ -64,12 +63,12 @@ public class UndoConductor {
         }
     }
 
-    public void undo(PlayerEntity player) {
+    public void undo(PlayerEntity player, int index) {
         PlayerMinerInfo info = pressManager.getPlayerMinerInfo(player);
-        UndoStorage undoStorage = info.getUndoStorage();
+        UndoStorage undoStorage = this.getUndoStorage(player, index);
         if (undoStorage == null) return;
         this.undo(player.getWorld(), undoStorage);
-        info.setUndoStorage(null);
+        info.getUndoStorages().remove(index);
     }
 
     private void undo(World world, UndoStorage undoStorage) {

@@ -6,6 +6,7 @@ import com.wishtoday.ts.simpleminer.mixinInterface.WorldExtension;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.block.BlockState;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -84,5 +85,10 @@ public class UncertainShape implements Shape {
     @Override
     public int index() {
         return 0;
+    }
+
+    @Override
+    public Text getDisplayName() {
+        return Text.of("不定型");
     }
 }

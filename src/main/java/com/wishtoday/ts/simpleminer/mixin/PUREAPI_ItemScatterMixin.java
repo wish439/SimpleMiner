@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @ServiceClass(ServiceFieldType.STATIC)
 @Mixin(ItemScatterer.class)
-public class ItemScatterMixin {
+public class PUREAPI_ItemScatterMixin {
     @ServiceField
     private static ItemCollectorRouter router;
     @Unique
@@ -30,7 +30,7 @@ public class ItemScatterMixin {
     private static void onStateReplaced(BlockState state, BlockState newState, World world, BlockPos pos, CallbackInfo ci) {
         if (BlockBreaker.getBlockBreaking()) {
             CONTEXT.setPos(pos);CONTEXT.setWorld(world);
-            if (!router.shouldApplyMixin(CONTEXT)) return;
+            if (!router.shouldApplyMixin(CONTEXT, "PUREAPI_ItemScatterMixin")) return;
             ci.cancel();
         }
     }
@@ -39,7 +39,7 @@ public class ItemScatterMixin {
     private static void onSpawn(World world, double x, double y, double z, Inventory inventory, CallbackInfo ci) {
         if (BlockBreaker.getBlockBreaking()) {
             CONTEXT.setPos(new BlockPos((int) x, (int) y, (int) z));CONTEXT.setWorld(world);
-            if (!router.shouldApplyMixin(CONTEXT)) return;
+            if (!router.shouldApplyMixin(CONTEXT, "PUREAPI_ItemScatterMixin")) return;
             ci.cancel();
         }
     }
@@ -48,7 +48,7 @@ public class ItemScatterMixin {
     private static void onSpawn1(World world, double x, double y, double z, ItemStack stack, CallbackInfo ci) {
         if (BlockBreaker.getBlockBreaking()) {
             CONTEXT.setPos(new BlockPos((int) x, (int) y, (int) z));CONTEXT.setWorld(world);
-            if (!router.shouldApplyMixin(CONTEXT)) return;
+            if (!router.shouldApplyMixin(CONTEXT, "PUREAPI_ItemScatterMixin")) return;
             ci.cancel();
         }
     }
@@ -57,7 +57,7 @@ public class ItemScatterMixin {
     private static void onSpawn2(World world, BlockPos pos, DefaultedList<ItemStack> stacks, CallbackInfo ci) {
         if (BlockBreaker.getBlockBreaking()) {
             CONTEXT.setPos(pos);CONTEXT.setWorld(world);
-            if (!router.shouldApplyMixin(CONTEXT)) return;
+            if (!router.shouldApplyMixin(CONTEXT, "PUREAPI_ItemScatterMixin")) return;
             ci.cancel();
         }
     }
