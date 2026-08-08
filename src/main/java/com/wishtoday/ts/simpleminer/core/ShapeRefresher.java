@@ -18,6 +18,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,6 +58,7 @@ public class ShapeRefresher {
     }
 
     public void refresh(PlayerMinerInfo info, BlockPos raycast) {
+        if (raycast == null) return;
         if (info == null) return;
         PlayerEntity player = info.getPlayer();
         Shape shape = shapes.getFromIndex(info.getCurrentShape());
@@ -80,6 +83,8 @@ public class ShapeRefresher {
 
     private @NotNull ShapeContext getShapeContext(@NotNull PlayerEntity player, int maxSize, BlockPos raycast) {
         World world = player.getWorld();
-        return new ShapeContext(maxSize, player, raycast, world.getBlockState(raycast), world);
+        Vec3d rotationVec = player.getRotationVec(1.0f);
+        Direction facing = Direction.getFacing(rotationVec);
+        return new ShapeContext(maxSize, player, raycast, world.getBlockState(raycast), world, facing);
     }
 }

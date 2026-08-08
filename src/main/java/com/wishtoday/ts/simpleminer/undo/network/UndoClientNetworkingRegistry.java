@@ -32,7 +32,6 @@ public class UndoClientNetworkingRegistry implements ClientNetworkExtendFutures 
     private void handleUndoListSyncS2CPayload(UndoListSyncS2CPayload payload, ClientPlayNetworking.Context context) {
         MinecraftClient client = context.client();
         client.execute(() -> {
-            System.out.println("List Client:" + payload.displayInfos());
             Screen screen = client.currentScreen;
             if (!(screen instanceof UndoListScreen undoListScreen)) {
                 return;
@@ -57,7 +56,7 @@ public class UndoClientNetworkingRegistry implements ClientNetworkExtendFutures 
             undoScreenHandler.setUndoStorage(map);
             int value = undoData.completedCount();
             undoScreenHandler.setCompletedCount(value);
-            undoScreenHandler.setIndex(undoData.index());
+            undoScreenHandler.setUuid(undoData.uuid());
             Screen screen = mc.currentScreen;
             if (!(screen instanceof UndoScreen undoScreen)) return;
             undoScreen.refreshEntryMap();

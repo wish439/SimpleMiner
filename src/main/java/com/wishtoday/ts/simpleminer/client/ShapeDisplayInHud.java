@@ -6,11 +6,13 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.PlainTextContent;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextContent;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.*;
+import net.minecraft.util.Formatting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,22 +34,39 @@ public class ShapeDisplayInHud implements HudRenderCallback {
 
         if (shape == null) return;
         List<Text> lines = new ArrayList<>();
-
-        Text text = shape.getDisplayName();
         int currentBlocks = SimpleminerClient.getCurrentBlocks();
-
         if (currentBlocks != -1) {
             Text text1 = Text.of("将破坏" + currentBlocks + "方块");
             lines.add(text1);
         }
+
+        Shape last = this.shapes.getLast(shape);
+        if (last != null) {
+            MutableText name = (MutableText) last.getDisplayName();
+            name.fillStyle(Style.EMPTY
+                    .withColor(Formatting.GRAY));
+            lines.add(name);
+        }
+        Text text = shape.getDisplayName();
         lines.add(text);
-        int x = 10;
-        int y = 10;
+
+        Shape next = this.shapes.getNext(shape);
+        if (next != null) {
+            MutableText t = (MutableText) next.getDisplayName();
+            t.fillStyle(Style.EMPTY
+                    .withColor(Formatting.GRAY));
+            lines.add(t);
+        }
+        int x = 0;
+        int y = 0;
+        MatrixStack matrices = drawContext.getMatrices();
+        matrices.push();
+        matrices.translate(10,10,0);
         TextRenderer textRenderer = client.textRenderer;
         for (Text line : lines) {
-            drawContext.drawText(textRenderer, line, x, y, 0xFFFFFF, true);
-            int i = textRenderer.getWidth(line);
-            y += i;
+            drawContext.drawText(textRenderer, line, 0, y, 0xFFFFFF, true);
+            y += textRenderer.fontHeight;
         }
+        matrices.pop();
     }
 }

@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class UndoConductor {
@@ -32,14 +33,14 @@ public class UndoConductor {
     }
 
     @Nullable
-    public UndoStorage getUndoStorage(PlayerEntity player, int index) {
+    public UndoStorage getUndoStorage(PlayerEntity player, UUID uuid) {
         PlayerMinerInfo info = pressManager.getPlayerMinerInfo(player);
-        return info.getUndoStorages().get(index);
+        return info.getUndoStorage(uuid);
     }
 
-    public boolean returnAllMaterial(PlayerEntity player, int index) {
+    public boolean returnAllMaterial(PlayerEntity player, UUID uuid) {
         PlayerMinerInfo info = pressManager.getPlayerMinerInfo(player);
-        UndoStorage undoStorage = info.getUndoStorages().get(index);
+        UndoStorage undoStorage = info.getUndoStorage(uuid);
         if (undoStorage == null) return false;
         Map<ItemStackKey, MaterialInfo> map = undoStorage.getItems();
         return this.returnAllMaterial(map, player);
@@ -63,12 +64,12 @@ public class UndoConductor {
         }
     }
 
-    public void undo(PlayerEntity player, int index) {
+    public void undo(PlayerEntity player, UUID uuid) {
         PlayerMinerInfo info = pressManager.getPlayerMinerInfo(player);
-        UndoStorage undoStorage = this.getUndoStorage(player, index);
+        UndoStorage undoStorage = this.getUndoStorage(player, uuid);
         if (undoStorage == null) return;
         this.undo(player.getWorld(), undoStorage);
-        info.getUndoStorages().remove(index);
+        info.removeUndoStorage(uuid);
     }
 
     private void undo(World world, UndoStorage undoStorage) {

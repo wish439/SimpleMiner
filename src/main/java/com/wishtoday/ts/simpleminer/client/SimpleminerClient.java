@@ -12,20 +12,31 @@ import me.shedaniel.autoconfig.serializer.DummyConfigSerializer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.event.Event;
+import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
 public class SimpleminerClient implements ClientModInitializer {
 
     @Getter
+    @Setter
     private static int shapeIndex = 0;
     @Getter
     private static boolean pressing = false;
     @Getter
     @Setter
     private static int currentBlocks = -1;
+
+    public static final Event<Scroll> SCROLL_EVENT = EventFactory.createArrayBacked(Scroll.class, (listeners) -> (d1, d2) -> {
+        for (Scroll listener : listeners) {
+            listener.onScroll(d1, d2);
+        }
+    });
 
     @Override
     public void onInitializeClient() {
@@ -44,8 +55,15 @@ public class SimpleminerClient implements ClientModInitializer {
             currentBlocks = -1;
         }
         if (KeyBindings.UNDO_KEY.wasPressed()) {
+            if (!Screen.hasControlDown()) {
+                return;
+            }
             MinecraftClient.getInstance().setScreen(new UndoListScreen(Text.of("撤回列表")));
             ClientPlayNetworking.send(new UndoListSyncRequestC2SPayload());
         }
+    }
+
+    public interface Scroll {
+        void onScroll(double amountX, double amountY);
     }
 }

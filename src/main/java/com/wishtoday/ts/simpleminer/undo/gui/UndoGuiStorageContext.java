@@ -12,6 +12,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.ToIntFunction;
 
 @Data
@@ -74,13 +75,11 @@ public class UndoGuiStorageContext {
         return i - j;
     }
 
-    public void saveToStorage(PressManager pressManager, PlayerEntity player, int index) {
+    public void saveToStorage(PressManager pressManager, PlayerEntity player, UUID uuid) {
         if (pressManager == null) return;
         PlayerMinerInfo info = pressManager.getPlayerMinerInfo(player);
         if (info == null) return;
-        List<UndoStorage> undoStorages = info.getUndoStorages();
-        if (undoStorages.size() <= index) return;
-        UndoStorage storage = undoStorages.get(index);
+        UndoStorage storage = info.getUndoStorage(uuid);
         if (storage == null) return;
         storage.setItems(this.undoStorage);
         storage.setCompletedCount(this.completedCount);

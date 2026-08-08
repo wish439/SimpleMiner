@@ -8,21 +8,11 @@ import com.wishtoday.ts.simpleminer.PressManager;
 import com.wishtoday.ts.simpleminer.config.ConfigType;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
+import com.wishtoday.ts.simpleminer.core.ShapeRefresher;
 import com.wishtoday.ts.simpleminer.network.config.SyncConfigC2SPayload;
-import com.wishtoday.ts.simpleminer.shape.Shape;
-import com.wishtoday.ts.simpleminer.shape.ShapeContext;
-import com.wishtoday.ts.simpleminer.shape.ShapeResult;
-import com.wishtoday.ts.simpleminer.shape.Shapes;
 import com.wishtoday.ts.simpleminer.utils.WorldUtils;
-import it.unimi.dsi.fastutil.longs.LongArrayList;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -30,15 +20,15 @@ import java.util.List;
 public class NetworkingRegistry {
     private final ServerConfig serverConfig;
     private final PressManager pressManager;
-    private final Shapes shapes;
     private final List<ServerNetworkExtendFutures> futures;
+    private final ShapeRefresher shapeRefresher;
 
     @CreateConstruction
-    public NetworkingRegistry(ServerConfig serverConfig, PressManager pressManager, Shapes shapes, List<ServerNetworkExtendFutures> futures) {
+    public NetworkingRegistry(ServerConfig serverConfig, PressManager pressManager, List<ServerNetworkExtendFutures> futures, ShapeRefresher shapeRefresher) {
         this.serverConfig = serverConfig;
         this.pressManager = pressManager;
-        this.shapes = shapes;
         this.futures = futures;
+        this.shapeRefresher = shapeRefresher;
     }
 
     @PostConstruct
@@ -66,30 +56,6 @@ public class NetworkingRegistry {
         }
         PlayerMinerInfo info = pressManager.getPressedPlayerMinerInfo(context.player());
         if (info == null) return;
-        Shape shape = shapes.getFromIndex(info.getCurrentShape());
-        ShapeContext shapeContext = this.getShapeContext(context.player(), serverConfig.getMaxSize());
-        if (shapeContext == null) return;
-        PlayerEntity player = info.getPlayer();
-        LongOpenHashSet blockPoses = shape.walk(shapeContext);
-        LongArrayList blockPos = new LongArrayList(blockPoses);
-        blockPos.sort((a, b) -> {
-            BlockPos pos = BlockPos.fromLong(a);
-            BlockPos pos2 = BlockPos.fromLong(b);
-            double da = player.getBlockPos().getSquaredDistance(pos);
-            double db = player.getBlockPos().getSquaredDistance(pos2);
-            return Double.compare(da, db);
-        });
-        info.setBlockPoses(new ShapeResult(blockPoses, blockPos));
+        this.shapeRefresher.refresh(info, WorldUtils.raycast(context.player()));
     }
-
-    private @Nullable ShapeContext getShapeContext(@NotNull PlayerEntity player, int maxSize) {
-        World world = player.getWorld();
-        BlockPos raycast = WorldUtils.raycast(player);
-        if (raycast == null) {
-            return null;
-        }
-        return new ShapeContext(maxSize, player, raycast, world.getBlockState(raycast), world);
-    }
-
-
 }

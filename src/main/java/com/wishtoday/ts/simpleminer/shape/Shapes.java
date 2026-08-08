@@ -2,6 +2,7 @@ package com.wishtoday.ts.simpleminer.shape;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -9,11 +10,14 @@ import java.util.List;
 
 @Service
 public class Shapes {
-    private final List<Shape> shapes;
+    private final Int2ObjectOpenHashMap<Shape> shapes;
     @CreateConstruction
     public Shapes(List<Shape> shapes) {
-        this.shapes = new ArrayList<>(shapes);
-        this.shapes.sort(Comparator.comparingInt(Shape::index));
+        Int2ObjectOpenHashMap<Shape> map = new Int2ObjectOpenHashMap<>();
+        for (Shape shape : shapes) {
+            map.put(shape.index(), shape);
+        }
+        this.shapes = map;
     }
     public Shape getFromIndex(int index) {
         if (index < 0) {
@@ -23,5 +27,23 @@ public class Shapes {
             return null;
         }
         return shapes.get(index);
+    }
+    public Shape getNext(Shape shape) {
+        if (shape == null) {
+            return null;
+        }
+        int k = shape.index() + 1;
+        return shapes.get(k);
+    }
+
+    public Shape getLast(Shape shape) {
+        if (shape == null) {
+            return null;
+        }
+        return shapes.get(shape.index() - 1);
+    }
+
+    public int getShapeCount() {
+        return shapes.size();
     }
 }

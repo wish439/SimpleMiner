@@ -18,8 +18,8 @@ import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UndoNetworkingRegistry implements ServerNetworkExtendFutures {
@@ -50,8 +50,8 @@ public class UndoNetworkingRegistry implements ServerNetworkExtendFutures {
         context.server().execute(() -> {
             ServerPlayerEntity player = context.player();
             if (player == null) return;
-            int index = payload.index();
-            UndoStorage storage = this.pressManager.getPlayerMinerInfo(player).getUndoStorages().get(index);
+            UUID uuid = payload.uuid();
+            UndoStorage storage = this.pressManager.getPlayerMinerInfo(player).getUndoStorage(uuid);
             if (storage == null) {
                 player.sendMessage(Text.of("There is no such UndoStorage!Please try again later."), false);
                 return;
@@ -59,9 +59,9 @@ public class UndoNetworkingRegistry implements ServerNetworkExtendFutures {
             Map<ItemStackKey, MaterialInfo> map = storage.getItems();
             //Map<Item, MaterialInfo> map = this.genTestData(List.of(Items.DIAMOND, Items.EMERALD, Items.GOLD_INGOT));
             //Map<ItemStackKey, MaterialInfo> map = this.genTestDataFroStack(items);
-            player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, playerInventory, player1) -> new UndoScreenHandler(syncId, playerInventory, map, this.pressManager, storage.getCompletedCount(), index), Text.of("Test")));
+            player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, playerInventory, player1) -> new UndoScreenHandler(syncId, playerInventory, map, this.pressManager, storage.getCompletedCount(), uuid), Text.of("Test")));
             ScreenHandler handler = player.currentScreenHandler;
-            ServerPlayNetworking.send(player, new UndoDataSyncS2CPayload(handler.syncId, new UndoData(map, storage.getCompletedCount(), index)));
+            ServerPlayNetworking.send(player, new UndoDataSyncS2CPayload(handler.syncId, new UndoData(map, storage.getCompletedCount(), uuid)));
         });
     }
 
@@ -69,11 +69,18 @@ public class UndoNetworkingRegistry implements ServerNetworkExtendFutures {
         context.server().execute(() -> {
             ServerPlayerEntity player = context.player();
             PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(player);
-            List<UndoStorage> undoStorages = info.getUndoStorages();
+            Collection<UndoStorage> undoStorages = info.getUndoStorages();
             List<UndoDisplayInfo> list = undoStorages.stream()
-                    .map(u -> new UndoDisplayInfo("I don't know", u.getTime()))
+                    .map(u -> new UndoDisplayInfo("I don't know", u.getTime(), u.getUuid(), u.getItems().values().stream()
+                            .sorted(Comparator.comparingInt(MaterialInfo::getMaxCount).reversed())
+                            .limit(3)
+                            .map(i -> {
+                                ItemStack stack = i.getItemStack();
+                                stack.setCount(1);
+                                return stack;
+                            })
+                            .collect(Collectors.toList()), u.getItems().size() > 3))
                     .toList();
-            System.out.println("List: " + list);
             ServerPlayNetworking.send(player, new UndoListSyncS2CPayload(list));
         });
     }
@@ -119,7 +126,7 @@ public class UndoNetworkingRegistry implements ServerNetworkExtendFutures {
         if (!(handler instanceof UndoScreenHandler undoScreenHandler)) return;
         boolean fully = undoScreenHandler.getUndoStorage().isFully();
         if (!fully) return;
+        this.undoConductor.undo(player, undoScreenHandler.getUuid());
         player.closeHandledScreen();
-        this.undoConductor.undo(player, undoScreenHandler.getIndex());
     }
 }

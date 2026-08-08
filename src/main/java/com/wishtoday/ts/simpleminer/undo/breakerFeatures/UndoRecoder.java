@@ -14,6 +14,7 @@ import com.wishtoday.ts.simpleminer.undo.UndoStorage;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.item.ItemStack;
@@ -22,6 +23,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -60,7 +62,7 @@ public class UndoRecoder implements BlockBreakerFeature {
     }
 
     private void makeUndoForPlayer(PlayerMinerInfo playerMinerInfo, Long2ObjectLinkedOpenHashMap<BlockStorage> blockPoses, Object2IntOpenHashMap<ItemStackKey> itemStacks) {
-        Map<ItemStackKey, MaterialInfo> newMap = new HashMap<>();
+        HashMap<ItemStackKey, MaterialInfo> newMap = new HashMap<>();
         for (Object2IntMap.Entry<ItemStackKey> entry : itemStacks.object2IntEntrySet()) {
             int intValue = entry.getIntValue();
             ItemStackKey key = entry.getKey();

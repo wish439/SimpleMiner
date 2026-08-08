@@ -7,10 +7,12 @@
     "INTERCEPT_ServerEntityManagerMixin",
     "PUREAPI_ItemScatterMixin",
     "WorldChunkMixin",
-    "WorldMixin"
+    "WorldMixin",
+    "Accessor.RegistryEntryReferenceAccessor"
   ],
   "client": [
-    "HandledScreensMixin"
+    "HandledScreensMixin",
+    "MouseMixin"
   ],
   "injectors": {
     "defaultRequire": 1

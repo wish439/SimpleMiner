@@ -27,6 +27,7 @@ public class PressManager {
         if (playerMinerInfos.containsKey(player.getUuid())) {
             PlayerMinerInfo info = this.playerMinerInfos.get(player.getUuid());
             info.setKeyPressed(state);
+            info.setCurrentShape(index);
             return;
         }
         this.playerMinerInfos.put(player.getUuid(), new PlayerMinerInfo(index, state, player, new IndividualConfig()));

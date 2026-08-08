@@ -16,6 +16,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 
 import java.util.Map;
+import java.util.UUID;
 
 public class UndoScreenHandler extends ScreenHandler {
     public UndoScreenHandler(int syncId, PlayerInventory playerInventory) {
@@ -38,12 +39,12 @@ public class UndoScreenHandler extends ScreenHandler {
         this.pressManager = null;
     }
 
-    public UndoScreenHandler(int syncId, PlayerInventory playerInventory, Map<ItemStackKey, MaterialInfo> undoMaterialInfoMap, PressManager pressManager, int completedCount, int index) {
+    public UndoScreenHandler(int syncId, PlayerInventory playerInventory, Map<ItemStackKey, MaterialInfo> undoMaterialInfoMap, PressManager pressManager, int completedCount, UUID uuid) {
         this(syncId, playerInventory);
         this.setUndoStorage(undoMaterialInfoMap);
         this.pressManager = pressManager;
         this.setCompletedCount(completedCount);
-        this.index = index;
+        this.uuid = uuid;
     }
 
     @Getter
@@ -52,7 +53,7 @@ public class UndoScreenHandler extends ScreenHandler {
     private PressManager pressManager;
     @Setter
     @Getter
-    private int index;
+    private UUID uuid;
 
     public void setUndoStorage(Map<ItemStackKey, MaterialInfo> undoStorage) {
         this.undoStorage.setUndoStorage(undoStorage);
@@ -111,7 +112,7 @@ public class UndoScreenHandler extends ScreenHandler {
         if (player.getWorld().isClient) {
             return;
         }
-        this.undoStorage.saveToStorage(pressManager, player, index);
+        this.undoStorage.saveToStorage(pressManager, player, uuid);
     }
 
     @Override

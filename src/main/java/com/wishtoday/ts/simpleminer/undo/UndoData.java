@@ -8,21 +8,22 @@ import net.minecraft.network.codec.PacketCodecs;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
-public record UndoData(Map<ItemStackKey, MaterialInfo> map, int completedCount, int index) {
+public record UndoData(Map<ItemStackKey, MaterialInfo> map, int completedCount, UUID uuid) {
     private static final PacketCodec<RegistryByteBuf, Map<ItemStackKey, MaterialInfo>> MAP_PACKET_CODEC = PacketCodecs.map(HashMap::new, ItemStackKey.PACKET_CODEC, MaterialInfo.PACKET_CODEC);
     public static final PacketCodec<RegistryByteBuf, UndoData> PACKET_CODEC = PacketCodec.of(UndoData::write, UndoData::read);
 
     private void write(RegistryByteBuf buf) {
         MAP_PACKET_CODEC.encode(buf, this.map);
         buf.writeVarInt(this.completedCount);
-        buf.writeVarInt(this.index);
+        buf.writeUuid(this.uuid);
     }
 
     private static UndoData read(RegistryByteBuf buf) {
         Map<ItemStackKey, MaterialInfo> map = MAP_PACKET_CODEC.decode(buf);
         int completedCount = buf.readVarInt();
-        int index = buf.readVarInt();
-        return new UndoData(map, completedCount, index);
+        UUID uuid = buf.readUuid();
+        return new UndoData(map, completedCount, uuid);
     }
 }
