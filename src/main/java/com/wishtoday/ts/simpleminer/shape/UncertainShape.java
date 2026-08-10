@@ -2,6 +2,7 @@ package com.wishtoday.ts.simpleminer.shape;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
+import com.wishtoday.ts.simpleminer.core.matcher.BlockMatcher;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldExtension;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -16,9 +17,11 @@ import java.util.*;
 public class UncertainShape implements Shape {
     private final int[][] blockOffsets;
     private static final int REFERENCE_COUNT_SCOPE = 6;
+    private final BlockMatcher blockMatcher;
 
     @CreateConstruction
-    public UncertainShape() {
+    public UncertainShape(BlockMatcher blockMatcher) {
+        this.blockMatcher = blockMatcher;
         int[][] offsets = new int[26][3];
         int o = 0;
         for (int i = -1; i <= 1; i++) {
@@ -69,9 +72,12 @@ public class UncertainShape implements Shape {
                 if (blockState.isAir()) {
                     continue;
                 }
-                if (matchState.getBlock() != blockState.getBlock()) {
+                if (!this.blockMatcher.match(matchState.getBlock(), blockState.getBlock())) {
                     continue;
                 }
+                /*if (matchState.getBlock() != blockState.getBlock()) {
+                    continue;
+                }*/
                 eventually.add(add);
                 if (eventually.size() >= context.getMaxSize()) {
                     break OUTER;

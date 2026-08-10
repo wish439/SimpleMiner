@@ -3,7 +3,7 @@ package com.wishtoday.ts.simpleminer.core.blockBreaker;
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.DependOn;
 import com.wishtoday.simpleservices.services.annotation.Service;
-import com.wishtoday.ts.simpleminer.Router;
+import com.wishtoday.ts.simpleminer.Reloadable;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
 import lombok.Getter;
 import lombok.experimental.Delegate;
@@ -12,7 +12,7 @@ import java.util.Map;
 
 @Service
 @DependOn(ItemCollector.class)
-public class ItemCollectorRouter implements Router {
+public class ItemCollectorRouter implements Reloadable {
     @Delegate
     @Getter
     private volatile ItemCollector collector;

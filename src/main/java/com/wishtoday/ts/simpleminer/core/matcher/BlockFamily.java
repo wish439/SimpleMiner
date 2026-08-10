@@ -1,8 +1,7 @@
-package com.wishtoday.ts.simpleminer.core;
+package com.wishtoday.ts.simpleminer.core.matcher;
 
 import com.wishtoday.ts.simpleminer.mixin.Accessor.RegistryEntryReferenceAccessor;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.block.Block;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -10,38 +9,19 @@ import net.minecraft.registry.tag.TagKey;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class BlockMatcher {
-    private final Map<Block, IntOpenHashSet> blockRawIds;
+public class BlockFamily {
+    private final IntOpenHashSet allowedIds;
     private final Set<TagKey<Block>> allowedTags;
     private final Map<Block, Set<TagKey<Block>>> tagCache;
 
-    public BlockMatcher() {
-        this.blockRawIds = new HashMap<>();
-        this.allowedTags = new HashSet<>();
+    public BlockFamily(IntOpenHashSet allowedIds, Set<TagKey<Block>> allowedTags) {
+        this.allowedIds = allowedIds;
+        this.allowedTags = allowedTags;
         this.tagCache = new HashMap<>();
-    }
-
-    public boolean match(Block a, Block b) {
-        if (a == b) {
-            return true;
-        }
-        IntOpenHashSet ints = this.blockRawIds.get(a);
-        if (fromIdTryMatch(a, b, ints)) {
-            return true;
-        }
-        Set<TagKey<Block>> aTags = getOrCreateTags(a);
-        Set<TagKey<Block>> bTags = getOrCreateTags(b);
-        for (TagKey<Block> tag : aTags) {
-            if (bTags.contains(tag)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private Set<TagKey<Block>> getOrCreateTags(Block a) {
@@ -63,19 +43,21 @@ public class BlockMatcher {
                 .collect(Collectors.toSet());
     }
 
-    private boolean fromIdTryMatch(Block a, Block b, IntOpenHashSet longs) {
-        if (longs != null) {
-            boolean contains = longs.contains(Registries.BLOCK.getRawId(b));
-            if (contains) {
+    public boolean match(Block a, Block b) {
+        if (a == b) {
+            return true;
+        }
+        return this.isAllowed(a) && this.isAllowed(b);
+    }
+
+    private boolean isAllowed(Block a) {
+        if (this.allowedIds.contains(Registries.BLOCK.getRawId(a))) {
+            return true;
+        }
+        Set<TagKey<Block>> aTags = getOrCreateTags(a);
+        for (TagKey<Block> tag : aTags) {
+            if (this.allowedTags.contains(tag)) {
                 return true;
-            }
-        } else  {
-            IntOpenHashSet set = this.blockRawIds.get(b);
-            if (set != null) {
-                boolean contains = set.contains(Registries.BLOCK.getRawId(a));
-                if (contains) {
-                    return true;
-                }
             }
         }
         return false;

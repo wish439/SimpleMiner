@@ -2,7 +2,7 @@ package com.wishtoday.ts.simpleminer.core.blockBreaker;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
-import com.wishtoday.ts.simpleminer.Router;
+import com.wishtoday.ts.simpleminer.Reloadable;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
 import lombok.Getter;
 import lombok.experimental.Delegate;
@@ -10,7 +10,7 @@ import lombok.experimental.Delegate;
 import java.util.Map;
 
 @Service
-public class SingleBlockBreakerRouter implements Router {
+public class SingleBlockBreakerRouter implements Reloadable {
 
     private final Map<String, SingleBlockBreaker> delegates;
     private static final String DEFAULT_IMPLEMENTATION_KEY = "PUREAPI";
