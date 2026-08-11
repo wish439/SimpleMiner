@@ -66,11 +66,10 @@ public class UndoListEntry extends AlwaysSelectedEntryListWidget<UndoListEntry.E
         return this.width;
     }*/
 
-    public static class Entry extends AlwaysSelectedEntryListWidget.Entry<Entry> {
+    public class Entry extends AlwaysSelectedEntryListWidget.Entry<Entry> {
         private final String text;
         private final String time;
         private final UUID uuid;
-        private int x;
         private final MinecraftClient minecraftClient;
         private final List<ItemStack> stacks;
         private final boolean hasRemainMaterials;
@@ -86,7 +85,6 @@ public class UndoListEntry extends AlwaysSelectedEntryListWidget<UndoListEntry.E
                     ZoneId.systemDefault()
             );
             this.time = dateTime.format(FORMATTER);
-            this.x = 0;
             this.minecraftClient = MinecraftClient.getInstance();
             this.stacks = stacks;
         }
@@ -98,7 +96,6 @@ public class UndoListEntry extends AlwaysSelectedEntryListWidget<UndoListEntry.E
 
         @Override
         public void render(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
-            this.x = x;
             context.drawText(minecraftClient.textRenderer, Text.of(text), x, y, 0xFFFFFF, true);
             RenderUtils.drawScaleText(context, 0.5f, 0.5f, Text.of(time), x, y + 10, 0xFFFFFF, true);
             MatrixStack matrices = context.getMatrices();

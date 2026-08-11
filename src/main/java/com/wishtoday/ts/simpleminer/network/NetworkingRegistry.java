@@ -13,6 +13,7 @@ import com.wishtoday.ts.simpleminer.network.config.SyncConfigC2SPayload;
 import com.wishtoday.ts.simpleminer.utils.WorldUtils;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.util.math.BlockPos;
 
 import java.util.List;
 
@@ -37,7 +38,15 @@ public class NetworkingRegistry {
         ServerPlayNetworking.registerGlobalReceiver(KeywordPressedPayload.ID, this::handleKeywordPayload);
         PayloadTypeRegistry.playC2S().register(SyncConfigC2SPayload.ID, SyncConfigC2SPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(SyncConfigC2SPayload.ID, this::handleSyncConfigPayload);
+        PayloadTypeRegistry.playC2S().register(LinearInfosSyncC2SPayload.ID, LinearInfosSyncC2SPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(LinearInfosSyncC2SPayload.ID, this::handleLinearInfosSyncC2SPayload);
         this.futures.forEach(ServerNetworkExtendFutures::initialize);
+    }
+
+    private void handleLinearInfosSyncC2SPayload(LinearInfosSyncC2SPayload payload, ServerPlayNetworking.Context context) {
+        PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(context.player());
+        if (info == null) return;
+        info.setLinearShapeInfos(payload.infos());
     }
 
     private void handleSyncConfigPayload(SyncConfigC2SPayload payload, ServerPlayNetworking.Context context) {
@@ -56,6 +65,8 @@ public class NetworkingRegistry {
         }
         PlayerMinerInfo info = pressManager.getPressedPlayerMinerInfo(context.player());
         if (info == null) return;
-        this.shapeRefresher.refresh(info, WorldUtils.raycast(context.player()));
+        BlockPos raycast = WorldUtils.raycast(context.player());
+        if (raycast == null) return;
+        this.shapeRefresher.refresh(info, raycast);
     }
 }

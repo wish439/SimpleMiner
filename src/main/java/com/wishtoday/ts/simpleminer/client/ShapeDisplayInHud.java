@@ -1,5 +1,6 @@
 package com.wishtoday.ts.simpleminer.client;
 
+import com.wishtoday.ts.simpleminer.LinearShapeInfos;
 import com.wishtoday.ts.simpleminer.shape.Shape;
 import com.wishtoday.ts.simpleminer.shape.Shapes;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
@@ -30,7 +31,8 @@ public class ShapeDisplayInHud implements HudRenderCallback {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null) return;
 
-        Shape shape = this.shapes.getFromIndex(SimpleminerClient.getShapeIndex());
+        int shapeIndex = SimpleminerClient.getShapeIndex();
+        Shape shape = this.shapes.getFromIndex(shapeIndex);
 
         if (shape == null) return;
         List<Text> lines = new ArrayList<>();
@@ -56,6 +58,14 @@ public class ShapeDisplayInHud implements HudRenderCallback {
             t.fillStyle(Style.EMPTY
                     .withColor(Formatting.GRAY));
             lines.add(t);
+        }
+
+        if (shapeIndex == 1) {
+            LinearShapeInfos infos = SimpleminerClient.getLinearShapeInfos();
+            Text text1 = Text.of("当前width:" + infos.getWidth());
+            lines.add(text1);
+            Text text2 = Text.of("当前height:" + infos.getHeight());
+            lines.add(text2);
         }
         int x = 0;
         int y = 0;

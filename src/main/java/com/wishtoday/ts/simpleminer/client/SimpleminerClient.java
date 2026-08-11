@@ -1,5 +1,6 @@
 package com.wishtoday.ts.simpleminer.client;
 
+import com.wishtoday.ts.simpleminer.LinearShapeInfos;
 import com.wishtoday.ts.simpleminer.network.KeywordPressedPayload;
 import com.wishtoday.ts.simpleminer.undo.gui.UndoListScreen;
 import com.wishtoday.ts.simpleminer.undo.network.payloads.UndoListSyncRequestC2SPayload;
@@ -24,6 +25,9 @@ public class SimpleminerClient implements ClientModInitializer {
     @Getter
     @Setter
     private static int currentBlocks = -1;
+
+    @Getter
+    private static final LinearShapeInfos linearShapeInfos = LinearShapeInfos.DEFAULT.copy();
 
     public static final Event<Scroll> SCROLL_EVENT = EventFactory.createArrayBacked(Scroll.class, (listeners) -> (d1, d2) -> {
         for (Scroll listener : listeners) {

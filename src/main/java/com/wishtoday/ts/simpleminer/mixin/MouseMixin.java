@@ -2,7 +2,7 @@ package com.wishtoday.ts.simpleminer.mixin;
 
 import com.wishtoday.simpleservices.services.annotation.ServiceClass;
 import com.wishtoday.simpleservices.services.annotation.ServiceField;
-import com.wishtoday.ts.simpleminer.client.ShapeSwitcher;
+import com.wishtoday.ts.simpleminer.client.ShapeScrollHandler;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.Mouse;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Mouse.class)
 public class MouseMixin {
     @ServiceField
-    private ShapeSwitcher shapeSwitcher;
+    private ShapeScrollHandler shapeSwitcher;
     @Inject(method = "onMouseScroll", at = @At("HEAD"), cancellable = true)
     private void onScrollHead(long handle, double xOffset, double yOffset, CallbackInfo ci) {
         if (!ci.isCancelled()) {
