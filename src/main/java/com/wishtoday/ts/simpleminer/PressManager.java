@@ -17,6 +17,10 @@ public class PressManager {
         this.pressedPlayer = new HashSet<>();
     }
 
+    public void removePlayerMinerInfo(UUID uuid) {
+        this.playerMinerInfos.remove(uuid);
+    }
+
     public void togglePlayerState(boolean state, PlayerEntity player, int index) {
         if (pressedPlayer.contains(player.getUuid()) && !state) {
             this.pressedPlayer.remove(player.getUuid());

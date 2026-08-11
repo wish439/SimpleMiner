@@ -3,6 +3,7 @@
   "simpleminer.config.allowUndo": "Allow undo",
   "simpleminer.config.collectStrategy": "Collect strategy",
   "simpleminer.config.blockBreakStrategy": "Block break strategy",
+  "simpleminer.config.rightClickHandler": "Right click handler",
   "simpleminer.config.serverConfig": "Server config",
   "simpleminer.config.individualConfig": "Individual config",
   "simpleminer.config.individualConfig.personalMaxSize": "Personal max size",

@@ -5,7 +5,10 @@ import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldExtension;
+import com.wishtoday.ts.simpleminer.utils.BlockSorter;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongIterator;
+import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -33,7 +36,8 @@ public class LinearShape implements Shape {
         long targetPosLong = currentTargetPos.asLong();
         PlayerMinerInfo info = manager.getPlayerMinerInfo(player);
         World world = context.getWorld();
-        LongOpenHashSet longArrayList = this.generateLinearFromInfos(info.getLinearShapeInfos().getWidth(), info.getLinearShapeInfos().getHeight(), BlockPos.fromLong(targetPosLong), facing, context.getMaxSize(), p -> {
+        int maxSize = context.getMaxSize();
+        LongOpenHashSet longArrayList = this.generateLinearFromInfos(info.getLinearShapeInfos().getWidth(), info.getLinearShapeInfos().getHeight(), BlockPos.fromLong(targetPosLong), facing, p -> {
             //BlockState blockState = world.getBlockState(p);
             //return !blockState.isAir();
             return true;
@@ -42,11 +46,14 @@ public class LinearShape implements Shape {
         int currentStep = 0;
 
         LongOpenHashSet longs = LongOpenHashSet.of(targetPosLong);
-        LongOpenHashSet skipIndex = new LongOpenHashSet();
+        LongOpenHashSet lastLongs = new LongOpenHashSet();
+        boolean willEnd;
         OUTLINE:
-        while (context.getMaxSize() > longs.size()) {
+        while (maxSize > longs.size()) {
             LongIterator iterator = longArrayList.iterator();
             int count = 0;
+            int i = longs.size() + longArrayList.size();
+            willEnd = i >= maxSize;
             while (iterator.hasNext()) {
                 //if (count == longArrayList.size()) break OUTLINE;
                 //if (skipIndex.size() == longArrayList.size()) break OUTLINE;
@@ -60,18 +67,20 @@ public class LinearShape implements Shape {
                     if (count == longArrayList.size()) break OUTLINE;
                     continue;
                 }
-                if (context.getMaxSize() <= longs.size()) break OUTLINE;
+                if (willEnd) {
+                    lastLongs.add(add);
+                    continue;
+                }
+                if (maxSize <= longs.size()) break OUTLINE;
                 longs.add(add);
             }
+            LongArrayList list = BlockSorter.sortWithPlayerSquaredEuclid(lastLongs, player);
+            int min = Math.min(maxSize - longs.size(), list.size());
+            LongList longList = list.subList(0, min);
+            longs.addAll(longList);
+            lastLongs.clear();
             currentStep++;
         }
-        /*while (context.getMaxSize() > longs.size()) {
-            long add = BlockPos.add(targetPosLong, facing.getOffsetX(), facing.getOffsetY(), facing.getOffsetZ());
-            BlockState state = ((WorldExtension) world).simpleMiner$getBlockState(add);
-            targetPosLong = add;
-            if (state.isAir()) break;
-            longs.add(add);
-        }*/
         return longs;
     }
 
@@ -80,7 +89,6 @@ public class LinearShape implements Shape {
             , int height
             , BlockPos initial
             , Direction currentFacing
-            , final int maxSize
             , Predicate<BlockPos> filter) {
         Direction.Axis[] axes = this.getDirections(currentFacing);
         height -= 1;
@@ -98,7 +106,6 @@ public class LinearShape implements Shape {
         LongOpenHashSet result = new LongOpenHashSet();
         Iterable<BlockPos> iterate = BlockPos.iterate(pos, pos2);
         iterate.forEach(blockPos -> {
-            if (result.size() >= maxSize) return;
             if (filter.test(blockPos)) {
                 result.add(blockPos.asLong());
             }
@@ -111,9 +118,9 @@ public class LinearShape implements Shape {
             return new Direction.Axis[]{Direction.Axis.X, Direction.Axis.Z};
         }
         if (facing.getAxis() == Direction.Axis.Z) {
-            return new Direction.Axis[]{Direction.Axis.Y, Direction.Axis.X};
+            return new Direction.Axis[]{Direction.Axis.X, Direction.Axis.Y};
         }
-        return new Direction.Axis[]{Direction.Axis.Y, Direction.Axis.Z};
+        return new Direction.Axis[]{Direction.Axis.Z, Direction.Axis.Y};
     }
 
     @Override

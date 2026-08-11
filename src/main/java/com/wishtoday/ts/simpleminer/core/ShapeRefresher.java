@@ -57,6 +57,14 @@ public class ShapeRefresher {
         }
     }
 
+    public void refreshForce(PlayerMinerInfo info) {
+        BlockPos raycast = WorldUtils.raycast(info.getPlayer());
+        if (raycast == null) {
+            return;
+        }
+        this.refresh(info, raycast);
+    }
+
     public void refresh(PlayerMinerInfo info, BlockPos raycast) {
         if (raycast == null) return;
         if (info == null) return;

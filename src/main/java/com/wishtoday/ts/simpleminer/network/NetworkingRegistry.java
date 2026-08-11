@@ -5,6 +5,8 @@ import com.wishtoday.simpleservices.services.annotation.PostConstruct;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
+import com.wishtoday.ts.simpleminer.Reloadable;
+import com.wishtoday.ts.simpleminer.ReloadableReloader;
 import com.wishtoday.ts.simpleminer.config.ConfigType;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
@@ -23,13 +25,15 @@ public class NetworkingRegistry {
     private final PressManager pressManager;
     private final List<ServerNetworkExtendFutures> futures;
     private final ShapeRefresher shapeRefresher;
+    private final ReloadableReloader reloader;
 
     @CreateConstruction
-    public NetworkingRegistry(ServerConfig serverConfig, PressManager pressManager, List<ServerNetworkExtendFutures> futures, ShapeRefresher shapeRefresher) {
+    public NetworkingRegistry(ServerConfig serverConfig, PressManager pressManager, List<ServerNetworkExtendFutures> futures, ShapeRefresher shapeRefresher, ReloadableReloader reloader) {
         this.serverConfig = serverConfig;
         this.pressManager = pressManager;
         this.futures = futures;
         this.shapeRefresher = shapeRefresher;
+        this.reloader = reloader;
     }
 
     @PostConstruct
@@ -47,6 +51,7 @@ public class NetworkingRegistry {
         PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(context.player());
         if (info == null) return;
         info.setLinearShapeInfos(payload.infos());
+        shapeRefresher.refreshForce(info);
     }
 
     private void handleSyncConfigPayload(SyncConfigC2SPayload payload, ServerPlayNetworking.Context context) {
@@ -56,6 +61,7 @@ public class NetworkingRegistry {
         }
         PlayerMinerInfo info = pressManager.getPlayerMinerInfo(context.player());
         info.setCurrentIndividualConfig((IndividualConfig) payload.config());
+        this.reloader.reload();
     }
 
     private void handleKeywordPayload(KeywordPressedPayload payload, ServerPlayNetworking.Context context) {
@@ -65,8 +71,6 @@ public class NetworkingRegistry {
         }
         PlayerMinerInfo info = pressManager.getPressedPlayerMinerInfo(context.player());
         if (info == null) return;
-        BlockPos raycast = WorldUtils.raycast(context.player());
-        if (raycast == null) return;
-        this.shapeRefresher.refresh(info, raycast);
+        this.shapeRefresher.refreshForce(info);
     }
 }

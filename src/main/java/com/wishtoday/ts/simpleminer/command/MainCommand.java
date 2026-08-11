@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.Reloadable;
+import com.wishtoday.ts.simpleminer.ReloadableReloader;
 import com.wishtoday.ts.simpleminer.config.ConfigType;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
@@ -20,12 +21,10 @@ import static net.minecraft.server.command.CommandManager.literal;
 
 @Service
 public class MainCommand {
-    private final List<Reloadable> reloadables;
-    private final ServerConfig serverConfig;
+    private final ReloadableReloader reloader;
 
-    public MainCommand(List<Reloadable> reloadables, ServerConfig serverConfig) {
-        this.reloadables = reloadables;
-        this.serverConfig = serverConfig;
+    public MainCommand(ReloadableReloader reloader) {
+        this.reloader = reloader;
     }
 
     public void register(CommandDispatcher<ServerCommandSource> dispatcher, Function<PlayerEntity, ServerConfig> configSupplier, Function<PlayerEntity, IndividualConfig> individualConfigSupplier) {
@@ -45,7 +44,7 @@ public class MainCommand {
                                 })
                                 .then(literal("reload")
                                         .executes(context -> {
-                                            this.reloadables.forEach(router -> router.reload(serverConfig));
+                                            this.reloader.reload();
                                             return 1;
                                         })))
                 ));

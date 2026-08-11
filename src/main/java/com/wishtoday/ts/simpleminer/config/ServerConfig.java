@@ -1,5 +1,6 @@
 package com.wishtoday.ts.simpleminer.config;
 
+import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import dev.isxander.yacl3.api.ListOption;
 import dev.isxander.yacl3.api.OptionGroup;
@@ -8,6 +9,7 @@ import dev.isxander.yacl3.api.controller.DropdownStringControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
 import dev.isxander.yacl3.api.controller.StringControllerBuilder;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.network.PacketByteBuf;
@@ -21,12 +23,12 @@ import java.util.List;
 @Getter
 @Service
 @Setter
+@AllArgsConstructor
 public class ServerConfig {
     public static final PacketCodec<PacketByteBuf, ServerConfig> CODEC = PacketCodec.of(ServerConfig::write, ServerConfig::read);
 
     //@ConfigEntry.BoundedDiscrete(min = 1, max = 100000)
     @SerialEntry
-
     private int maxSize;
 
     @SerialEntry
@@ -39,13 +41,18 @@ public class ServerConfig {
     private String blockBreakStrategy;
 
     @SerialEntry
+    private String rightClickHandler;
+
+    @SerialEntry
     private List<String> blockFamilies;
 
+    @CreateConstruction
     public ServerConfig() {
         this.maxSize = 64;
         this.allowUndo = false;
         this.collectStrategy = "PUREAPI";
         this.blockBreakStrategy = "PUREAPI";
+        this.rightClickHandler = "NOBLOCKITEM";
         this.blockFamilies = List.of("#minecraft:base_stone_overworld");
     }
 
@@ -53,7 +60,8 @@ public class ServerConfig {
         return List.of(maxSize(serverConfig)
                 , allowUndo(serverConfig)
                 , collectStrategy(serverConfig)
-                , blockBreakStrategy(serverConfig));
+                , blockBreakStrategy(serverConfig)
+                , rightClickHandler(serverConfig));
     }
 
     public static List<OptionGroup> getAllGroups(ServerConfig serverConfig) {
@@ -97,6 +105,14 @@ public class ServerConfig {
                 .build();
     }
 
+    private static Option<String> rightClickHandler(ServerConfig config) {
+        return Option.<String>createBuilder()
+                .name(Text.translatable("simpleminer.config.rightClickHandler"))
+                .binding("NOBLOCKITEM", config::getRightClickHandler, config::setRightClickHandler)
+                .controller(s -> DropdownStringControllerBuilder.create(s).values("VANILLA", "NOBLOCKITEM"))
+                .build();
+    }
+
     private static OptionGroup blockFamilies(ServerConfig config) {
         return ListOption.<String>createBuilder()
                 .name(Text.translatable("simpleminer.config.blockFamilies"))
@@ -111,17 +127,18 @@ public class ServerConfig {
         buf.writeBoolean(this.allowUndo);
         buf.writeString(this.collectStrategy);
         buf.writeString(this.blockBreakStrategy);
+        buf.writeString(this.rightClickHandler);
         buf.writeCollection(this.blockFamilies, PacketByteBuf::writeString);
     }
 
     private static ServerConfig read(PacketByteBuf buf) {
-        ServerConfig config = new ServerConfig();
-        config.maxSize = buf.readVarInt();
-        config.allowUndo = buf.readBoolean();
-        config.collectStrategy = buf.readString();
-        config.blockBreakStrategy = buf.readString();
-        config.blockFamilies = buf.readCollection(ArrayList::new, PacketByteBuf::readString);
-        return config;
+        int i = buf.readVarInt();
+        boolean b = buf.readBoolean();
+        String s = buf.readString();
+        String string = buf.readString();
+        String readString = buf.readString();
+        ArrayList<String> strings = buf.readCollection(ArrayList::new, PacketByteBuf::readString);
+        return new ServerConfig(i, b, s, string, readString, strings);
     }
 
     public void setFromConfig(ServerConfig config) {
@@ -130,5 +147,6 @@ public class ServerConfig {
         this.collectStrategy = config.collectStrategy;
         this.blockBreakStrategy = config.blockBreakStrategy;
         this.blockFamilies = config.blockFamilies;
+        this.rightClickHandler = config.rightClickHandler;
     }
 }
