@@ -1,5 +1,6 @@
 package com.wishtoday.ts.simpleminer.shape;
 
+import com.wishtoday.ts.simpleminer.core.matcher.BlockMatcher;
 import lombok.AllArgsConstructor;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -17,4 +18,5 @@ public class ShapeContext {
     private final BlockState currentTargetState;
     private final World world;
     private final Direction direction;
+    private final BlockMatcher matcher;
 }

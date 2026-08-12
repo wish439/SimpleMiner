@@ -5,6 +5,7 @@ import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
+import com.wishtoday.ts.simpleminer.core.matcher.BlockMatcher;
 import com.wishtoday.ts.simpleminer.network.MineBlockSyncS2CPayload;
 import com.wishtoday.ts.simpleminer.shape.Shape;
 import com.wishtoday.ts.simpleminer.shape.ShapeContext;
@@ -30,11 +31,13 @@ public class ShapeRefresher {
     private final ServerConfig serverConfig;
     private final PressManager pressManager;
     private final Shapes shapes;
+    private final BlockMatcher matcher;
     @CreateConstruction
-    public ShapeRefresher(ServerConfig serverConfig, PressManager pressManager, Shapes shapes) {
+    public ShapeRefresher(ServerConfig serverConfig, PressManager pressManager, Shapes shapes, BlockMatcher matcher) {
         this.serverConfig = serverConfig;
         this.pressManager = pressManager;
         this.shapes = shapes;
+        this.matcher = matcher;
     }
     public void onTick(MinecraftServer server) {
         pressManager.filterPressesPlayerInfos().forEach(this::tryRefresh);
@@ -93,6 +96,6 @@ public class ShapeRefresher {
         World world = player.getWorld();
         Vec3d rotationVec = player.getRotationVec(1.0f);
         Direction facing = Direction.getFacing(rotationVec);
-        return new ShapeContext(maxSize, player, raycast, world.getBlockState(raycast), world, facing);
+        return new ShapeContext(maxSize, player, raycast, world.getBlockState(raycast), world, facing, this.matcher);
     }
 }

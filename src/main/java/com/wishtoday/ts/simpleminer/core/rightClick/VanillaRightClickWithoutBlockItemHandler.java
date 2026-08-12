@@ -1,7 +1,10 @@
 package com.wishtoday.ts.simpleminer.core.rightClick;
 
+import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Name;
 import com.wishtoday.simpleservices.services.annotation.Service;
+import com.wishtoday.ts.simpleminer.core.ItemStackCollector;
+import com.wishtoday.ts.simpleminer.crop.SingleCropBlockHandler;
 import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -21,8 +24,15 @@ import net.minecraft.world.World;
 @Name("NOBLOCKITEM")
 @Service
 public class VanillaRightClickWithoutBlockItemHandler implements RightClickHandler {
+    private final SingleCropBlockHandler  singleCropBlockHandler;
+
+    @CreateConstruction
+    public VanillaRightClickWithoutBlockItemHandler(SingleCropBlockHandler singleCropBlockHandler) {
+        this.singleCropBlockHandler = singleCropBlockHandler;
+    }
+
     @Override
-    public ActionResult onUse(ServerPlayerEntity player, World world, Hand hand, BlockHitResult hitResult, boolean isOutside) {
+    public ActionResult onUse(ServerPlayerEntity player, World world, Hand hand, BlockHitResult hitResult, boolean isOutside, ItemStackCollector collector) {
         ItemStack stack = player.getStackInHand(hand);
         BlockPos blockPos = hitResult.getBlockPos();
         BlockState blockState = world.getBlockState(blockPos);
@@ -41,7 +51,7 @@ public class VanillaRightClickWithoutBlockItemHandler implements RightClickHandl
             boolean bl2 = player.shouldCancelInteraction() && bl;
             ItemStack itemStack = stack.copy();
             if (!bl2) {
-                ItemActionResult itemActionResult = this.onUseWithItemWithoutBlockItem(blockState, player.getStackInHand(hand), world, player, hand, hitResult);
+                ItemActionResult itemActionResult = this.onUseWithItemWithoutBlockItem(blockState, player.getStackInHand(hand), world, player, hand, hitResult, collector);
                 if (itemActionResult.isAccepted()) {
                     Criteria.ITEM_USED_ON_BLOCK.trigger(player, blockPos, itemStack);
                     return itemActionResult.toActionResult();
@@ -78,10 +88,11 @@ public class VanillaRightClickWithoutBlockItemHandler implements RightClickHandl
         }
     }
 
-    private ItemActionResult onUseWithItemWithoutBlockItem(BlockState blockState, ItemStack stack, World world, PlayerEntity player, Hand hand, BlockHitResult hitResult) {
+    private ItemActionResult onUseWithItemWithoutBlockItem(BlockState blockState, ItemStack stack, World world, PlayerEntity player, Hand hand, BlockHitResult hitResult, ItemStackCollector collector) {
         /*if (stack.getItem() instanceof BlockItem) {
             return ItemActionResult.FAIL;
         }*/
+        this.singleCropBlockHandler.tryHandle(player, hitResult.getBlockPos(), blockState, collector);
         return blockState.onUseWithItem(player.getStackInHand(hand), world, player, hand, hitResult);
     }
 

@@ -74,7 +74,7 @@ public class LinearShape implements Shape {
                 if (maxSize <= longs.size()) break OUTLINE;
                 longs.add(add);
             }
-            LongArrayList list = BlockSorter.sortWithPlayerSquaredEuclid(lastLongs, player);
+            LongArrayList list = BlockSorter.sortWithPlayerManhattan(lastLongs, player);
             int min = Math.min(maxSize - longs.size(), list.size());
             LongList longList = list.subList(0, min);
             longs.addAll(longList);

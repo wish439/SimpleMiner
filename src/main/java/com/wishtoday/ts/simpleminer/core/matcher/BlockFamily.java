@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class BlockFamily {
@@ -30,7 +31,7 @@ public class BlockFamily {
             aTags = tagCache.get(a);
         } else {
             aTags = this.getFilteredTags(a);
-            this.tagCache.put(a, aTags);
+            tagCache.put(a, aTags);
         }
         return aTags;
     }
@@ -50,7 +51,7 @@ public class BlockFamily {
         return this.isAllowed(a) && this.isAllowed(b);
     }
 
-    private boolean isAllowed(Block a) {
+    public boolean isAllowed(Block a) {
         if (this.allowedIds.contains(Registries.BLOCK.getRawId(a))) {
             return true;
         }

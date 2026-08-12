@@ -13,9 +13,7 @@ import java.util.List;
 
 @Service
 public class ItemDropper {
-    public List<ItemStack> dropStack(BlockBreakContext context, Object2IntOpenHashMap<ItemStackKey> map) {
-        World world = context.getWorld();
-        BlockPos pos = context.getOriginPos();
+    public List<ItemStack> dropStack(World world, BlockPos pos, CollectedResult map) {
         List<ItemStack> droppedStacks = this.mergeAndSpiltDroppedStacks(map);
         for (ItemStack itemStack : droppedStacks) {
             Block.dropStack(world, pos, itemStack);
@@ -23,7 +21,7 @@ public class ItemDropper {
         return droppedStacks;
     }
 
-    private List<ItemStack> mergeAndSpiltDroppedStacks(Object2IntOpenHashMap<ItemStackKey> map) {
-        return ItemStackUtils.spiltDroppedStacks(map);
+    private List<ItemStack> mergeAndSpiltDroppedStacks(CollectedResult map) {
+        return ItemStackUtils.spiltDroppedStacks(map.getMap());
     }
 }

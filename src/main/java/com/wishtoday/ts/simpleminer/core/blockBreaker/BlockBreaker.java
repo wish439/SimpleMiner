@@ -123,7 +123,7 @@ public class BlockBreaker {
             }
         }
         CollectedResult result = this.collector.finish();
-        List<ItemStack> droppedStacks = this.dropper.dropStack(context, result.getMap());
+        List<ItemStack> droppedStacks = this.dropper.dropStack(context.getWorld(), context.getOriginPos(), result);
 
         this.forEachFeatures(b -> b.afterCycle(context, droppedStacks, result.getMap()));
 

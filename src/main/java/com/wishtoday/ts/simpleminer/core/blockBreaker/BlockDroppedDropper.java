@@ -4,6 +4,7 @@ import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Name;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
+import com.wishtoday.ts.simpleminer.core.ItemStackCollector;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
 import net.minecraft.block.Block;
@@ -21,16 +22,16 @@ import java.util.List;
 @Service
 public class BlockDroppedDropper implements ItemCollector{
 
-    private final Object2IntOpenHashMap<ItemStackKey> map;
+    private final ItemStackCollector stackCollector;
 
     @CreateConstruction
     public BlockDroppedDropper() {
-        this.map = new Object2IntOpenHashMap<>();
+        this.stackCollector = new ItemStackCollector();
     }
 
     @Override
     public void start() {
-        this.map.clear();
+        this.stackCollector.clear();
     }
 
     @Override
@@ -49,7 +50,7 @@ public class BlockDroppedDropper implements ItemCollector{
 
     @Override
     public CollectedResult finish() {
-        return new CollectedResult(new Object2IntOpenHashMap<>(this.map));
+        return new CollectedResult(new Object2IntOpenHashMap<>(this.stackCollector.getMap()));
     }
 
     @Override
@@ -67,7 +68,7 @@ public class BlockDroppedDropper implements ItemCollector{
         PlayerEntity player = context.getPlayer();
         BlockPos pos = context.getPos();
         boolean b = player.canHarvest(world.getBlockState(pos));
-        this.collectItemStack(world, player, context.getHandStack(), pos, this.map, b);
+        this.collectItemStack(world, player, context.getHandStack(), pos, this.stackCollector.getMap(), b);
     }
 
     private void collectItemStack(World world, PlayerEntity player, ItemStack stack, BlockPos pos, Object2IntOpenHashMap<ItemStackKey> map, boolean toolFit) {

@@ -46,6 +46,9 @@ public class ServerConfig {
     @SerialEntry
     private List<String> blockFamilies;
 
+    @SerialEntry
+    private List<String> supportCrops;
+
     @CreateConstruction
     public ServerConfig() {
         this.maxSize = 64;
@@ -54,6 +57,7 @@ public class ServerConfig {
         this.blockBreakStrategy = "PUREAPI";
         this.rightClickHandler = "NOBLOCKITEM";
         this.blockFamilies = List.of("#minecraft:base_stone_overworld");
+        this.supportCrops = List.of("#minecraft:crops");
     }
 
     public static List<Option<?>> getAllOptions(ServerConfig serverConfig) {
@@ -65,7 +69,8 @@ public class ServerConfig {
     }
 
     public static List<OptionGroup> getAllGroups(ServerConfig serverConfig) {
-        return List.of(blockFamilies(serverConfig));
+        return List.of(blockFamilies(serverConfig)
+                , supportCrops(serverConfig));
     }
 
     private static Option<Integer> maxSize(ServerConfig config) {
@@ -122,6 +127,15 @@ public class ServerConfig {
                 .build();
     }
 
+    private static OptionGroup supportCrops(ServerConfig config) {
+        return ListOption.<String>createBuilder()
+                .name(Text.translatable("simpleminer.config.supportCrops"))
+                .binding(List.of("#minecraft:crops"), config::getSupportCrops, config::setSupportCrops)
+                .controller(StringControllerBuilder::create)
+                .initial("")
+                .build();
+    }
+
     private void write(PacketByteBuf buf) {
         buf.writeVarInt(this.maxSize);
         buf.writeBoolean(this.allowUndo);
@@ -129,6 +143,7 @@ public class ServerConfig {
         buf.writeString(this.blockBreakStrategy);
         buf.writeString(this.rightClickHandler);
         buf.writeCollection(this.blockFamilies, PacketByteBuf::writeString);
+        buf.writeCollection(this.supportCrops, PacketByteBuf::writeString);
     }
 
     private static ServerConfig read(PacketByteBuf buf) {
@@ -138,7 +153,8 @@ public class ServerConfig {
         String string = buf.readString();
         String readString = buf.readString();
         ArrayList<String> strings = buf.readCollection(ArrayList::new, PacketByteBuf::readString);
-        return new ServerConfig(i, b, s, string, readString, strings);
+        ArrayList<String> strings1 = buf.readCollection(ArrayList::new, PacketByteBuf::readString);
+        return new ServerConfig(i, b, s, string, readString, strings, strings1);
     }
 
     public void setFromConfig(ServerConfig config) {
@@ -148,5 +164,6 @@ public class ServerConfig {
         this.blockBreakStrategy = config.blockBreakStrategy;
         this.blockFamilies = config.blockFamilies;
         this.rightClickHandler = config.rightClickHandler;
+        this.supportCrops = config.supportCrops;
     }
 }
