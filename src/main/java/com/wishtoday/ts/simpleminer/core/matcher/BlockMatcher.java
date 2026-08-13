@@ -5,6 +5,7 @@ import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.Reloadable;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 
 import java.util.*;
 
@@ -31,6 +32,10 @@ public class BlockMatcher implements Reloadable {
             }
         }
         return false;
+    }
+
+    public boolean match(BlockState a, BlockState b) {
+        return this.match(a.getBlock(), b.getBlock());
     }
 
     @Override

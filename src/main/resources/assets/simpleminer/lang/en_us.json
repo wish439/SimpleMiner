@@ -9,5 +9,6 @@
   "simpleminer.config.individualConfig.personalMaxSize": "Personal max size",
   "simpleminer.config.individualConfig.toolPreventBroken": "Tool prevent broken",
   "simpleminer.config.blockFamilies": "Block families",
-  "simpleminer.config.supportCrops": "Support crops"
+  "simpleminer.config.supportCrops": "Support crops",
+  "shape.full_chunk": "full chunk"
 }

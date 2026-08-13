@@ -20,6 +20,7 @@
   "mixins": [
     "simpleminer.mixins.json"
   ],
+  "accessWidener": "simpleminer.accesswidener",
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric-api": "*",

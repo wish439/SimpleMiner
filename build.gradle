@@ -11,6 +11,11 @@ base {
 }
 
 
+loom {
+    accessWidenerPath = file("src/main/resources/simpleminer.accesswidener")
+}
+
+
 repositories {
     maven { url "https://maven.shedaniel.me/" }
     mavenLocal()

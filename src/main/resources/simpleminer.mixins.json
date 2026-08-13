@@ -9,6 +9,8 @@
     "WorldChunkMixin",
     "WorldMixin",
     "Accessor.IntPropertyAccessor",
+    "Accessor.PalettedContainerAccessor",
+    "Accessor.PalettedContainerPaletteProviderAccessor",
     "Accessor.RegistryEntryReferenceAccessor"
   ],
   "client": [
