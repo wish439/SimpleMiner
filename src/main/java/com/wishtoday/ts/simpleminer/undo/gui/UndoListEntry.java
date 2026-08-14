@@ -51,7 +51,7 @@ public class UndoListEntry extends AlwaysSelectedEntryListWidget<UndoListEntry.E
     @Override
     protected void renderHeader(DrawContext context, int x, int y) {
         super.renderHeader(context, x, y);
-        context.drawText(MinecraftClient.getInstance().textRenderer, "撤回列表", x, y, 0xFFFFFF, true);
+        context.drawText(MinecraftClient.getInstance().textRenderer, Text.translatable("simpleminer.screen.undolist"), x, y, 0xFFFFFF, true);
     }
 
     private void renderEntries() {

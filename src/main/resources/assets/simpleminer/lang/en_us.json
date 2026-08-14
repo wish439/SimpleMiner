@@ -10,5 +10,21 @@
   "simpleminer.config.individualConfig.toolPreventBroken": "Tool prevent broken",
   "simpleminer.config.blockFamilies": "Block families",
   "simpleminer.config.supportCrops": "Support crops",
-  "shape.full_chunk": "full chunk"
+  "shape.full_chunk": "Full chunk",
+  "simpleminer.config.individualConfig.linearShapeInfos": "Linear shape infos",
+  "simpleminer.config.individualConfig.linearShapeInfos.height": "height",
+  "simpleminer.config.individualConfig.linearShapeInfos.width": "width",
+  "simpleminer.config.individualConfig.personalMaxSize.description": "1",
+  "simpleminer.config.toolPreventBroken.description": "1",
+  "simpleminer.config.linearShapeInfos.description": "Only available if your shape is linear.",
+  "simpleminer.client.display.willBreak": "%s blocks will be destroyed",
+  "simpleminer.client.shapes.linear.widthDisplay": "Current width: %s",
+  "simpleminer.client.shapes.linear.heightDisplay": "Current height: %s",
+  "simpleminer.screen.undolist": "Undo list",
+  "simpleminer.shape.linear": "Linear",
+  "simpleminer.shape.shapelessShape": "Shapeless",
+  "simpleminer.screen.undo.undo": "Undo",
+  "simpleminer.screen.undo.returnItems": "Return all items",
+  "simpleminer.tips.undo.initial": "All items from your last dig have been returned",
+  "simpleminer.screen.undo.emptyMaterial": "No recorded material"
 }

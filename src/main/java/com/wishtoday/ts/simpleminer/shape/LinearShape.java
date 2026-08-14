@@ -1,43 +1,40 @@
 package com.wishtoday.ts.simpleminer.shape;
 
-import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
-import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
-import com.wishtoday.ts.simpleminer.PressManager;
+import com.wishtoday.ts.simpleminer.LinearShapeInfos;
+import com.wishtoday.ts.simpleminer.client.SimpleminerClient;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldExtension;
 import com.wishtoday.ts.simpleminer.utils.BlockSorter;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 
 @Service
 public class LinearShape implements Shape {
-    private final PressManager manager;
-
-    @CreateConstruction
-    public LinearShape(PressManager manager) {
-        this.manager = manager;
-    }
-
     @Override
     public LongOpenHashSet walk(ShapeContext context) {
         Direction facing = context.getDirection();
         BlockPos currentTargetPos = context.getCurrentTargetPos();
         PlayerEntity player = context.getPlayer();
         long targetPosLong = currentTargetPos.asLong();
-        PlayerMinerInfo info = manager.getPlayerMinerInfo(player);
+        LinearShapeInfos infos = context.getIndividualConfig().getLinearShapeInfos();
         World world = context.getWorld();
         int maxSize = context.getMaxSize();
-        LongOpenHashSet longArrayList = this.generateLinearFromInfos(info.getLinearShapeInfos().getWidth(), info.getLinearShapeInfos().getHeight(), BlockPos.fromLong(targetPosLong), facing, p -> {
+        LongOpenHashSet longArrayList = this.generateLinearFromInfos(infos.getWidth(), infos.getHeight(), BlockPos.fromLong(targetPosLong), facing, p -> {
             //BlockState blockState = world.getBlockState(p);
             //return !blockState.isAir();
             return true;
@@ -130,6 +127,18 @@ public class LinearShape implements Shape {
 
     @Override
     public Text getDisplayName() {
-        return Text.of("线形");
+        return Text.translatable("simpleminer.shape.linear");
+    }
+
+    @Environment(EnvType.CLIENT)
+    @Override
+    public List<Text> getDisplayLines() {
+        List<Text> lines = new ArrayList<>();
+        LinearShapeInfos infos = SimpleminerClient.getLinearShapeInfos();
+        MutableText text1 = Text.stringifiedTranslatable("simpleminer.client.shapes.linear.widthDisplay", infos.getWidth());
+        lines.add(text1);
+        MutableText text2 = Text.stringifiedTranslatable("simpleminer.client.shapes.linear.heightDisplay", infos.getHeight());
+        lines.add(text2);
+        return lines;
     }
 }

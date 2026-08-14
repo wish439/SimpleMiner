@@ -1,6 +1,7 @@
 package com.wishtoday.ts.simpleminer.client;
 
 import com.wishtoday.ts.simpleminer.LinearShapeInfos;
+import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.network.KeywordPressedPayload;
 import com.wishtoday.ts.simpleminer.undo.gui.UndoListScreen;
 import com.wishtoday.ts.simpleminer.undo.network.payloads.UndoListSyncRequestC2SPayload;
@@ -43,6 +44,12 @@ public class SimpleminerClient implements ClientModInitializer {
         });
     }
 
+    public static void consumeIndividualConfig(IndividualConfig config) {
+        LinearShapeInfos infos = config.getLinearShapeInfos();
+        linearShapeInfos.setWidth(infos.getWidth());
+        linearShapeInfos.setHeight(infos.getHeight());
+    }
+
     private void onTick() {
         if (KeyBindings.MINE_KEY.isPressed() != pressing) {
             pressing = KeyBindings.MINE_KEY.isPressed();
@@ -53,7 +60,7 @@ public class SimpleminerClient implements ClientModInitializer {
             if (!Screen.hasControlDown()) {
                 return;
             }
-            MinecraftClient.getInstance().setScreen(new UndoListScreen(Text.of("撤回列表")));
+            MinecraftClient.getInstance().setScreen(new UndoListScreen(Text.translatable("simpleminer.screen.undolist")));
             ClientPlayNetworking.send(new UndoListSyncRequestC2SPayload());
         }
     }

@@ -12,6 +12,8 @@ import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import dev.isxander.yacl3.api.Option;
@@ -56,9 +58,18 @@ public class ServerConfig {
         this.collectStrategy = "PUREAPI";
         this.blockBreakStrategy = "PUREAPI";
         this.rightClickHandler = "NOBLOCKITEM";
-        this.blockFamilies = List.of("#minecraft:base_stone_overworld");
+        this.blockFamilies = List.of("#minecraft:base_stone_overworld", "minecraft:coal_ore,minecraft:deepslate_coal_ore",
+                "minecraft:iron_ore,minecraft:deepslate_iron_ore",
+                "minecraft:copper_ore,minecraft:deepslate_copper_ore",
+                "minecraft:gold_ore,minecraft:deepslate_gold_ore",
+                "minecraft:redstone_ore,minecraft:deepslate_redstone_ore",
+                "minecraft:emerald_ore,minecraft:deepslate_emerald_ore",
+                "minecraft:lapis_ore,minecraft:deepslate_lapis_ore",
+                "minecraft:diamond_ore,minecraft:deepslate_diamond_ore");
         this.supportCrops = List.of("#minecraft:crops");
     }
+
+
 
     public static List<Option<?>> getAllOptions(ServerConfig serverConfig) {
         return List.of(maxSize(serverConfig)

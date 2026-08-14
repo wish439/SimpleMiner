@@ -50,7 +50,7 @@ public class NetworkingRegistry {
     private void handleLinearInfosSyncC2SPayload(LinearInfosSyncC2SPayload payload, ServerPlayNetworking.Context context) {
         PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(context.player());
         if (info == null) return;
-        info.setLinearShapeInfos(payload.infos());
+        info.getCurrentIndividualConfig().setLinearShapeInfos(payload.infos());
         shapeRefresher.refreshForce(info);
     }
 

@@ -23,7 +23,7 @@ public class UndoInitializer implements BlockBreakerFeature {
         ScreenHandler handler = player.currentScreenHandler;
         if (!(handler instanceof UndoScreenHandler undoScreenHandler)) return;
         if (this.undoConductor.returnAllMaterial(player, undoScreenHandler.getUuid())) {
-            player.sendMessage(Text.of("你于上次撤回请求,提交的材料已被退回"), true);
+            player.sendMessage(Text.translatable("simpleminer.tips.undo.initial"), true);
         }
     }
 }

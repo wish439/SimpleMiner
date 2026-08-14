@@ -1,7 +1,7 @@
 package com.wishtoday.ts.simpleminer.shape;
 
 import com.wishtoday.simpleservices.services.annotation.Service;
-import com.wishtoday.ts.simpleminer.core.ChunkSectionScanner;
+import com.wishtoday.ts.simpleminer.utils.ChunkSectionScanner;
 import com.wishtoday.ts.simpleminer.core.matcher.BlockMatcher;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.block.BlockState;
@@ -29,15 +29,24 @@ public class FullChunkShape implements Shape{
         int startX = chunk.getPos().getStartX();
         int startZ = chunk.getPos().getStartZ();
         int bottomY = world.getBottomY();
-        LongOpenHashSet longs = new LongOpenHashSet();
+        LongOpenHashSet result = new LongOpenHashSet();
         BlockMatcher matcher = context.getMatcher();
-        longs.add(pos.asLong());
-        for (int i = 0; i < array.length; i++) {
+        result.add(pos.asLong());
+
+        int playerSectionIndex = (pos.getY() - bottomY) / 16;
+        int totalSections = array.length;
+
+        for (int i = playerSectionIndex; i >= 0; i--) {
             ChunkSection chunkSection = array[i];
-            int y = bottomY + 16 * i;
-            this.scanner.matchSection(chunkSection, matcher::match, state, startX, y, startZ, context.getMaxSize(), longs);
+            int baseY = bottomY + i * 16;
+            this.scanner.matchSection(chunkSection, matcher::match, state, startX, baseY, startZ, context.getMaxSize(), result);
         }
-        return longs;
+        for (int i = playerSectionIndex + 1; i < totalSections; i++) {
+            ChunkSection chunkSection = array[i];
+            int baseY = bottomY + i * 16;
+            this.scanner.matchSection(chunkSection, matcher::match, state, startX, baseY, startZ, context.getMaxSize(), result);
+        }
+        return result;
     }
 
     @Override

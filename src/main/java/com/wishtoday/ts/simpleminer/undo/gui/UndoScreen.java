@@ -45,11 +45,11 @@ public class UndoScreen extends HandledScreen<UndoScreenHandler> {
         int listEntryY = this.listEntry.getY();
         int listEntryWidth = this.listEntry.getWidth();
         int listEntryHeight = this.listEntry.getHeight();
-        ButtonWidget build = ButtonWidget.builder(Text.of("撤回"), button -> ClientPlayNetworking.send(new RequestUndoC2SPayload(this.handler.syncId)))
+        ButtonWidget build = ButtonWidget.builder(Text.translatable("simpleminer.screen.undo.undo"), button -> ClientPlayNetworking.send(new RequestUndoC2SPayload(this.handler.syncId)))
                 .dimensions(listEntryX - listEntryWidth / 4, listEntryY, listEntryWidth / 4, listEntryHeight / 4)
                 .build();
         this.undoButton = build;
-        ButtonWidget build1 = ButtonWidget.builder(Text.of("归还全部材料"), this::returnAllMaterial)
+        ButtonWidget build1 = ButtonWidget.builder(Text.translatable("simpleminer.screen.undo.returnItems"), this::returnAllMaterial)
                 .dimensions(build.getX(), build.getY() + build.getHeight(), build.getWidth(), build.getHeight())
                 .build();
         this.returnAllButton = build1;
@@ -79,7 +79,7 @@ public class UndoScreen extends HandledScreen<UndoScreenHandler> {
         //this.listEntry.render(context, mouseX, mouseY, delta);
         this.undoButton.active = this.handler.getUndoStorage().isFully();
         this.undoButton.render(context, mouseX, mouseY, delta);
-        if (empty) context.drawText(this.textRenderer, "无撤回记录", this.x, this.y, 0xFFFFFFFF, false);
+        if (empty) context.drawText(this.textRenderer, Text.translatable("simpleminer.screen.undo.emptyMaterial"), this.x, this.y, 0xFFFFFFFF, false);
     }
 
     @Override

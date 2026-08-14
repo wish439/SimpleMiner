@@ -4,7 +4,6 @@ import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.undo.UndoStorage;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
 import lombok.*;
-import lombok.experimental.Delegate;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
@@ -29,10 +28,6 @@ public class PlayerMinerInfo {
     @Nullable
     @Getter
     private BlockPos currentBlockPos;
-
-    @Getter
-    private LinearShapeInfos linearShapeInfos;
-
     @Getter
     private IndividualConfig currentIndividualConfig;
 
@@ -46,7 +41,6 @@ public class PlayerMinerInfo {
         this.currentBlockPos = null;
         this.currentIndividualConfig = individualConfig;
         this.undoStorages = new HashMap<>();
-        this.linearShapeInfos = LinearShapeInfos.DEFAULT.copy();
     }
     public void removeUndoStorage(UUID uuid) {
         this.undoStorages.remove(uuid);

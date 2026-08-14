@@ -142,15 +142,19 @@ public class BlockBreaker {
     }
 
     private void breakBlock(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update) {
-        //world.setBlockState(pos, Blocks.AIR.getDefaultState(), 0);
-        blockBreaking.set(true);
+
+        try {
+            //world.setBlockState(pos, Blocks.AIR.getDefaultState(), 0);
+            blockBreaking.set(true);
         /*int flag = update ? Block.NOTIFY_ALL : Block.NOTIFY_LISTENERS;
         state.getBlock().onBreak(world, pos, state, player);
         world.setBlockState(pos, Blocks.AIR.getDefaultState(), flag);
         if (!player.isCreative()) {
             mainHandStack.postMine(world, state, pos, player);
         }*/
-        this.blockBreaker.breakBlock(pos, state, world, player, mainHandStack, update);
-        blockBreaking.set(false);
+            this.blockBreaker.breakBlock(pos, state, world, player, mainHandStack, update);
+        } finally {
+            blockBreaking.set(false);
+        }
     }
 }

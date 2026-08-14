@@ -14,16 +14,12 @@ import dev.isxander.yacl3.api.ConfigCategory;
 import dev.isxander.yacl3.api.Option;
 import dev.isxander.yacl3.api.OptionGroup;
 import dev.isxander.yacl3.api.YetAnotherConfigLib;
-import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
-import dev.isxander.yacl3.api.controller.DropdownStringControllerBuilder;
-import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service(condition = ClientOnlyLoadCondition.class)
@@ -54,17 +50,17 @@ public class ClientNetworkingRegistry {
     private void receiveOpenConfigPayload(OpenConfigS2CPayload payload, ClientPlayNetworking.Context context) {
         ConfigType type = payload.type();
         if (type == ConfigType.SERVER) {
-            openConfigScreen(ConfigType.SERVER, (ServerConfig) payload.currentConfig());
+            openServerConfigScreen((ServerConfig) payload.currentConfig());
         }
         if (type == ConfigType.INDIVIDUAL) {
-            openConfigScreen(ConfigType.INDIVIDUAL, (IndividualConfig) payload.currentConfig());
+            openIndividualConfigScreen((IndividualConfig) payload.currentConfig());
         }
     }
 
-    private <T> void openConfigScreen(ConfigType configType, T config) {
-        String translationKey = configType == ConfigType.SERVER ? "simpleminer.config.serverConfig" : "simpleminer.config.individualConfig";
-        List<Option<?>> options = configType == ConfigType.SERVER ? ServerConfig.getAllOptions((ServerConfig) config) : IndividualConfig.getAllOptions((IndividualConfig) config);
-        List<OptionGroup> groups = configType == ConfigType.SERVER ? ServerConfig.getAllGroups((ServerConfig) config) : IndividualConfig.getAllGroups((IndividualConfig) config);
+    private void openServerConfigScreen(ServerConfig serverConfig) {
+        String translationKey = "simpleminer.config.serverConfig";
+        List<Option<?>> options = ServerConfig.getAllOptions(serverConfig);
+        List<OptionGroup> groups = ServerConfig.getAllGroups(serverConfig);
         YetAnotherConfigLib build = YetAnotherConfigLib.createBuilder()
                 .title(Text.translatable(translationKey))
                 .category(ConfigCategory.createBuilder()
@@ -72,7 +68,29 @@ public class ClientNetworkingRegistry {
                         .options(options)
                         .groups(groups)
                         .build())
-                .save(() -> ClientPlayNetworking.send(new SyncConfigC2SPayload(configType, config)))
+                .save(() -> ClientPlayNetworking.send(new SyncConfigC2SPayload(ConfigType.SERVER, serverConfig)))
+                .build();
+        MinecraftClient mc = MinecraftClient.getInstance();
+        Screen screen = build.generateScreen(mc.currentScreen);
+        mc.setScreen(screen);
+    }
+
+    private <T> void openIndividualConfigScreen(IndividualConfig config) {
+        String translationKey = "simpleminer.config.individualConfig";
+        List<Option<?>> options = IndividualConfig.getAllOptions(config);
+        List<OptionGroup> groups = IndividualConfig.getAllGroups(config);
+        ConfigCategory category = ConfigCategory.createBuilder()
+                .name(Text.translatable(translationKey))
+                .groups(groups)
+                .options(options)
+                .build();
+        YetAnotherConfigLib build = YetAnotherConfigLib.createBuilder()
+                .title(Text.translatable(translationKey))
+                .category(category)
+                .save(() -> {
+                    ClientPlayNetworking.send(new SyncConfigC2SPayload(ConfigType.INDIVIDUAL, config));
+                    SimpleminerClient.consumeIndividualConfig(config);
+                })
                 .build();
         MinecraftClient mc = MinecraftClient.getInstance();
         Screen screen = build.generateScreen(mc.currentScreen);

@@ -11,6 +11,7 @@ import com.wishtoday.ts.simpleminer.shape.Shape;
 import com.wishtoday.ts.simpleminer.shape.ShapeContext;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
 import com.wishtoday.ts.simpleminer.shape.Shapes;
+import com.wishtoday.ts.simpleminer.utils.BlockSorter;
 import com.wishtoday.ts.simpleminer.utils.WorldUtils;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -77,25 +78,19 @@ public class ShapeRefresher {
         int personalMaxSize = info.getCurrentIndividualConfig().getPersonalMaxSize();
         int i = personalMaxSize == -1 ? maxSize : Math.min(maxSize, personalMaxSize);
 
-        ShapeContext shapeContext = this.getShapeContext(player, i, raycast);
+        ShapeContext shapeContext = this.getShapeContext(player, i, raycast, info);
 
         LongOpenHashSet blockPoses = shape.walk(shapeContext);
         LongArrayList blockPos = new LongArrayList(blockPoses);
-        blockPos.sort((a, b) -> {
-            BlockPos pos = BlockPos.fromLong(a);
-            BlockPos pos2 = BlockPos.fromLong(b);
-            double da = player.getBlockPos().getSquaredDistance(pos);
-            double db = player.getBlockPos().getSquaredDistance(pos2);
-            return Double.compare(da, db);
-        });
-        info.setBlockPoses(new ShapeResult(blockPoses, blockPos));
-        ServerPlayNetworking.send((ServerPlayerEntity) player, new MineBlockSyncS2CPayload(blockPos.size()));
+        LongArrayList list = BlockSorter.sortWithPlayerManhattan(blockPos, player);
+        info.setBlockPoses(new ShapeResult(blockPoses, list));
+        ServerPlayNetworking.send((ServerPlayerEntity) player, new MineBlockSyncS2CPayload(list.size()));
     }
 
-    private @NotNull ShapeContext getShapeContext(@NotNull PlayerEntity player, int maxSize, BlockPos raycast) {
+    private @NotNull ShapeContext getShapeContext(@NotNull PlayerEntity player, int maxSize, BlockPos raycast, PlayerMinerInfo info) {
         World world = player.getWorld();
         Vec3d rotationVec = player.getRotationVec(1.0f);
         Direction facing = Direction.getFacing(rotationVec);
-        return new ShapeContext(maxSize, player, raycast, world.getBlockState(raycast), world, facing, this.matcher);
+        return new ShapeContext(maxSize, player, raycast, world.getBlockState(raycast), world, facing, this.matcher, info.getCurrentIndividualConfig());
     }
 }

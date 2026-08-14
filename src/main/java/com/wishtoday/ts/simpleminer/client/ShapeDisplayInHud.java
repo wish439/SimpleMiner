@@ -38,11 +38,12 @@ public class ShapeDisplayInHud implements HudRenderCallback {
         List<Text> lines = new ArrayList<>();
         int currentBlocks = SimpleminerClient.getCurrentBlocks();
         if (currentBlocks != -1) {
-            Text text1 = Text.of("将破坏" + currentBlocks + "方块");
+            MutableText text1 = Text.stringifiedTranslatable("simpleminer.client.display.willBreak", currentBlocks);
+            //Text text1 = Text.of("将破坏" + currentBlocks + "方块");
             lines.add(text1);
         }
 
-        Shape last = this.shapes.getLast(shape);
+        Shape last = this.getLast(shape, shapes);
         if (last != null) {
             MutableText name = (MutableText) last.getDisplayName();
             name.fillStyle(Style.EMPTY
@@ -52,7 +53,7 @@ public class ShapeDisplayInHud implements HudRenderCallback {
         Text text = shape.getDisplayName();
         lines.add(text);
 
-        Shape next = this.shapes.getNext(shape);
+        Shape next = this.getNext(shape, shapes);
         if (next != null) {
             MutableText t = (MutableText) next.getDisplayName();
             t.fillStyle(Style.EMPTY
@@ -60,14 +61,8 @@ public class ShapeDisplayInHud implements HudRenderCallback {
             lines.add(t);
         }
 
-        if (shapeIndex == 1) {
-            LinearShapeInfos infos = SimpleminerClient.getLinearShapeInfos();
-            Text text1 = Text.of("当前width:" + infos.getWidth());
-            lines.add(text1);
-            Text text2 = Text.of("当前height:" + infos.getHeight());
-            lines.add(text2);
-        }
-        int x = 0;
+        List<Text> displayLines = shape.getDisplayLines();
+        lines.addAll(displayLines);
         int y = 0;
         MatrixStack matrices = drawContext.getMatrices();
         matrices.push();
@@ -78,5 +73,27 @@ public class ShapeDisplayInHud implements HudRenderCallback {
             y += textRenderer.fontHeight;
         }
         matrices.pop();
+    }
+
+    private Shape getNext(Shape shape, Shapes shapes) {
+        if (shape == null) {
+            return null;
+        }
+        int k = shape.index() + 1;
+        if (k >= shapes.getShapeCount()) {
+            k = 0;
+        }
+        return shapes.getFromIndex(k);
+    }
+
+    private Shape getLast(Shape shape, Shapes shapes) {
+        if (shape == null) {
+            return null;
+        }
+        int index = shape.index();
+        if (index == 0) {
+            index = shapes.getShapeCount();
+        }
+        return shapes.getFromIndex(index - 1);
     }
 }

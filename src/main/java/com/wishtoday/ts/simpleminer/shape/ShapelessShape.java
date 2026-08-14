@@ -9,14 +9,12 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-import java.util.*;
-
 @Service
-public class UncertainShape implements Shape {
+public class ShapelessShape implements Shape {
     private final int[][] blockOffsets;
     private static final int REFERENCE_COUNT_SCOPE = 6;
 
-    public UncertainShape() {
+    public ShapelessShape() {
         int[][] offsets = new int[26][3];
         int o = 0;
         for (int i = -1; i <= 1; i++) {
@@ -90,6 +88,6 @@ public class UncertainShape implements Shape {
 
     @Override
     public Text getDisplayName() {
-        return Text.of("不定型");
+        return Text.translatable("simpleminer.shape.shapelessShape");
     }
 }

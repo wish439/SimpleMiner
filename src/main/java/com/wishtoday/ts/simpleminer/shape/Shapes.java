@@ -28,20 +28,6 @@ public class Shapes {
         }
         return shapes.get(index);
     }
-    public Shape getNext(Shape shape) {
-        if (shape == null) {
-            return null;
-        }
-        int k = shape.index() + 1;
-        return shapes.get(k);
-    }
-
-    public Shape getLast(Shape shape) {
-        if (shape == null) {
-            return null;
-        }
-        return shapes.get(shape.index() - 1);
-    }
 
     public int getShapeCount() {
         return shapes.size();
