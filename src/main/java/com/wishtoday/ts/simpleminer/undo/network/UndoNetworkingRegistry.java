@@ -51,7 +51,7 @@ public class UndoNetworkingRegistry implements ServerNetworkExtendFutures {
             ServerPlayerEntity player = context.player();
             if (player == null) return;
             UUID uuid = payload.uuid();
-            UndoStorage storage = this.pressManager.getPlayerMinerInfo(player).getUndoStorage(uuid);
+            UndoStorage storage = this.pressManager.getPlayerMinerInfo(player).getUndoHistory().getUndoStorage(uuid);
             if (storage == null) {
                 player.sendMessage(Text.of("There is no such UndoStorage!Please try again later."), false);
                 return;
@@ -69,7 +69,7 @@ public class UndoNetworkingRegistry implements ServerNetworkExtendFutures {
         context.server().execute(() -> {
             ServerPlayerEntity player = context.player();
             PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(player);
-            Collection<UndoStorage> undoStorages = info.getUndoStorages();
+            Collection<UndoStorage> undoStorages = info.getUndoHistory().getUndoStorages();
             List<UndoDisplayInfo> list = undoStorages.stream()
                     .map(u -> new UndoDisplayInfo("I don't know", u.getTime(), u.getUuid(), u.getItems().values().stream()
                             .sorted(Comparator.comparingInt(MaterialInfo::getMaxCount).reversed())

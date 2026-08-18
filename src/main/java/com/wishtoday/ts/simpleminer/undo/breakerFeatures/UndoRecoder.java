@@ -69,6 +69,6 @@ public class UndoRecoder implements BlockBreakerFeature {
             MaterialInfo info = new MaterialInfo(key.itemStack(), intValue, 0);
             newMap.put(key, info);
         }
-        playerMinerInfo.addUndoStorage(new UndoStorage(blockPoses, newMap, System.currentTimeMillis()));
+        playerMinerInfo.getUndoHistory().addUndoStorage(new UndoStorage(blockPoses, newMap, System.currentTimeMillis()));
     }
 }

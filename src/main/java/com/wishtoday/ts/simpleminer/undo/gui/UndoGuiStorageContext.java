@@ -79,7 +79,7 @@ public class UndoGuiStorageContext {
         if (pressManager == null) return;
         PlayerMinerInfo info = pressManager.getPlayerMinerInfo(player);
         if (info == null) return;
-        UndoStorage storage = info.getUndoStorage(uuid);
+        UndoStorage storage = info.getUndoHistory().getUndoStorage(uuid);
         if (storage == null) return;
         storage.setItems(this.undoStorage);
         storage.setCompletedCount(this.completedCount);

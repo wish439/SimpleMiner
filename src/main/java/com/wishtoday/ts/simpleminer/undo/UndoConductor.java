@@ -35,12 +35,12 @@ public class UndoConductor {
     @Nullable
     public UndoStorage getUndoStorage(PlayerEntity player, UUID uuid) {
         PlayerMinerInfo info = pressManager.getPlayerMinerInfo(player);
-        return info.getUndoStorage(uuid);
+        return info.getUndoHistory().getUndoStorage(uuid);
     }
 
     public boolean returnAllMaterial(PlayerEntity player, UUID uuid) {
         PlayerMinerInfo info = pressManager.getPlayerMinerInfo(player);
-        UndoStorage undoStorage = info.getUndoStorage(uuid);
+        UndoStorage undoStorage = info.getUndoHistory().getUndoStorage(uuid);
         if (undoStorage == null) return false;
         Map<ItemStackKey, MaterialInfo> map = undoStorage.getItems();
         return this.returnAllMaterial(map, player);
@@ -69,7 +69,7 @@ public class UndoConductor {
         UndoStorage undoStorage = this.getUndoStorage(player, uuid);
         if (undoStorage == null) return;
         this.undo(player.getWorld(), undoStorage);
-        info.removeUndoStorage(uuid);
+        info.getUndoHistory().removeUndoStorage(uuid);
     }
 
     private void undo(World world, UndoStorage undoStorage) {
