@@ -17,9 +17,4 @@ public interface Shape {
     int index();
 
     Text getDisplayName();
-
-    @Environment(EnvType.CLIENT)
-    default List<Text> getDisplayLines() {
-        return List.of();
-    }
 }

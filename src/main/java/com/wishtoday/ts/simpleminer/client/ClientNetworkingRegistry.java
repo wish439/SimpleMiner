@@ -78,7 +78,7 @@ public class ClientNetworkingRegistry {
     private <T> void openIndividualConfigScreen(IndividualConfig config) {
         String translationKey = "simpleminer.config.individualConfig";
         List<Option<?>> options = IndividualConfig.getAllOptions(config);
-        List<OptionGroup> groups = IndividualConfig.getAllGroups(config);
+        List<OptionGroup> groups = IndividualConfig.getAllGroups(config, SimpleminerClient.getShapeIndex());
         ConfigCategory category = ConfigCategory.createBuilder()
                 .name(Text.translatable(translationKey))
                 .groups(groups)

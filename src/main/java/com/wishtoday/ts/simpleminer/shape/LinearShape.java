@@ -129,16 +129,4 @@ public class LinearShape implements Shape {
     public Text getDisplayName() {
         return Text.translatable("simpleminer.shape.linear");
     }
-
-    @Environment(EnvType.CLIENT)
-    @Override
-    public List<Text> getDisplayLines() {
-        List<Text> lines = new ArrayList<>();
-        LinearShapeInfos infos = SimpleminerClient.getLinearShapeInfos();
-        MutableText text1 = Text.stringifiedTranslatable("simpleminer.client.shapes.linear.widthDisplay", infos.getWidth());
-        lines.add(text1);
-        MutableText text2 = Text.stringifiedTranslatable("simpleminer.client.shapes.linear.heightDisplay", infos.getHeight());
-        lines.add(text2);
-        return lines;
-    }
 }

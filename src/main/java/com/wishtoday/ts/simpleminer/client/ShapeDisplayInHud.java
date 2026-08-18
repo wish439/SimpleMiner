@@ -1,28 +1,29 @@
 package com.wishtoday.ts.simpleminer.client;
 
-import com.wishtoday.ts.simpleminer.LinearShapeInfos;
+import com.wishtoday.ts.simpleminer.shape.ClientShapeAdapter;
 import com.wishtoday.ts.simpleminer.shape.Shape;
 import com.wishtoday.ts.simpleminer.shape.Shapes;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ShapeDisplayInHud implements HudRenderCallback {
     private final Shapes shapes;
+    private final Map<Class<? extends Shape>, ClientShapeAdapter> adapters;
 
-    public ShapeDisplayInHud(Shapes shapes) {
+    public ShapeDisplayInHud(Shapes shapes, Map<Class<? extends Shape>, ClientShapeAdapter> adapters) {
         this.shapes = shapes;
+        this.adapters = adapters;
     }
 
     @Override
@@ -61,8 +62,11 @@ public class ShapeDisplayInHud implements HudRenderCallback {
             lines.add(t);
         }
 
-        List<Text> displayLines = shape.getDisplayLines();
-        lines.addAll(displayLines);
+        ClientShapeAdapter adapter = this.adapters.get(shape.getClass());
+        if (adapter != null) {
+            List<Text> displayLines = adapter.getDisplayLines();
+            lines.addAll(displayLines);
+        }
         int y = 0;
         MatrixStack matrices = drawContext.getMatrices();
         matrices.push();

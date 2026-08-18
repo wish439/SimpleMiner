@@ -26,5 +26,11 @@
   "simpleminer.screen.undo.undo": "Undo",
   "simpleminer.screen.undo.returnItems": "Return all items",
   "simpleminer.tips.undo.initial": "All items from your last dig have been returned",
-  "simpleminer.screen.undo.emptyMaterial": "No recorded material"
+  "simpleminer.screen.undo.emptyMaterial": "No recorded material",
+  "simpleminer.config.individualConfig.fullChunkInfos": "Full chunk infos",
+  "simpleminer.config.fullChunkInfos.description": "Only avialable if your shape is full chunk.",
+  "simpleminer.config.individualConfig.fullChunkInfos.radiusX": "X radius",
+  "simpleminer.config.individualConfig.fullChunkInfos.radiusZ": "Z radius",
+  "simpleminer.client.shapes.fullChunk.radiusXDisplay": "Current X radius: %s",
+  "simpleminer.client.shapes.fullChunk.radiusZDisplay": "Current Z radius: %s"
 }

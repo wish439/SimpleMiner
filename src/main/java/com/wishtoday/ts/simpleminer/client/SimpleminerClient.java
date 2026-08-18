@@ -1,5 +1,6 @@
 package com.wishtoday.ts.simpleminer.client;
 
+import com.wishtoday.ts.simpleminer.FullChunkShapeInfos;
 import com.wishtoday.ts.simpleminer.LinearShapeInfos;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.network.KeywordPressedPayload;
@@ -29,6 +30,9 @@ public class SimpleminerClient implements ClientModInitializer {
 
     @Getter
     private static final LinearShapeInfos linearShapeInfos = LinearShapeInfos.DEFAULT.copy();
+
+    @Getter
+    private static final FullChunkShapeInfos fullChunkShapeInfos = FullChunkShapeInfos.DEFAULT.copy();
 
     public static final Event<Scroll> SCROLL_EVENT = EventFactory.createArrayBacked(Scroll.class, (listeners) -> (d1, d2) -> {
         for (Scroll listener : listeners) {

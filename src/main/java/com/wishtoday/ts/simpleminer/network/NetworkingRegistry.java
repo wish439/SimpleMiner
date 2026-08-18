@@ -3,10 +3,7 @@ package com.wishtoday.ts.simpleminer.network;
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.PostConstruct;
 import com.wishtoday.simpleservices.services.annotation.Service;
-import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
-import com.wishtoday.ts.simpleminer.PressManager;
-import com.wishtoday.ts.simpleminer.Reloadable;
-import com.wishtoday.ts.simpleminer.ReloadableReloader;
+import com.wishtoday.ts.simpleminer.*;
 import com.wishtoday.ts.simpleminer.config.ConfigType;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
@@ -42,16 +39,20 @@ public class NetworkingRegistry {
         ServerPlayNetworking.registerGlobalReceiver(KeywordPressedPayload.ID, this::handleKeywordPayload);
         PayloadTypeRegistry.playC2S().register(SyncConfigC2SPayload.ID, SyncConfigC2SPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(SyncConfigC2SPayload.ID, this::handleSyncConfigPayload);
-        PayloadTypeRegistry.playC2S().register(LinearInfosSyncC2SPayload.ID, LinearInfosSyncC2SPayload.CODEC);
-        ServerPlayNetworking.registerGlobalReceiver(LinearInfosSyncC2SPayload.ID, this::handleLinearInfosSyncC2SPayload);
+        PayloadTypeRegistry.playC2S().register(ShapeInfosSyncC2SPayload.ID, ShapeInfosSyncC2SPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(ShapeInfosSyncC2SPayload.ID, this::handleShapeInfosSyncC2SPayload);
         this.futures.forEach(ServerNetworkExtendFutures::initialize);
     }
 
-    private void handleLinearInfosSyncC2SPayload(LinearInfosSyncC2SPayload payload, ServerPlayNetworking.Context context) {
+    private void handleShapeInfosSyncC2SPayload(ShapeInfosSyncC2SPayload payload, ServerPlayNetworking.Context context) {
         PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(context.player());
         if (info == null) return;
-        info.getCurrentIndividualConfig().setLinearShapeInfos(payload.infos());
-        shapeRefresher.refreshForce(info);
+        IndividualConfig individualConfig = info.getCurrentIndividualConfig();
+        int i = payload.shapeIndex();
+        switch (i) {
+            case 1 -> individualConfig.setLinearShapeInfos((LinearShapeInfos) payload.info());
+            case 2 -> individualConfig.setFullChunkShapeInfos((FullChunkShapeInfos) payload.info());
+        }
     }
 
     private void handleSyncConfigPayload(SyncConfigC2SPayload payload, ServerPlayNetworking.Context context) {
