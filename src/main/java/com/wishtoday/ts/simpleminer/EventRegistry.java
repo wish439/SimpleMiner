@@ -8,6 +8,7 @@ import com.wishtoday.ts.simpleminer.config.ServerConfig;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.BlockBreaker;
 import com.wishtoday.ts.simpleminer.core.ShapeRefresher;
 import com.wishtoday.ts.simpleminer.core.rightClick.MinerRightHandler;
+import com.wishtoday.ts.simpleminer.io.PersistenceService;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
@@ -24,15 +25,17 @@ public class EventRegistry {
     private final BlockBreaker blockBreaker;
     private final MinerRightHandler rightHandler;
     private final MainCommand mainCommand;
+    private final PersistenceService persistence;
 
     @CreateConstruction
-    public EventRegistry(PressManager manager, ServerConfig serverConfig, BlockBreaker blockBreaker, ShapeRefresher shapeRefresher, MinerRightHandler rightHandler, MainCommand mainCommand) {
+    public EventRegistry(PressManager manager, ServerConfig serverConfig, BlockBreaker blockBreaker, ShapeRefresher shapeRefresher, MinerRightHandler rightHandler, MainCommand mainCommand, PersistenceService persistence) {
         this.manager = manager;
         this.serverConfig = serverConfig;
         this.blockBreaker = blockBreaker;
         this.shapeRefresher = shapeRefresher;
         this.rightHandler = rightHandler;
         this.mainCommand = mainCommand;
+        this.persistence = persistence;
     }
 
     @PostConstruct
@@ -48,6 +51,8 @@ public class EventRegistry {
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, sender) -> {
             ServerPlayerEntity player = handler.getPlayer();
+            // 先落盘再移除,否则玩家断开后内存状态直接丢弃,未保存的 undo/配置改动会丢失
+            this.persistence.savePlayerData(player);
             this.manager.removePlayerMinerInfo(player.getUuid());
         });
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {

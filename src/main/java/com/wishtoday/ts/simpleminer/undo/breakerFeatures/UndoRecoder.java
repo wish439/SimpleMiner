@@ -3,6 +3,7 @@ package com.wishtoday.ts.simpleminer.undo.breakerFeatures;
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
+import com.wishtoday.ts.simpleminer.io.PersistenceService;
 import com.wishtoday.ts.simpleminer.undo.MaterialInfo;
 import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
@@ -17,8 +18,10 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -32,10 +35,12 @@ public class UndoRecoder implements BlockBreakerFeature {
 
     private final Long2ObjectLinkedOpenHashMap<BlockStorage> map;
     private final ServerConfig config;
+    private final PersistenceService persistence;
 
     @CreateConstruction
-    public UndoRecoder(ServerConfig config) {
+    public UndoRecoder(ServerConfig config, PersistenceService persistence) {
         this.config = config;
+        this.persistence = persistence;
         this.map = new Long2ObjectLinkedOpenHashMap<>();
     }
 
@@ -69,6 +74,11 @@ public class UndoRecoder implements BlockBreakerFeature {
             MaterialInfo info = new MaterialInfo(key.itemStack(), intValue, 0);
             newMap.put(key, info);
         }
-        playerMinerInfo.getUndoHistory().addUndoStorage(new UndoStorage(blockPoses, newMap, System.currentTimeMillis()));
+        UndoStorage undoStorage = new UndoStorage(blockPoses, newMap, System.currentTimeMillis());
+        playerMinerInfo.getUndoHistory().addUndoStorage(undoStorage);
+        PlayerEntity player = playerMinerInfo.getPlayer();
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            this.persistence.onUndoRecordAdded(serverPlayer, undoStorage);
+        }
     }
 }

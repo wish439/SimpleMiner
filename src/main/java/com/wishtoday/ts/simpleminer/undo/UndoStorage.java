@@ -25,4 +25,12 @@ public class UndoStorage {
         this.completedCount = 0;
         this.uuid = UUID.randomUUID();
     }
+
+    public UndoStorage(Long2ObjectLinkedOpenHashMap<BlockStorage> map, Map<ItemStackKey, MaterialInfo> items, int completedCount, long time, UUID uuid) {
+        this.map = map;
+        this.items = items;
+        this.completedCount = completedCount;
+        this.time = time;
+        this.uuid = uuid;
+    }
 }

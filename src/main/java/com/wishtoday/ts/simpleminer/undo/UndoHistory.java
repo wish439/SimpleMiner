@@ -27,4 +27,12 @@ public class UndoHistory {
     public void addUndoStorage(UndoStorage undoStorage) {
         this.undoStorages.put(undoStorage.getUuid(), undoStorage);
     }
+
+    public boolean contains(UUID uuid) {
+        return this.undoStorages.containsKey(uuid);
+    }
+
+    public int size() {
+        return this.undoStorages.size();
+    }
 }

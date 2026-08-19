@@ -13,6 +13,14 @@ base {
 
 loom {
     accessWidenerPath = file("src/main/resources/simpleminer.accesswidener")
+    runs {
+        client {
+            programArgs "--username", "MC_WishToday"
+        }
+        server {
+            runDir "run-server"
+        }
+    }
 }
 
 

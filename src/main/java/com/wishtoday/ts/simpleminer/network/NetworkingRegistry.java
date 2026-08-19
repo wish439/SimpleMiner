@@ -8,6 +8,7 @@ import com.wishtoday.ts.simpleminer.config.ConfigType;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
 import com.wishtoday.ts.simpleminer.core.ShapeRefresher;
+import com.wishtoday.ts.simpleminer.io.PersistenceService;
 import com.wishtoday.ts.simpleminer.network.config.SyncConfigC2SPayload;
 import com.wishtoday.ts.simpleminer.utils.WorldUtils;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -23,14 +24,16 @@ public class NetworkingRegistry {
     private final List<ServerNetworkExtendFutures> futures;
     private final ShapeRefresher shapeRefresher;
     private final ReloadableReloader reloader;
+    private final PersistenceService persistence;
 
     @CreateConstruction
-    public NetworkingRegistry(ServerConfig serverConfig, PressManager pressManager, List<ServerNetworkExtendFutures> futures, ShapeRefresher shapeRefresher, ReloadableReloader reloader) {
+    public NetworkingRegistry(ServerConfig serverConfig, PressManager pressManager, List<ServerNetworkExtendFutures> futures, ShapeRefresher shapeRefresher, ReloadableReloader reloader, PersistenceService persistence) {
         this.serverConfig = serverConfig;
         this.pressManager = pressManager;
         this.futures = futures;
         this.shapeRefresher = shapeRefresher;
         this.reloader = reloader;
+        this.persistence = persistence;
     }
 
     @PostConstruct
@@ -53,15 +56,18 @@ public class NetworkingRegistry {
             case 1 -> individualConfig.setLinearShapeInfos((LinearShapeInfos) payload.info());
             case 2 -> individualConfig.setFullChunkShapeInfos((FullChunkShapeInfos) payload.info());
         }
+        this.persistence.saveIndividualConfigAsync(context.player());
     }
 
     private void handleSyncConfigPayload(SyncConfigC2SPayload payload, ServerPlayNetworking.Context context) {
         if (payload.type() == ConfigType.SERVER) {
             this.serverConfig.setFromConfig((ServerConfig) payload.config());
+            this.persistence.saveServerConfigAsync();
             return;
         }
         PlayerMinerInfo info = pressManager.getPlayerMinerInfo(context.player());
         info.setCurrentIndividualConfig((IndividualConfig) payload.config());
+        this.persistence.saveIndividualConfigAsync(context.player());
         this.reloader.reload();
     }
 

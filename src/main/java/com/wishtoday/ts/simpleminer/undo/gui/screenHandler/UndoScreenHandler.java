@@ -5,6 +5,7 @@ import com.wishtoday.ts.simpleminer.undo.MaterialInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
 import com.wishtoday.ts.simpleminer.gui.MinerScreenHandlerTypes;
 import com.wishtoday.ts.simpleminer.gui.EmptyInventory;
+import com.wishtoday.ts.simpleminer.io.PersistenceService;
 import com.wishtoday.ts.simpleminer.undo.gui.SubmitSlot;
 import com.wishtoday.ts.simpleminer.undo.gui.UndoGuiStorageContext;
 import lombok.Getter;
@@ -14,12 +15,17 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.Map;
 import java.util.UUID;
 
 public class UndoScreenHandler extends ScreenHandler {
     public UndoScreenHandler(int syncId, PlayerInventory playerInventory) {
+        this(syncId, playerInventory, null);
+    }
+
+    public UndoScreenHandler(int syncId, PlayerInventory playerInventory, PersistenceService persistence) {
         super(MinerScreenHandlerTypes.UNDO, syncId);
         for (int i = 0; i < 9; i++) {
             this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 146));
@@ -37,10 +43,11 @@ public class UndoScreenHandler extends ScreenHandler {
         this.addSlot(slot);
         this.submitSlot = slot;
         this.pressManager = null;
+        this.persistence = persistence;
     }
 
-    public UndoScreenHandler(int syncId, PlayerInventory playerInventory, Map<ItemStackKey, MaterialInfo> undoMaterialInfoMap, PressManager pressManager, int completedCount, UUID uuid) {
-        this(syncId, playerInventory);
+    public UndoScreenHandler(int syncId, PlayerInventory playerInventory, Map<ItemStackKey, MaterialInfo> undoMaterialInfoMap, PressManager pressManager, int completedCount, UUID uuid, PersistenceService persistence) {
+        this(syncId, playerInventory, persistence);
         this.setUndoStorage(undoMaterialInfoMap);
         this.pressManager = pressManager;
         this.setCompletedCount(completedCount);
@@ -51,6 +58,7 @@ public class UndoScreenHandler extends ScreenHandler {
     private UndoGuiStorageContext undoStorage;
     private final SubmitSlot submitSlot;
     private PressManager pressManager;
+    private final PersistenceService persistence;
     @Setter
     @Getter
     private UUID uuid;
@@ -113,6 +121,10 @@ public class UndoScreenHandler extends ScreenHandler {
             return;
         }
         this.undoStorage.saveToStorage(pressManager, player, uuid);
+        // 写回内存后立即落盘,否则磁盘停留在旧值(玩家退出/定时保存前重开就丢了)
+        if (this.persistence != null && player instanceof ServerPlayerEntity serverPlayer) {
+            this.persistence.saveUndoStorageAsync(serverPlayer, uuid);
+        }
     }
 
     @Override

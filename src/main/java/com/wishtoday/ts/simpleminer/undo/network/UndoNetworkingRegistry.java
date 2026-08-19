@@ -5,6 +5,7 @@ import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
 import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
+import com.wishtoday.ts.simpleminer.io.PersistenceService;
 import com.wishtoday.ts.simpleminer.undo.*;
 import com.wishtoday.ts.simpleminer.network.ServerNetworkExtendFutures;
 import com.wishtoday.ts.simpleminer.undo.gui.UndoGuiStorageContext;
@@ -25,11 +26,13 @@ import java.util.stream.Collectors;
 public class UndoNetworkingRegistry implements ServerNetworkExtendFutures {
     private final UndoConductor undoConductor;
     private final PressManager pressManager;
+    private final PersistenceService persistence;
 
     @CreateConstruction
-    public UndoNetworkingRegistry(UndoConductor undoConductor, PressManager pressManager) {
+    public UndoNetworkingRegistry(UndoConductor undoConductor, PressManager pressManager, PersistenceService persistence) {
         this.undoConductor = undoConductor;
         this.pressManager = pressManager;
+        this.persistence = persistence;
     }
 
     @Override
@@ -51,37 +54,37 @@ public class UndoNetworkingRegistry implements ServerNetworkExtendFutures {
             ServerPlayerEntity player = context.player();
             if (player == null) return;
             UUID uuid = payload.uuid();
-            UndoStorage storage = this.pressManager.getPlayerMinerInfo(player).getUndoHistory().getUndoStorage(uuid);
-            if (storage == null) {
-                player.sendMessage(Text.of("There is no such UndoStorage!Please try again later."), false);
+            PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(player);
+            if (info == null) return;
+            UndoStorage storage = info.getUndoHistory().getUndoStorage(uuid);
+            if (storage != null) {
+                this.openUndoScreen(player, storage, uuid);
                 return;
             }
-            Map<ItemStackKey, MaterialInfo> map = storage.getItems();
-            //Map<Item, MaterialInfo> map = this.genTestData(List.of(Items.DIAMOND, Items.EMERALD, Items.GOLD_INGOT));
-            //Map<ItemStackKey, MaterialInfo> map = this.genTestDataFroStack(items);
-            player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, playerInventory, player1) -> new UndoScreenHandler(syncId, playerInventory, map, this.pressManager, storage.getCompletedCount(), uuid), Text.of("Test")));
-            ScreenHandler handler = player.currentScreenHandler;
-            ServerPlayNetworking.send(player, new UndoDataSyncS2CPayload(handler.syncId, new UndoData(map, storage.getCompletedCount(), uuid)));
+            // 已被淘汰到磁盘:异步加载后放回内存,再回到主线程打开 GUI
+            this.persistence.loadUndoAsync(player.getUuid(), uuid, (loaded, error) -> {
+                if (loaded == null) {
+                    player.sendMessage(Text.of("There is no such UndoStorage!Please try again later."), false);
+                    return;
+                }
+                info.getUndoHistory().addUndoStorage(loaded);
+                this.openUndoScreen(player, loaded, uuid);
+            });
         });
+    }
+
+    private void openUndoScreen(ServerPlayerEntity player, UndoStorage storage, UUID uuid) {
+        Map<ItemStackKey, MaterialInfo> map = storage.getItems();
+        player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, playerInventory, player1) -> new UndoScreenHandler(syncId, playerInventory, map, this.pressManager, storage.getCompletedCount(), uuid, this.persistence), Text.of("Test")));
+        ScreenHandler handler = player.currentScreenHandler;
+        ServerPlayNetworking.send(player, new UndoDataSyncS2CPayload(handler.syncId, new UndoData(map, storage.getCompletedCount(), uuid)));
     }
 
     private void handleUndoListSyncRequestC2SPayload(UndoListSyncRequestC2SPayload payload, ServerPlayNetworking.Context context) {
         context.server().execute(() -> {
             ServerPlayerEntity player = context.player();
-            PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(player);
-            Collection<UndoStorage> undoStorages = info.getUndoHistory().getUndoStorages();
-            List<UndoDisplayInfo> list = undoStorages.stream()
-                    .map(u -> new UndoDisplayInfo("I don't know", u.getTime(), u.getUuid(), u.getItems().values().stream()
-                            .sorted(Comparator.comparingInt(MaterialInfo::getMaxCount).reversed())
-                            .limit(3)
-                            .map(i -> {
-                                ItemStack stack = i.getItemStack();
-                                stack.setCount(1);
-                                return stack;
-                            })
-                            .collect(Collectors.toList()), u.getItems().size() > 3))
-                    .toList();
-            ServerPlayNetworking.send(player, new UndoListSyncS2CPayload(list));
+            this.persistence.collectUndoList(player, list ->
+                    ServerPlayNetworking.send(player, new UndoListSyncS2CPayload(list)));
         });
     }
 

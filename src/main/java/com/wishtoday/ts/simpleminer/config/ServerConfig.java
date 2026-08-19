@@ -12,8 +12,6 @@ import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import dev.isxander.yacl3.api.Option;
