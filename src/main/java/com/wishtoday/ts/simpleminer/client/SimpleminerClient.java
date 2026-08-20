@@ -11,11 +11,16 @@ import lombok.Setter;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.BlockPos;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class SimpleminerClient implements ClientModInitializer {
 
@@ -27,6 +32,10 @@ public class SimpleminerClient implements ClientModInitializer {
     @Getter
     @Setter
     private static int currentBlocks = -1;
+
+    @Getter
+    @Setter
+    private static Set<BlockPos> renderBlocks;
 
     @Getter
     private static final LinearShapeInfos linearShapeInfos = LinearShapeInfos.DEFAULT.copy();
@@ -46,6 +55,10 @@ public class SimpleminerClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             this.onTick();
         });
+        WorldRenderEvents.AFTER_TRANSLUCENT.register(worldRenderEvent -> {
+            if (renderBlocks == null || renderBlocks.isEmpty()) return;
+            BlockPreviewRenderer.render(renderBlocks, worldRenderEvent);
+        });
     }
 
     public static void consumeIndividualConfig(IndividualConfig config) {
@@ -59,6 +72,7 @@ public class SimpleminerClient implements ClientModInitializer {
             pressing = KeyBindings.MINE_KEY.isPressed();
             ClientPlayNetworking.send(new KeywordPressedPayload(pressing, shapeIndex));
             currentBlocks = -1;
+            renderBlocks = null;
         }
         if (KeyBindings.UNDO_KEY.wasPressed()) {
             if (!Screen.hasControlDown()) {

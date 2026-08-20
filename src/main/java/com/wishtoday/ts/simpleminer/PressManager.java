@@ -10,7 +10,7 @@ import java.util.*;
 @Service
 public class PressManager {
     private final Map<UUID, PlayerMinerInfo> playerMinerInfos;
-    private final HashSet<UUID> pressedPlayer;
+    private final Set<UUID> pressedPlayer;
     @CreateConstruction
     public PressManager() {
         this.playerMinerInfos = new HashMap<>();

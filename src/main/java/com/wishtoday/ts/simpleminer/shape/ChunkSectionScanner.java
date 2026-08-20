@@ -1,4 +1,4 @@
-package com.wishtoday.ts.simpleminer.utils;
+package com.wishtoday.ts.simpleminer.shape;
 
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.mixin.Accessor.PalettedContainerAccessor;

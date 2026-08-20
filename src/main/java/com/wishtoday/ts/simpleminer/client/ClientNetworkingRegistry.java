@@ -45,6 +45,7 @@ public class ClientNetworkingRegistry {
 
     private void receiveUndoDataSyncPayload(MineBlockSyncS2CPayload payload, ClientPlayNetworking.Context context) {
         SimpleminerClient.setCurrentBlocks(payload.length());
+        SimpleminerClient.setRenderBlocks(payload.pos());
     }
 
     private void receiveOpenConfigPayload(OpenConfigS2CPayload payload, ClientPlayNetworking.Context context) {

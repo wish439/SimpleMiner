@@ -51,7 +51,6 @@ public class EventRegistry {
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, sender) -> {
             ServerPlayerEntity player = handler.getPlayer();
-            // 先落盘再移除,否则玩家断开后内存状态直接丢弃,未保存的 undo/配置改动会丢失
             this.persistence.savePlayerData(player);
             this.manager.removePlayerMinerInfo(player.getUuid());
         });

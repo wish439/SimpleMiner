@@ -14,6 +14,7 @@ import com.wishtoday.ts.simpleminer.shape.Shapes;
 import com.wishtoday.ts.simpleminer.utils.BlockSorter;
 import com.wishtoday.ts.simpleminer.utils.WorldUtils;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongCollections;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
@@ -84,7 +85,8 @@ public class ShapeRefresher {
         LongArrayList blockPos = new LongArrayList(blockPoses);
         LongArrayList list = BlockSorter.sortWithPlayerManhattan(blockPos, player);
         info.setBlockPoses(new ShapeResult(blockPoses, list));
-        ServerPlayNetworking.send((ServerPlayerEntity) player, new MineBlockSyncS2CPayload(list.size()));
+        Set<BlockPos> collect = list.longStream().limit(256).mapToObj(BlockPos::fromLong).collect(HashSet::new, HashSet::add, HashSet::addAll);
+        ServerPlayNetworking.send((ServerPlayerEntity) player, new MineBlockSyncS2CPayload(list.size(), collect));
     }
 
     private @NotNull ShapeContext getShapeContext(@NotNull PlayerEntity player, int maxSize, BlockPos raycast, PlayerMinerInfo info) {
