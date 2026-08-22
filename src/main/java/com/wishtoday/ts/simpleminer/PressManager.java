@@ -57,6 +57,6 @@ public class PressManager {
     }
 
     public Collection<PlayerMinerInfo> filterPressesPlayerInfos() {
-        return this.pressedPlayer.stream().map(this.playerMinerInfos::get).toList();
+        return this.pressedPlayer.stream().map(this.playerMinerInfos::get).filter(Objects::nonNull).toList();
     }
 }

@@ -11,21 +11,21 @@ import com.wishtoday.ts.simpleminer.undo.gui.UndoScreen;
 import com.wishtoday.ts.simpleminer.undo.gui.screenHandler.UndoScreenHandler;
 import com.wishtoday.ts.simpleminer.undo.network.payloads.UndoDataSyncS2CPayload;
 import com.wishtoday.ts.simpleminer.undo.network.payloads.UndoListSyncS2CPayload;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.screen.ScreenHandler;
 
 import java.util.Map;
 
+@Environment(EnvType.CLIENT)
 @Service(condition = ClientOnlyLoadCondition.class)
 public class UndoClientNetworkingRegistry implements ClientNetworkExtendFutures {
     @Override
     public void initialize() {
-        PayloadTypeRegistry.playS2C().register(UndoDataSyncS2CPayload.ID, UndoDataSyncS2CPayload.CODEC);
         ClientPlayNetworking.registerGlobalReceiver(UndoDataSyncS2CPayload.ID, this::receiveUndoDataSyncPayload);
-        PayloadTypeRegistry.playS2C().register(UndoListSyncS2CPayload.ID, UndoListSyncS2CPayload.CODEC);
         ClientPlayNetworking.registerGlobalReceiver(UndoListSyncS2CPayload.ID, this::handleUndoListSyncS2CPayload);
     }
 

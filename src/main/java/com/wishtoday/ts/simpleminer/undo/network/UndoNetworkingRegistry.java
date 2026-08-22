@@ -11,7 +11,6 @@ import com.wishtoday.ts.simpleminer.network.ServerNetworkExtendFutures;
 import com.wishtoday.ts.simpleminer.undo.gui.UndoGuiStorageContext;
 import com.wishtoday.ts.simpleminer.undo.gui.screenHandler.UndoScreenHandler;
 import com.wishtoday.ts.simpleminer.undo.network.payloads.*;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
@@ -37,15 +36,10 @@ public class UndoNetworkingRegistry implements ServerNetworkExtendFutures {
 
     @Override
     public void initialize() {
-        PayloadTypeRegistry.playC2S().register(RequestUndoC2SPayload.ID, RequestUndoC2SPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(RequestUndoC2SPayload.ID, this::handleRequestUndoPayload);
-        PayloadTypeRegistry.playC2S().register(TakeItemSyncC2SPayload.ID, TakeItemSyncC2SPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(TakeItemSyncC2SPayload.ID, this::handleTakeItemSyncC2SPayload);
-        PayloadTypeRegistry.playC2S().register(RequestReturnAllC2SPayload.ID, RequestReturnAllC2SPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(RequestReturnAllC2SPayload.ID, this::handleRequestReturnAllC2SPayload);
-        PayloadTypeRegistry.playC2S().register(UndoListSyncRequestC2SPayload.ID, UndoListSyncRequestC2SPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(UndoListSyncRequestC2SPayload.ID, this::handleUndoListSyncRequestC2SPayload);
-        PayloadTypeRegistry.playC2S().register(RequestOpenSingleUndoScreenHandlerC2SPayload.ID, RequestOpenSingleUndoScreenHandlerC2SPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(RequestOpenSingleUndoScreenHandlerC2SPayload.ID, this::handleRequestOpenSingleUndoScreenHandlerC2SPayload);
     }
 

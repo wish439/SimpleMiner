@@ -39,5 +39,7 @@
   "simpleminer.noticer.size.button.autosync": "[Auto sync server]",
   "simpleminer.noticer.size.button.autosync.hover": "auto sync(value:-1)",
   "simpleminer.noticer.size.button.defaultValue": "[Default value]",
-  "simpleminer.noticer.size.button.defaultValue.hover": "Default value(value:64)"
+  "simpleminer.noticer.size.button.defaultValue.hover": "Default value(value:64)",
+  "simpleminer.config.individualConfig.receiveMaxSizeUpdate": "Receive max size modify notice",
+  "simpleminer.config.receiveMaxSizeUpdate.description": "Whether to receive max size modification notification."
 }

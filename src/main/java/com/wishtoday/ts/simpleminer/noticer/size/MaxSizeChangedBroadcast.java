@@ -38,6 +38,7 @@ public class MaxSizeChangedBroadcast {
         List<ServerPlayerEntity> list = manager.getPlayerList();
         for (ServerPlayerEntity serverPlayerEntity : list) {
             PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(serverPlayerEntity);
+            if (!info.getCurrentIndividualConfig().isReceiveMaxSizeUpdate()) continue;
             MutableText text = Text.stringifiedTranslatable("simpleminer.noticer.size.max_size.1", modifyPlayer.getName().getString(), maxSize);
             text.append("\n");
             MutableText translatable = Text.stringifiedTranslatable("simpleminer.noticer.size.max_size.2", info.getCurrentIndividualConfig().getPersonalMaxSize());

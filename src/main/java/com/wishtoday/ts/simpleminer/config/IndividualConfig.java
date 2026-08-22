@@ -30,16 +30,20 @@ public class IndividualConfig {
 
     private FullChunkShapeInfos fullChunkShapeInfos;
 
+    private boolean receiveMaxSizeUpdate;
+
     public IndividualConfig() {
         this.personalMaxSize = -1;
         this.toolPreventBroken = false;
         this.linearShapeInfos = LinearShapeInfos.DEFAULT.copy();
         this.fullChunkShapeInfos = FullChunkShapeInfos.DEFAULT.copy();
+        this.receiveMaxSizeUpdate = false;
     }
 
     public static List<Option<?>> getAllOptions(IndividualConfig config) {
         return List.of(personalMaxSize(config),
-                toolPreventBroken(config));
+                toolPreventBroken(config),
+                receiveMaxSizeUpdate(config));
     }
 
     public static List<OptionGroup> getAllGroups(IndividualConfig config, int shapeIndex) {
@@ -54,9 +58,19 @@ public class IndividualConfig {
                 .binding(-1, config::getPersonalMaxSize, config::setPersonalMaxSize)
                 .controller(integerOption -> IntegerFieldControllerBuilder
                         .create(integerOption)
-                        .max(100000)
+                        .max(Integer.MAX_VALUE)
                         .min(-1)
                 )
+                .build();
+    }
+
+    private static Option<Boolean> receiveMaxSizeUpdate(IndividualConfig config) {
+        return Option.<Boolean>createBuilder()
+                .name(Text.translatable("simpleminer.config.individualConfig.receiveMaxSizeUpdate"))
+                .description(OptionDescription.of(Text.translatable("simpleminer.config.receiveMaxSizeUpdate.description")))
+                .binding(false, config::isReceiveMaxSizeUpdate, config::setReceiveMaxSizeUpdate)
+                .controller(b -> BooleanControllerBuilder.create(b)
+                        .trueFalseFormatter())
                 .build();
     }
 
@@ -122,6 +136,7 @@ public class IndividualConfig {
         buf.writeBoolean(this.toolPreventBroken);
         LinearShapeInfos.PACKET_CODEC.encode(buf, this.linearShapeInfos);
         FullChunkShapeInfos.PACKET_CODEC.encode(buf, this.fullChunkShapeInfos);
+        buf.writeBoolean(this.receiveMaxSizeUpdate);
     }
 
     private static IndividualConfig read(PacketByteBuf buf) {
@@ -129,6 +144,7 @@ public class IndividualConfig {
         boolean preventBroken = buf.readBoolean();
         LinearShapeInfos decode = LinearShapeInfos.PACKET_CODEC.decode(buf);
         FullChunkShapeInfos fullChunkShapeInfos = FullChunkShapeInfos.PACKET_CODEC.decode(buf);
-        return new IndividualConfig(personalMaxSize1, preventBroken, decode, fullChunkShapeInfos);
+        boolean receiveMaxSizeUpdate = buf.readBoolean();
+        return new IndividualConfig(personalMaxSize1, preventBroken, decode, fullChunkShapeInfos, receiveMaxSizeUpdate);
     }
 }

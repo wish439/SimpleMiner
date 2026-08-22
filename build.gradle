@@ -46,6 +46,7 @@ dependencies {
     compileOnly("org.projectlombok:lombok:${project.lombok_version}")
 
     implementation include("com.wishtoday:simpleservice:1.1-SNAPSHOT")
+    implementation include( "io.github.classgraph:classgraph:${project.classgraph_version}")
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"

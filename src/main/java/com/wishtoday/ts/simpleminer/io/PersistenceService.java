@@ -182,7 +182,9 @@ public class PersistenceService {
 
     private void syncIndividualConfig(ServerPlayerEntity player) {
         PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(player);
+        if (info == null) return;
         IndividualConfig config = info.getCurrentIndividualConfig();
+        System.out.println("sended");
         ServerPlayNetworking.send(player, new SyncIndividualConfigS2CPayload(config));
     }
 

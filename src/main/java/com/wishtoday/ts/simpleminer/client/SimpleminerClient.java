@@ -18,8 +18,10 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class SimpleminerClient implements ClientModInitializer {
@@ -34,7 +36,6 @@ public class SimpleminerClient implements ClientModInitializer {
     private static int currentBlocks = -1;
 
     @Getter
-    @Setter
     private static Set<BlockPos> renderBlocks;
 
     @Getter
@@ -42,6 +43,10 @@ public class SimpleminerClient implements ClientModInitializer {
 
     @Getter
     private static final FullChunkShapeInfos fullChunkShapeInfos = FullChunkShapeInfos.DEFAULT.copy();
+
+    public static void setRenderBlocks(Set<BlockPos> renderBlocks) {
+        SimpleminerClient.renderBlocks = renderBlocks;
+    }
 
     @Override
     public void onInitializeClient() {

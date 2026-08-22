@@ -88,7 +88,7 @@ public class ServerConfig {
                 .binding(64, config::getMaxSize, config::setMaxSize)
                 .controller(integerOption -> IntegerFieldControllerBuilder
                         .create(integerOption)
-                        .max(100000)
+                        .max(Integer.MAX_VALUE)
                         .min(1)
                 )
                 .build();

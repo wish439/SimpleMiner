@@ -15,14 +15,16 @@ import dev.isxander.yacl3.api.ConfigCategory;
 import dev.isxander.yacl3.api.Option;
 import dev.isxander.yacl3.api.OptionGroup;
 import dev.isxander.yacl3.api.YetAnotherConfigLib;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
 import java.util.List;
 
+@Environment(EnvType.CLIENT)
 @Service(condition = ClientOnlyLoadCondition.class)
 public class ClientNetworkingRegistry {
 
@@ -35,13 +37,8 @@ public class ClientNetworkingRegistry {
 
     @PostConstruct
     public void registerChannels() {
-        PayloadTypeRegistry.playS2C().register(OpenConfigS2CPayload.ID, OpenConfigS2CPayload.CODEC);
         ClientPlayNetworking.registerGlobalReceiver(OpenConfigS2CPayload.ID, this::receiveOpenConfigPayload);
-
-        PayloadTypeRegistry.playS2C().register(MineBlockSyncS2CPayload.ID, MineBlockSyncS2CPayload.CODEC);
         ClientPlayNetworking.registerGlobalReceiver(MineBlockSyncS2CPayload.ID, this::receiveUndoDataSyncPayload);
-
-        PayloadTypeRegistry.playS2C().register(SyncIndividualConfigS2CPayload.ID, SyncIndividualConfigS2CPayload.CODEC);
         ClientPlayNetworking.registerGlobalReceiver(SyncIndividualConfigS2CPayload.ID, this::receiveSyncIndividualConfigS2CPayload);
 
         this.futures.forEach(ClientNetworkExtendFutures::initialize);
