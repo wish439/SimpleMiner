@@ -9,6 +9,7 @@ import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
+import com.wishtoday.ts.simpleminer.network.config.SyncIndividualConfigS2CPayload;
 import com.wishtoday.ts.simpleminer.undo.MaterialInfo;
 import com.wishtoday.ts.simpleminer.undo.UndoDisplayInfo;
 import com.wishtoday.ts.simpleminer.undo.UndoHistory;
@@ -16,6 +17,7 @@ import com.wishtoday.ts.simpleminer.undo.UndoStorage;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
@@ -75,7 +77,9 @@ public class PersistenceService {
 
     @Nullable
     private volatile MinecraftServer server;
-    /** 玩家 -> 磁盘上的 undo 记录 uuid(主线程维护) */
+    /**
+     * 玩家 -> 磁盘上的 undo 记录 uuid(主线程维护)
+     */
     private final Map<UUID, Set<UUID>> undoOnDisk;
 
     @CreateConstruction
@@ -103,6 +107,7 @@ public class PersistenceService {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, ignoredServer) -> {
             ServerPlayerEntity player = handler.player;
             this.loadIndividualConfig(player);
+            this.syncIndividualConfig(player);
             this.scanUndoOnDisk(player.getUuid());
         });
     }
@@ -173,6 +178,12 @@ public class PersistenceService {
         } catch (Exception e) {
             LOGGER.error("Failed to load individual config from {}", path, e);
         }
+    }
+
+    private void syncIndividualConfig(ServerPlayerEntity player) {
+        PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(player);
+        IndividualConfig config = info.getCurrentIndividualConfig();
+        ServerPlayNetworking.send(player, new SyncIndividualConfigS2CPayload(config));
     }
 
     public void saveIndividualConfigAsync(ServerPlayerEntity player) {

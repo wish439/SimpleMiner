@@ -32,5 +32,12 @@
   "simpleminer.config.individualConfig.fullChunkInfos.radiusX": "X radius",
   "simpleminer.config.individualConfig.fullChunkInfos.radiusZ": "Z radius",
   "simpleminer.client.shapes.fullChunk.radiusXDisplay": "Current X radius: %s",
-  "simpleminer.client.shapes.fullChunk.radiusZDisplay": "Current Z radius: %s"
+  "simpleminer.client.shapes.fullChunk.radiusZDisplay": "Current Z radius: %s",
+  "simpleminer.noticer.size.max_size.1": "Max size modified to %2$s by %1$s.",
+  "simpleminer.noticer.size.max_size.2": "Now your personal max size is %s.",
+  "simpleminer.noticer.size.max_size.3": "which one do you want modify to?Or ignore.",
+  "simpleminer.noticer.size.button.autosync": "[Auto sync server]",
+  "simpleminer.noticer.size.button.autosync.hover": "auto sync(value:-1)",
+  "simpleminer.noticer.size.button.defaultValue": "[Default value]",
+  "simpleminer.noticer.size.button.defaultValue.hover": "Default value(value:64)"
 }

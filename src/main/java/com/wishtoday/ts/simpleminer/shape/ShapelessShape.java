@@ -49,6 +49,9 @@ public class ShapelessShape implements Shape {
             if (blockPoses.size() <= cursor) {
                 break;
             }
+            if (eventually.size() >= context.getMaxSize()) {
+                break;
+            }
             long posesLong = blockPoses.getLong(cursor++);
             for (int[] blockOffset : blockOffsets) {
                 int offsetX = blockOffset[0];

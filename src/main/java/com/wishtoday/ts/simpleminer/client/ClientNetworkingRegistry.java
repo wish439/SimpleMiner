@@ -9,6 +9,7 @@ import com.wishtoday.ts.simpleminer.config.ServerConfig;
 import com.wishtoday.ts.simpleminer.network.MineBlockSyncS2CPayload;
 import com.wishtoday.ts.simpleminer.network.config.OpenConfigS2CPayload;
 import com.wishtoday.ts.simpleminer.network.config.SyncConfigC2SPayload;
+import com.wishtoday.ts.simpleminer.network.config.SyncIndividualConfigS2CPayload;
 import com.wishtoday.ts.simpleminer.services.ClientOnlyLoadCondition;
 import dev.isxander.yacl3.api.ConfigCategory;
 import dev.isxander.yacl3.api.Option;
@@ -40,7 +41,14 @@ public class ClientNetworkingRegistry {
         PayloadTypeRegistry.playS2C().register(MineBlockSyncS2CPayload.ID, MineBlockSyncS2CPayload.CODEC);
         ClientPlayNetworking.registerGlobalReceiver(MineBlockSyncS2CPayload.ID, this::receiveUndoDataSyncPayload);
 
+        PayloadTypeRegistry.playS2C().register(SyncIndividualConfigS2CPayload.ID, SyncIndividualConfigS2CPayload.CODEC);
+        ClientPlayNetworking.registerGlobalReceiver(SyncIndividualConfigS2CPayload.ID, this::receiveSyncIndividualConfigS2CPayload);
+
         this.futures.forEach(ClientNetworkExtendFutures::initialize);
+    }
+
+    private void receiveSyncIndividualConfigS2CPayload(SyncIndividualConfigS2CPayload payload, ClientPlayNetworking.Context context) {
+        SimpleminerClient.consumeIndividualConfig(payload.config());
     }
 
     private void receiveUndoDataSyncPayload(MineBlockSyncS2CPayload payload, ClientPlayNetworking.Context context) {
@@ -90,7 +98,7 @@ public class ClientNetworkingRegistry {
                 .category(category)
                 .save(() -> {
                     ClientPlayNetworking.send(new SyncConfigC2SPayload(ConfigType.INDIVIDUAL, config));
-                    SimpleminerClient.consumeIndividualConfig(config);
+                    //SimpleminerClient.consumeIndividualConfig(config);
                 })
                 .build();
         MinecraftClient mc = MinecraftClient.getInstance();

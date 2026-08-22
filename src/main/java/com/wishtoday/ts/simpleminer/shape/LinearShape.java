@@ -3,6 +3,7 @@ package com.wishtoday.ts.simpleminer.shape;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.LinearShapeInfos;
 import com.wishtoday.ts.simpleminer.client.SimpleminerClient;
+import com.wishtoday.ts.simpleminer.core.matcher.BlockMatcher;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldExtension;
 import com.wishtoday.ts.simpleminer.utils.BlockSorter;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
@@ -29,15 +30,18 @@ public class LinearShape implements Shape {
     public LongOpenHashSet walk(ShapeContext context) {
         Direction facing = context.getDirection();
         BlockPos currentTargetPos = context.getCurrentTargetPos();
+        BlockState targetState = context.getCurrentTargetState();
         PlayerEntity player = context.getPlayer();
         long targetPosLong = currentTargetPos.asLong();
         LinearShapeInfos infos = context.getIndividualConfig().getLinearShapeInfos();
         World world = context.getWorld();
         int maxSize = context.getMaxSize();
-        LongOpenHashSet longArrayList = this.generateLinearFromInfos(infos.getWidth(), infos.getHeight(), BlockPos.fromLong(targetPosLong), facing, p -> {
+        BlockMatcher matcher = context.getMatcher();
+        LongOpenHashSet longArrayList = this.generateLinearFromInfos(infos.getWidth(), infos.getHeight(), BlockPos.fromLong(targetPosLong), facing
+                , p -> {
             //BlockState blockState = world.getBlockState(p);
             //return !blockState.isAir();
-            return true;
+            return matcher.match(targetState, world.getBlockState(p));
         });
 
         int currentStep = 0;
@@ -58,7 +62,7 @@ public class LinearShape implements Shape {
                 //if (skipIndex.contains(l)) continue;
                 long add = BlockPos.add(l, facing.getOffsetX() * currentStep, facing.getOffsetY() * currentStep, facing.getOffsetZ() * currentStep);
                 BlockState state = ((WorldExtension) world).simpleMiner$getBlockState(add);
-                if (state.isAir()) {
+                if (state.isAir() || !matcher.match(state, world.getBlockState(currentTargetPos))) {
                     //skipIndex.add(l);
                     count++;
                     if (count == longArrayList.size()) break OUTLINE;

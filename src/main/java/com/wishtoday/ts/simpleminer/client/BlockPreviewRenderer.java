@@ -33,9 +33,6 @@ public class BlockPreviewRenderer {
                     .build(false)
     );
     public static void render(Set<BlockPos> poses, WorldRenderContext context) {
-        if (!SimpleminerClient.isPressing()) {
-            return;
-        }
         MinecraftClient mc = MinecraftClient.getInstance();
         HitResult crosshairTarget = mc.crosshairTarget;
         if (crosshairTarget == null) {

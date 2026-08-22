@@ -43,12 +43,6 @@ public class SimpleminerClient implements ClientModInitializer {
     @Getter
     private static final FullChunkShapeInfos fullChunkShapeInfos = FullChunkShapeInfos.DEFAULT.copy();
 
-    public static final Event<Scroll> SCROLL_EVENT = EventFactory.createArrayBacked(Scroll.class, (listeners) -> (d1, d2) -> {
-        for (Scroll listener : listeners) {
-            listener.onScroll(d1, d2);
-        }
-    });
-
     @Override
     public void onInitializeClient() {
         KeyBindings.register();
@@ -57,6 +51,9 @@ public class SimpleminerClient implements ClientModInitializer {
         });
         WorldRenderEvents.AFTER_TRANSLUCENT.register(worldRenderEvent -> {
             if (renderBlocks == null || renderBlocks.isEmpty()) return;
+            if (!pressing) {
+                return;
+            }
             BlockPreviewRenderer.render(renderBlocks, worldRenderEvent);
         });
     }
@@ -65,6 +62,10 @@ public class SimpleminerClient implements ClientModInitializer {
         LinearShapeInfos infos = config.getLinearShapeInfos();
         linearShapeInfos.setWidth(infos.getWidth());
         linearShapeInfos.setHeight(infos.getHeight());
+
+        FullChunkShapeInfos shapeInfos = config.getFullChunkShapeInfos();
+        fullChunkShapeInfos.setRadiusX(shapeInfos.getRadiusX());
+        fullChunkShapeInfos.setRadiusZ(shapeInfos.getRadiusZ());
     }
 
     private void onTick() {
@@ -81,9 +82,5 @@ public class SimpleminerClient implements ClientModInitializer {
             MinecraftClient.getInstance().setScreen(new UndoListScreen(Text.translatable("simpleminer.screen.undolist")));
             ClientPlayNetworking.send(new UndoListSyncRequestC2SPayload());
         }
-    }
-
-    public interface Scroll {
-        void onScroll(double amountX, double amountY);
     }
 }
