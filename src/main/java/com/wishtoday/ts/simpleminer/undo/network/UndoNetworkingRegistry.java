@@ -48,11 +48,7 @@ public class UndoNetworkingRegistry implements ServerNetworkExtendFutures {
         context.server().execute(() -> {
             ServerPlayerEntity player = context.player();
             if (player == null) return;
-            PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(player);
-            if (info == null) return;
-            UUID uuid = payload.undoUuid();
-            info.getUndoHistory().removeUndoStorage(uuid);
-            this.persistence.deleteUndo(player.getUuid(), uuid);
+            this.persistence.removeUndoRecord(player, payload.undoUuid());
         });
     }
 

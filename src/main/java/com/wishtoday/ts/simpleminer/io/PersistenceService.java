@@ -288,10 +288,12 @@ public class PersistenceService {
         });
     }
 
-    /**
-     * 删除磁盘 undo 记录(主线程调用,异步删文件)。
-     */
-    public void deleteUndo(UUID playerUuid, UUID undoUuid) {
+    public void removeUndoRecord(ServerPlayerEntity player, UUID undoUuid) {
+        UUID playerUuid = player.getUuid();
+        PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(player);
+        if (info != null) {
+            info.getUndoHistory().removeUndoStorage(undoUuid);
+        }
         Set<UUID> disk = this.undoOnDisk.get(playerUuid);
         if (disk != null) {
             disk.remove(undoUuid);

@@ -93,8 +93,9 @@ public class UndoConductor {
             return;
         }
         this.undo(world, undoStorage);
-        info.getUndoHistory().removeUndoStorage(uuid);
-        this.persistence.deleteUndo(player.getUuid(), uuid);
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            this.persistence.removeUndoRecord(serverPlayer, uuid);
+        }
     }
 
     private boolean areAllChunksLoaded(World world, Long2ObjectLinkedOpenHashMap<BlockStorage> map) {
