@@ -6,6 +6,7 @@ import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.network.config.OpenConfigS2CPayload;
 import com.wishtoday.ts.simpleminer.network.config.SyncConfigC2SPayload;
 import com.wishtoday.ts.simpleminer.network.config.SyncIndividualConfigS2CPayload;
+import com.wishtoday.ts.simpleminer.undo.network.payloads.DeleteUndoC2SPayload;
 import com.wishtoday.ts.simpleminer.undo.network.payloads.RequestOpenSingleUndoScreenHandlerC2SPayload;
 import com.wishtoday.ts.simpleminer.undo.network.payloads.RequestReturnAllC2SPayload;
 import com.wishtoday.ts.simpleminer.undo.network.payloads.RequestUndoC2SPayload;
@@ -33,6 +34,7 @@ public class CommonNetworkingRegistry {
         PayloadTypeRegistry.playC2S().register(RequestReturnAllC2SPayload.ID, RequestReturnAllC2SPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(UndoListSyncRequestC2SPayload.ID, UndoListSyncRequestC2SPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(RequestOpenSingleUndoScreenHandlerC2SPayload.ID, RequestOpenSingleUndoScreenHandlerC2SPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(DeleteUndoC2SPayload.ID, DeleteUndoC2SPayload.CODEC);
 
         // ===== S2C =====
         PayloadTypeRegistry.playS2C().register(OpenConfigS2CPayload.ID, OpenConfigS2CPayload.CODEC);

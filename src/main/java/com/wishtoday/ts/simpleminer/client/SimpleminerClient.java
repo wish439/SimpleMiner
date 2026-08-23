@@ -12,13 +12,14 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.fabricmc.fabric.api.event.Event;
-import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
+import net.minecraft.util.function.BooleanBiFunction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.util.shape.VoxelShapes;
 
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +39,8 @@ public class SimpleminerClient implements ClientModInitializer {
     @Getter
     private static Set<BlockPos> renderBlocks;
 
+    //private static final List<RenderEdge> renderEdges = new ArrayList<>();
+
     @Getter
     private static final LinearShapeInfos linearShapeInfos = LinearShapeInfos.DEFAULT.copy();
 
@@ -46,6 +49,28 @@ public class SimpleminerClient implements ClientModInitializer {
 
     public static void setRenderBlocks(Set<BlockPos> renderBlocks) {
         SimpleminerClient.renderBlocks = renderBlocks;
+        //tryMergeBlocks(renderBlocks);
+    }
+
+    /*private static void tryMergeBlocks(Set<BlockPos> renderBlocks) {
+        renderEdges.clear();
+        List<Box> merge = SimpleBoxMerger.merge(new LongOpenHashSet(renderBlocks.stream().map(BlockPos::asLong).collect(Collectors.toSet())));
+        VoxelShape merged = merge(merge);
+        merged.forEachEdge((minX, minY, minZ, maxX, maxY, maxZ) -> renderEdges.add(new RenderEdge(minX, minY, minZ, maxX, maxY, maxZ)));
+    }*/
+
+    private static VoxelShape merge(List<Box> boxes) {
+        Set<VoxelShape> shapes = new HashSet<>();
+        for (Box box : boxes) {
+            shapes.add(VoxelShapes.cuboid(box.expand(0.005D)));
+        }
+
+        VoxelShape fullCube = VoxelShapes.empty();
+
+        for (VoxelShape shape : shapes) {
+            fullCube = VoxelShapes.combine(fullCube, shape, BooleanBiFunction.OR);
+        }
+        return fullCube;
     }
 
     @Override
@@ -88,4 +113,10 @@ public class SimpleminerClient implements ClientModInitializer {
             ClientPlayNetworking.send(new UndoListSyncRequestC2SPayload());
         }
     }
+
+    /*public record RenderEdge(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
+        public RenderEdge(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+            this((float) minX, (float) minY, (float) minZ, (float) maxX, (float) maxY, (float) maxZ);
+        }
+    }*/
 }

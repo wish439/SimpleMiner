@@ -3,7 +3,9 @@ package com.wishtoday.ts.simpleminer.undo.gui;
 import com.wishtoday.ts.simpleminer.client.RenderUtils;
 import com.wishtoday.ts.simpleminer.undo.UndoDisplayInfo;
 import com.wishtoday.ts.simpleminer.undo.UndoStorage;
+import com.wishtoday.ts.simpleminer.undo.network.payloads.DeleteUndoC2SPayload;
 import com.wishtoday.ts.simpleminer.undo.network.payloads.RequestOpenSingleUndoScreenHandlerC2SPayload;
+import com.wishtoday.ts.simpleminer.undo.network.payloads.UndoListSyncRequestC2SPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -78,6 +80,10 @@ public class UndoListEntry extends AlwaysSelectedEntryListWidget<UndoListEntry.E
         private final int index;
 
         private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
+        private static final int DELETE_BUTTON_SIZE = 14;
+        private int renderX;
+        private int renderY;
+        private int renderWidth;
 
         public Entry(String text, long time, UUID uuid, List<ItemStack> stacks, boolean hasRemainMaterials, int index) {
             this.text = text;
@@ -100,6 +106,9 @@ public class UndoListEntry extends AlwaysSelectedEntryListWidget<UndoListEntry.E
 
         @Override
         public void render(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+            this.renderX = x;
+            this.renderY = y;
+            this.renderWidth = entryWidth;
             int i1 = (index % 2 == 0) ? 0x22C6C6C6 : 0x22808080;
             context.fill(x, y, x + entryWidth, y + entryHeight, i1);
 
@@ -107,7 +116,7 @@ public class UndoListEntry extends AlwaysSelectedEntryListWidget<UndoListEntry.E
                 context.fill(x, y, x + entryWidth, y + entryHeight, 0x44FFFFFF);
             }
 
-            context.drawText(minecraftClient.textRenderer, Text.of(text), x, y, 0xFFFFFF, true);
+            context.drawText(minecraftClient.textRenderer, Text.translatable("simpleminer.undo.list.posText", text), x, y, 0xFFFFFF, true);
             RenderUtils.drawScaleText(context, 0.5f, 0.5f, Text.of(time), x, y + 10, 0xFFFFFF, true);
             MatrixStack matrices = context.getMatrices();
             matrices.push();
@@ -122,10 +131,22 @@ public class UndoListEntry extends AlwaysSelectedEntryListWidget<UndoListEntry.E
                 context.drawText(minecraftClient.textRenderer, Text.of("......"), i, 5, 0xFFFFFF, true);
             }
             matrices.pop();
+
+            int delX = x + entryWidth - DELETE_BUTTON_SIZE - 4;
+            boolean delHovered = mouseX >= delX && mouseX <= delX + DELETE_BUTTON_SIZE
+                    && mouseY >= y && mouseY <= y + entryHeight;
+            context.fill(delX, y + (entryHeight - DELETE_BUTTON_SIZE) / 2, delX + DELETE_BUTTON_SIZE, y + (entryHeight - DELETE_BUTTON_SIZE) / 2 + DELETE_BUTTON_SIZE, delHovered ? 0xFFCC4444 : 0xFF884444);
+            context.drawText(minecraftClient.textRenderer, Text.of("X"), delX + 3, y + (entryHeight - DELETE_BUTTON_SIZE) / 2 + 2, 0xFFFFFF, true);
         }
 
         @Override
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            int delX = renderX + renderWidth - DELETE_BUTTON_SIZE - 4;
+            if (button == 0 && mouseX >= delX && mouseX <= delX + DELETE_BUTTON_SIZE) {
+                ClientPlayNetworking.send(new DeleteUndoC2SPayload(this.uuid));
+                ClientPlayNetworking.send(new UndoListSyncRequestC2SPayload());
+                return true;
+            }
             ClientPlayNetworking.send(new RequestOpenSingleUndoScreenHandlerC2SPayload(this.uuid));
             return super.mouseClicked(mouseX, mouseY, button);
         }

@@ -143,18 +143,4 @@ public class BlockPreviewRenderer {
         buffer.vertex(entry, x1, y1, z1).color(1f, 1f, 1f, 1f).normal(entry, 0, 1, 0);
         buffer.vertex(entry, x2, y2, z2).color(1f, 1f, 1f, 1f).normal(entry, 0, 1, 0);
     }*/
-
-    private static VoxelShape merge(List<Box> boxes) {
-        Set<VoxelShape> shapes = new HashSet<>();
-        for (Box box : boxes) {
-            shapes.add(VoxelShapes.cuboid(box.expand(0.005D)));
-        }
-
-        VoxelShape fullCube = VoxelShapes.empty();
-
-        for (VoxelShape shape : shapes) {
-            fullCube = VoxelShapes.combine(fullCube, shape, BooleanBiFunction.OR);
-        }
-        return fullCube;
-    }
 }

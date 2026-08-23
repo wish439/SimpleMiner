@@ -41,6 +41,19 @@ public class UndoNetworkingRegistry implements ServerNetworkExtendFutures {
         ServerPlayNetworking.registerGlobalReceiver(RequestReturnAllC2SPayload.ID, this::handleRequestReturnAllC2SPayload);
         ServerPlayNetworking.registerGlobalReceiver(UndoListSyncRequestC2SPayload.ID, this::handleUndoListSyncRequestC2SPayload);
         ServerPlayNetworking.registerGlobalReceiver(RequestOpenSingleUndoScreenHandlerC2SPayload.ID, this::handleRequestOpenSingleUndoScreenHandlerC2SPayload);
+        ServerPlayNetworking.registerGlobalReceiver(DeleteUndoC2SPayload.ID, this::handleDeleteUndoC2SPayload);
+    }
+
+    private void handleDeleteUndoC2SPayload(DeleteUndoC2SPayload payload, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            ServerPlayerEntity player = context.player();
+            if (player == null) return;
+            PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(player);
+            if (info == null) return;
+            UUID uuid = payload.undoUuid();
+            info.getUndoHistory().removeUndoStorage(uuid);
+            this.persistence.deleteUndo(player.getUuid(), uuid);
+        });
     }
 
     private void handleRequestOpenSingleUndoScreenHandlerC2SPayload(RequestOpenSingleUndoScreenHandlerC2SPayload payload, ServerPlayNetworking.Context context) {

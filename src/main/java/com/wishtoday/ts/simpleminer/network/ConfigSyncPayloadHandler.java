@@ -32,6 +32,7 @@ public class ConfigSyncPayloadHandler {
     public void handleSyncConfigS2C(SyncConfigC2SPayload payload, ServerPlayNetworking.Context context) {
         ServerPlayerEntity player = context.player();
         if (payload.type() == ConfigType.SERVER) {
+            if (!player.hasPermissionLevel(2)) return;
             ServerConfig newServerConfig = (ServerConfig) payload.config();
             this.serverConfig.setFromConfig(newServerConfig);
             this.persistence.saveServerConfigAsync();

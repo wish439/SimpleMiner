@@ -1,6 +1,9 @@
 {
   "simpleminer.config.maxSize": "Max size",
   "simpleminer.config.allowUndo": "Allow undo",
+  "simpleminer.config.maxUndoRecords": "Max undo records",
+  "simpleminer.config.maxUndoRecords.description": "Upper limit of undo records kept per player.",
+  "simpleminer.config.individualConfig.maxUndoRecords": "Max undo records",
   "simpleminer.config.collectStrategy": "Collect strategy",
   "simpleminer.config.blockBreakStrategy": "Block break strategy",
   "simpleminer.config.rightClickHandler": "Right click handler",
@@ -27,6 +30,8 @@
   "simpleminer.screen.undo.returnItems": "Return all items",
   "simpleminer.tips.undo.initial": "All items from your last dig have been returned",
   "simpleminer.screen.undo.emptyMaterial": "No recorded material",
+  "simpleminer.undo.list.posText": "%s (random in undo blocks)",
+  "simpleminer.message.undo.chunkNotLoaded": "The chunk for this undo record is not loaded. Move closer and try again.",
   "simpleminer.config.individualConfig.fullChunkInfos": "Full chunk infos",
   "simpleminer.config.fullChunkInfos.description": "Only avialable if your shape is full chunk.",
   "simpleminer.config.individualConfig.fullChunkInfos.radiusX": "X radius",

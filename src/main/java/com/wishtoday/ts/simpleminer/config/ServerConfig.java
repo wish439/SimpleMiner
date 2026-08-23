@@ -3,6 +3,8 @@ package com.wishtoday.ts.simpleminer.config;
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import dev.isxander.yacl3.api.ListOption;
+import dev.isxander.yacl3.api.Option;
+import dev.isxander.yacl3.api.OptionDescription;
 import dev.isxander.yacl3.api.OptionGroup;
 import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
 import dev.isxander.yacl3.api.controller.DropdownStringControllerBuilder;
@@ -49,6 +51,9 @@ public class ServerConfig {
     @SerialEntry
     private List<String> supportCrops;
 
+    @SerialEntry
+    private int maxUndoRecords;
+
     @CreateConstruction
     public ServerConfig() {
         this.maxSize = 64;
@@ -65,6 +70,7 @@ public class ServerConfig {
                 "minecraft:lapis_ore,minecraft:deepslate_lapis_ore",
                 "minecraft:diamond_ore,minecraft:deepslate_diamond_ore");
         this.supportCrops = List.of("#minecraft:crops");
+        this.maxUndoRecords = 50;
     }
 
 
@@ -72,6 +78,7 @@ public class ServerConfig {
     public static List<Option<?>> getAllOptions(ServerConfig serverConfig) {
         return List.of(maxSize(serverConfig)
                 , allowUndo(serverConfig)
+                , maxUndoRecords(serverConfig)
                 , collectStrategy(serverConfig)
                 , blockBreakStrategy(serverConfig)
                 , rightClickHandler(serverConfig));
@@ -100,6 +107,19 @@ public class ServerConfig {
                 .binding(false, config::isAllowUndo, config::setAllowUndo)
                 .controller(b -> BooleanControllerBuilder.create(b)
                         .trueFalseFormatter())
+                .build();
+    }
+
+    private static Option<Integer> maxUndoRecords(ServerConfig config) {
+        return Option.<Integer>createBuilder()
+                .name(Text.translatable("simpleminer.config.maxUndoRecords"))
+                .description(OptionDescription.of(Text.translatable("simpleminer.config.maxUndoRecords.description")))
+                .binding(50, config::getMaxUndoRecords, config::setMaxUndoRecords)
+                .controller(integerOption -> IntegerFieldControllerBuilder
+                        .create(integerOption)
+                        .max(100000)
+                        .min(1)
+                )
                 .build();
     }
 
@@ -153,6 +173,7 @@ public class ServerConfig {
         buf.writeString(this.rightClickHandler);
         buf.writeCollection(this.blockFamilies, PacketByteBuf::writeString);
         buf.writeCollection(this.supportCrops, PacketByteBuf::writeString);
+        buf.writeVarInt(this.maxUndoRecords);
     }
 
     private static ServerConfig read(PacketByteBuf buf) {
@@ -163,7 +184,8 @@ public class ServerConfig {
         String readString = buf.readString();
         ArrayList<String> strings = buf.readCollection(ArrayList::new, PacketByteBuf::readString);
         ArrayList<String> strings1 = buf.readCollection(ArrayList::new, PacketByteBuf::readString);
-        return new ServerConfig(i, b, s, string, readString, strings, strings1);
+        int maxUndoRecords = buf.readVarInt();
+        return new ServerConfig(i, b, s, string, readString, strings, strings1, maxUndoRecords);
     }
 
     public void setFromConfig(ServerConfig config) {
@@ -174,5 +196,6 @@ public class ServerConfig {
         this.blockFamilies = config.blockFamilies;
         this.rightClickHandler = config.rightClickHandler;
         this.supportCrops = config.supportCrops;
+        this.maxUndoRecords = config.maxUndoRecords;
     }
 }

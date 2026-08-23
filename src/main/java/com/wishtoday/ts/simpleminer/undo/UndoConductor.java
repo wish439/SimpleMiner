@@ -10,6 +10,7 @@ import com.wishtoday.ts.simpleminer.io.PersistenceService;
 import com.wishtoday.ts.simpleminer.utils.ItemStackUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.ItemEntity;
@@ -17,8 +18,10 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.ChunkManager;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -76,7 +79,6 @@ public class UndoConductor {
             this.performUndo(player, info, undoStorage, uuid);
             return;
         }
-        // 不在内存(已被淘汰到磁盘):异步加载后回到主线程执行
         if (!(player instanceof ServerPlayerEntity serverPlayer)) return;
         this.persistence.loadUndoAsync(serverPlayer.getUuid(), uuid, (loaded, error) -> {
             if (loaded == null) return;
@@ -85,9 +87,30 @@ public class UndoConductor {
     }
 
     private void performUndo(PlayerEntity player, PlayerMinerInfo info, UndoStorage undoStorage, UUID uuid) {
-        this.undo(player.getWorld(), undoStorage);
+        World world = player.getWorld();
+        if (!this.areAllChunksLoaded(world, undoStorage.getMap())) {
+            player.sendMessage(Text.translatable("simpleminer.message.undo.chunkNotLoaded"), false);
+            return;
+        }
+        this.undo(world, undoStorage);
         info.getUndoHistory().removeUndoStorage(uuid);
         this.persistence.deleteUndo(player.getUuid(), uuid);
+    }
+
+    private boolean areAllChunksLoaded(World world, Long2ObjectLinkedOpenHashMap<BlockStorage> map) {
+        LongOpenHashSet chunkKeys = new LongOpenHashSet();
+        for (long key : map.keySet()) {
+            int chunkX = BlockPos.unpackLongX(key) >> 4;
+            int chunkZ = BlockPos.unpackLongZ(key) >> 4;
+            chunkKeys.add(((long) chunkX << 32) | (chunkZ & 0xFFFFFFFFL));
+        }
+        ChunkManager chunkManager = world.getChunkManager();
+        for (long chunkKey : chunkKeys) {
+            if (!chunkManager.isChunkLoaded((int) (chunkKey >> 32), (int) chunkKey)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void undo(World world, UndoStorage undoStorage) {
@@ -102,7 +125,6 @@ public class UndoConductor {
             if (nbtCompound == null) continue;
             BlockEntity blockEntity = blockStorage.blockEntity();
             if (blockEntity == null) {
-                // 从磁盘加载的记录只有 NBT,从世界中取新建的方块实体
                 blockEntity = world.getBlockEntity(mutable);
             }
             if (blockEntity == null) continue;

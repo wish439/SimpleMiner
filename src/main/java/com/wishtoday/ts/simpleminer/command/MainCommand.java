@@ -47,6 +47,7 @@ public class MainCommand {
                                                 .then(argument("value", IntegerArgumentType.integer(-1))
                                                         .executes(this::executeUpdateIndividualConfigMaxSize)))))
                                 .then(literal("server")
+                                        .requires(source -> source.hasPermissionLevel(2))
                                         .executes(context -> {
                                             ServerPlayerEntity player = context.getSource().getPlayer();
                                             if (player == null) return -1;

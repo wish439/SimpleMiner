@@ -25,7 +25,9 @@ import net.minecraft.nbt.NbtSizeTracker;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.WorldSavePath;
+import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +69,6 @@ public class PersistenceService {
     private static final String MOD_DIR_NAME = "simpleminer";
     private static final int SAVE_INTERVAL_TICKS = 600; // 30 秒
     private static final int IN_MEMORY_UNDO_PER_PLAYER = 5;
-    private static final int MAX_UNDO_PER_PLAYER = 50;
 
     private final ExecutorService ioExecutor;
     private final Gson gson;
@@ -184,7 +185,6 @@ public class PersistenceService {
         PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(player);
         if (info == null) return;
         IndividualConfig config = info.getCurrentIndividualConfig();
-        System.out.println("sended");
         ServerPlayNetworking.send(player, new SyncIndividualConfigS2CPayload(config));
     }
 
@@ -247,8 +247,9 @@ public class PersistenceService {
         disk.add(storage.getUuid());
 
         PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(player);
+        int maxUndoRecords = this.effectiveMaxUndoRecords(player);
         if (info != null) {
-            this.evictInMemory(info.getUndoHistory());
+            this.evictInMemory(info.getUndoHistory(), maxUndoRecords);
         }
 
         NbtCompound tag = UndoStorageCodec.encode(storage, this.registryManager());
@@ -262,9 +263,9 @@ public class PersistenceService {
             }
         });
 
-        // 磁盘上限淘汰(异步读时间删最旧)
-        if (disk.size() > MAX_UNDO_PER_PLAYER) {
-            this.evictOnDiskAsync(playerUuid);
+        // 磁盘上限淘汰(异步读时间删最旧),上限取个人配置与服务器配置的较小值
+        if (disk.size() > maxUndoRecords) {
+            this.evictOnDiskAsync(playerUuid, maxUndoRecords);
         }
     }
 
@@ -317,7 +318,7 @@ public class PersistenceService {
         }
         UndoHistory history = info.getUndoHistory();
         List<UndoDisplayInfo> inMemory = history.getUndoStorages().stream()
-                .map(storage -> new UndoDisplayInfo("I don't know", storage.getTime(), storage.getUuid(),
+                .map(storage -> new UndoDisplayInfo(undoPosText(storage), storage.getTime(), storage.getUuid(),
                         this.topStacks(storage), storage.getItems().size() > 3))
                 .toList();
 
@@ -325,7 +326,9 @@ public class PersistenceService {
         Set<UUID> onDisk = new HashSet<>(this.undoOnDisk.getOrDefault(playerUuid, Set.of()));
         onDisk.removeIf(history::contains);
         if (onDisk.isEmpty()) {
-            callback.accept(inMemory);
+            List<UndoDisplayInfo> sorted = new ArrayList<>(inMemory);
+            sorted.sort(Comparator.comparingLong(UndoDisplayInfo::getTime).reversed());
+            callback.accept(sorted);
             return;
         }
 
@@ -343,6 +346,7 @@ public class PersistenceService {
             }
             List<UndoDisplayInfo> all = new ArrayList<>(inMemory);
             all.addAll(diskInfos);
+            all.sort(Comparator.comparingLong(UndoDisplayInfo::getTime).reversed());
             current.execute(() -> callback.accept(all));
         });
     }
@@ -387,8 +391,9 @@ public class PersistenceService {
 
     // ==================== 内部工具 ====================
 
-    private void evictInMemory(UndoHistory history) {
-        while (history.size() > IN_MEMORY_UNDO_PER_PLAYER) {
+    private void evictInMemory(UndoHistory history, int maxUndoRecords) {
+        int memLimit = Math.min(IN_MEMORY_UNDO_PER_PLAYER, maxUndoRecords);
+        while (history.size() > memLimit) {
             UUID oldest = null;
             long oldestTime = Long.MAX_VALUE;
             for (UndoStorage storage : history.getUndoStorages()) {
@@ -402,10 +407,10 @@ public class PersistenceService {
         }
     }
 
-    private void evictOnDiskAsync(UUID playerUuid) {
+    private void evictOnDiskAsync(UUID playerUuid, int maxUndoRecords) {
         Path dir = undoHistoryDir(playerUuid);
         Set<UUID> disk = this.undoOnDisk.get(playerUuid);
-        if (disk == null || disk.size() <= MAX_UNDO_PER_PLAYER) return;
+        if (disk == null || disk.size() <= maxUndoRecords) return;
         MinecraftServer current = this.server;
         List<UUID> snapshot = new ArrayList<>(disk);
         this.ioExecutor.execute(() -> {
@@ -413,7 +418,7 @@ public class PersistenceService {
                 List<UUID> sorted = snapshot.stream()
                         .sorted((a, b) -> Long.compare(this.readTime(undoPath(playerUuid, a)), this.readTime(undoPath(playerUuid, b))))
                         .toList();
-                int toRemove = sorted.size() - MAX_UNDO_PER_PLAYER;
+                int toRemove = sorted.size() - maxUndoRecords;
                 List<UUID> remove = new ArrayList<>();
                 for (int i = 0; i < toRemove; i++) {
                     Path path = undoPath(playerUuid, sorted.get(i));
@@ -433,6 +438,14 @@ public class PersistenceService {
                 LOGGER.error("Failed to evict undo records in {}", dir, e);
             }
         });
+    }
+
+    /** 该玩家实际生效的 undo 记录上限:个人配置与服务器配置的较小值,至少为 1 */
+    private int effectiveMaxUndoRecords(ServerPlayerEntity player) {
+        PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(player);
+        int individual = info != null ? info.getCurrentIndividualConfig().getMaxUndoRecords() : 50;
+        int server = this.serverConfig.getMaxUndoRecords();
+        return Math.max(1, Math.min(individual, server));
     }
 
     private long readTime(Path path) {
@@ -476,6 +489,18 @@ public class PersistenceService {
                     return stack;
                 })
                 .toList();
+    }
+
+    /** 从 undo 记录里随意挑一个方块坐标作为列表显示文本 */
+    private static String undoPosText(UndoStorage storage) {
+        if (storage.getMap().isEmpty()) {
+            return "?";
+        }
+        long pos = storage.getMap().keySet().iterator().nextLong();
+        int x = BlockPos.unpackLongX(pos);
+        int y = BlockPos.unpackLongY(pos);
+        int z = BlockPos.unpackLongZ(pos);
+        return x + "," + y + "," + z;
     }
 
     private RegistryWrapper.WrapperLookup registryManager() {

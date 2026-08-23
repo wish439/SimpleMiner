@@ -14,6 +14,7 @@ import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -123,7 +124,21 @@ public final class UndoStorageCodec {
                     return stack;
                 })
                 .toList();
-        return new UndoDisplayInfo("I don't know", root.getLong(KEY_TIME), root.getUuid(KEY_UUID), stacks, items.size() > 3);
+        String text = firstPosText(root);
+        return new UndoDisplayInfo(text, root.getLong(KEY_TIME), root.getUuid(KEY_UUID), stacks, items.size() > 3);
+    }
+
+    /** 从 blocks 列表第一个条目取坐标作为列表显示文本 */
+    private static String firstPosText(NbtCompound root) {
+        NbtList blocksTag = root.getList(KEY_BLOCKS, NbtElement.COMPOUND_TYPE);
+        if (blocksTag.isEmpty()) {
+            return "?";
+        }
+        long pos = ((NbtCompound) blocksTag.get(0)).getLong(KEY_POS);
+        int x = BlockPos.unpackLongX(pos);
+        int y = BlockPos.unpackLongY(pos);
+        int z = BlockPos.unpackLongZ(pos);
+        return x + "," + y + "," + z;
     }
 
     private static NbtElement encodeBlockState(BlockState state, RegistryOps<NbtElement> ops) {

@@ -8,6 +8,7 @@ import net.minecraft.util.math.Box;
 import java.util.ArrayList;
 import java.util.List;
 
+//入机写的
 public class SimpleBoxMerger {
 
     public static List<Box> merge(LongOpenHashSet set) {
