@@ -16,13 +16,17 @@ import java.util.stream.Collectors;
 
 public class BlockFamily {
     private final IntOpenHashSet allowedIds;
+    private final IntOpenHashSet deniedIds;
     private final Set<TagKey<Block>> allowedTags;
+    private final Set<TagKey<Block>> deniedTags;
     private final Map<Block, Set<TagKey<Block>>> tagCache;
 
-    public BlockFamily(IntOpenHashSet allowedIds, Set<TagKey<Block>> allowedTags) {
+    public BlockFamily(IntOpenHashSet allowedIds, IntOpenHashSet deniedIds, Set<TagKey<Block>> allowedTags, Set<TagKey<Block>> deniedTags) {
         this.allowedIds = allowedIds;
+        this.deniedIds = deniedIds;
         this.allowedTags = allowedTags;
-        this.tagCache = new HashMap<>();
+        this.deniedTags = deniedTags;
+        this.tagCache = new ConcurrentHashMap<>();
     }
 
     private Set<TagKey<Block>> getOrCreateTags(Block a) {
@@ -52,11 +56,17 @@ public class BlockFamily {
     }
 
     public boolean isAllowed(Block a) {
+        if (this.deniedIds.contains(Registries.BLOCK.getRawId(a))) {
+            return false;
+        }
         if (this.allowedIds.contains(Registries.BLOCK.getRawId(a))) {
             return true;
         }
         Set<TagKey<Block>> aTags = getOrCreateTags(a);
         for (TagKey<Block> tag : aTags) {
+            if (this.deniedTags.contains(tag)) {
+                return false;
+            }
             if (this.allowedTags.contains(tag)) {
                 return true;
             }

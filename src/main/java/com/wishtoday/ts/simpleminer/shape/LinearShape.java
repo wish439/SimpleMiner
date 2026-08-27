@@ -62,7 +62,7 @@ public class LinearShape implements Shape {
                 //if (skipIndex.contains(l)) continue;
                 long add = BlockPos.add(l, facing.getOffsetX() * currentStep, facing.getOffsetY() * currentStep, facing.getOffsetZ() * currentStep);
                 BlockState state = ((WorldExtension) world).simpleMiner$getBlockState(add);
-                if (state.isAir() || !matcher.match(state, world.getBlockState(currentTargetPos))) {
+                if (state.isAir() || !matcher.match(state, targetState)) {
                     //skipIndex.add(l);
                     count++;
                     if (count == longArrayList.size()) break OUTLINE;

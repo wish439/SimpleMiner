@@ -99,17 +99,20 @@ public class UndoConductor {
     }
 
     private boolean areAllChunksLoaded(World world, Long2ObjectLinkedOpenHashMap<BlockStorage> map) {
-        LongOpenHashSet chunkKeys = new LongOpenHashSet();
+        LongOpenHashSet checkedChunk = new LongOpenHashSet();
+        ChunkManager chunkManager = world.getChunkManager();
         for (long key : map.keySet()) {
             int chunkX = BlockPos.unpackLongX(key) >> 4;
             int chunkZ = BlockPos.unpackLongZ(key) >> 4;
-            chunkKeys.add(((long) chunkX << 32) | (chunkZ & 0xFFFFFFFFL));
-        }
-        ChunkManager chunkManager = world.getChunkManager();
-        for (long chunkKey : chunkKeys) {
-            if (!chunkManager.isChunkLoaded((int) (chunkKey >> 32), (int) chunkKey)) {
+            long k = ((long) chunkX << 32) | (chunkZ & 0xFFFFFFFFL);
+            if (checkedChunk.contains(k)) {
+                continue;
+            }
+            if (!chunkManager.isChunkLoaded(chunkX, chunkZ)) {
                 return false;
             }
+
+            checkedChunk.add(k);
         }
         return true;
     }

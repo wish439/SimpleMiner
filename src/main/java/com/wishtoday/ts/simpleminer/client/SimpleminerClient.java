@@ -79,13 +79,28 @@ public class SimpleminerClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             this.onTick();
         });
+        WorldRenderEvents.BLOCK_OUTLINE.register((worldRenderEvent, outlineContext) -> {
+            if (renderBlocks == null || renderBlocks.isEmpty()) return true;
+            if (!pressing) {
+                return true;
+            }
+            //BlockPreviewRenderer.render(renderBlocks, worldRenderEvent);
+            if (shapeIndex == 2) {
+                BlockPreviewRenderer.render(renderBlocks, worldRenderEvent);
+                return false;
+            }
+            return BlockPreviewRenderer.renderHighlight(worldRenderEvent.matrixStack());
+        });
+/*
         WorldRenderEvents.AFTER_TRANSLUCENT.register(worldRenderEvent -> {
             if (renderBlocks == null || renderBlocks.isEmpty()) return;
             if (!pressing) {
                 return;
             }
-            BlockPreviewRenderer.render(renderBlocks, worldRenderEvent);
+            //BlockPreviewRenderer.render(renderBlocks, worldRenderEvent);
+            BlockPreviewRenderer.renderHighlight(worldRenderEvent.matrixStack());
         });
+*/
     }
 
     public static void consumeIndividualConfig(IndividualConfig config) {

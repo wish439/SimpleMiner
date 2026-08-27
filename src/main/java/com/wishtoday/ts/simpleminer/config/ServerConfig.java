@@ -2,21 +2,14 @@ package com.wishtoday.ts.simpleminer.config;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
-import dev.isxander.yacl3.api.ListOption;
-import dev.isxander.yacl3.api.Option;
-import dev.isxander.yacl3.api.OptionDescription;
-import dev.isxander.yacl3.api.OptionGroup;
-import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
-import dev.isxander.yacl3.api.controller.DropdownStringControllerBuilder;
-import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
-import dev.isxander.yacl3.api.controller.StringControllerBuilder;
+import dev.isxander.yacl3.api.*;
+import dev.isxander.yacl3.api.controller.*;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import dev.isxander.yacl3.api.Option;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
@@ -54,6 +47,10 @@ public class ServerConfig {
     @SerialEntry
     private int maxUndoRecords;
 
+    @SerialEntry
+    private List<String> testList;
+
+
     @CreateConstruction
     public ServerConfig() {
         this.maxSize = 64;
@@ -71,6 +68,7 @@ public class ServerConfig {
                 "minecraft:diamond_ore,minecraft:deepslate_diamond_ore");
         this.supportCrops = List.of("#minecraft:crops");
         this.maxUndoRecords = 50;
+        this.testList = new ArrayList();
     }
 
 
@@ -105,8 +103,7 @@ public class ServerConfig {
         return Option.<Boolean>createBuilder()
                 .name(Text.translatable("simpleminer.config.allowUndo"))
                 .binding(false, config::isAllowUndo, config::setAllowUndo)
-                .controller(b -> BooleanControllerBuilder.create(b)
-                        .trueFalseFormatter())
+                .controller(TickBoxControllerBuilder::create)
                 .build();
     }
 
@@ -127,15 +124,14 @@ public class ServerConfig {
         return Option.<String>createBuilder()
                 .name(Text.translatable("simpleminer.config.collectStrategy"))
                 .binding("PUREAPI", config::getCollectStrategy, config::setCollectStrategy)
-                .controller(s -> DropdownStringControllerBuilder.create(s).values("PUREAPI", "INTERCEPT")
-                ).build();
+                .controller(s -> CyclingListControllerBuilder.create(s).values("PUREAPI", "INTERCEPT").formatValue(Text::of)).build();
     }
 
     private static Option<String> blockBreakStrategy(ServerConfig config) {
         return Option.<String>createBuilder()
                 .name(Text.translatable("simpleminer.config.blockBreakStrategy"))
                 .binding("PUREAPI", config::getBlockBreakStrategy, config::setBlockBreakStrategy)
-                .controller(s -> DropdownStringControllerBuilder.create(s).values("PUREAPI", "VANILLA"))
+                .controller(s -> CyclingListControllerBuilder.create(s).values("PUREAPI", "VANILLA").formatValue(Text::of))
                 .build();
     }
 
@@ -148,12 +144,23 @@ public class ServerConfig {
     }
 
     private static OptionGroup blockFamilies(ServerConfig config) {
+/*
         return ListOption.<String>createBuilder()
                 .name(Text.translatable("simpleminer.config.blockFamilies"))
                 .binding(List.of("#minecraft:base_stone_overworld"), config::getBlockFamilies, config::setBlockFamilies)
                 .controller(StringControllerBuilder::create)
                 .initial("")
                 .build();
+*/
+
+
+        return ListOption.<String>createBuilder()
+                .name(Text.translatable("simpleminer.config.blockFamilies"))
+                .binding(List.of("#minecraft:base_stone_overworld"), config::getBlockFamilies, config::setBlockFamilies)
+                .controller(StringControllerBuilder::create)
+                .initial("")
+                .build();
+
     }
 
     private static OptionGroup supportCrops(ServerConfig config) {
@@ -185,7 +192,7 @@ public class ServerConfig {
         ArrayList<String> strings = buf.readCollection(ArrayList::new, PacketByteBuf::readString);
         ArrayList<String> strings1 = buf.readCollection(ArrayList::new, PacketByteBuf::readString);
         int maxUndoRecords = buf.readVarInt();
-        return new ServerConfig(i, b, s, string, readString, strings, strings1, maxUndoRecords);
+        return new ServerConfig(i, b, s, string, readString, strings, strings1, maxUndoRecords, null);
     }
 
     public void setFromConfig(ServerConfig config) {

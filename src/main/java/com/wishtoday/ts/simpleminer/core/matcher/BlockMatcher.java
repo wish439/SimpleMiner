@@ -1,6 +1,7 @@
 package com.wishtoday.ts.simpleminer.core.matcher;
 
 
+import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.Reloadable;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
@@ -14,6 +15,7 @@ public class BlockMatcher implements Reloadable {
     private final List<BlockFamily> families;
     private final FamilyCreator creator;
 
+    @CreateConstruction
     public BlockMatcher(FamilyCreator creator, ServerConfig serverConfig) {
         this.families = new ArrayList<>();
         this.creator = creator;
