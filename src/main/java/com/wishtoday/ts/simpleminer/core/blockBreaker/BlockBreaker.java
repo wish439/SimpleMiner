@@ -54,6 +54,8 @@ public class BlockBreaker {
         return blockBreaking.get();
     }
 
+    //TODO:Try to parallel the work of the analyzer with the block breaking。
+    //TODO:set the default update strength of the block breaking to false, and complete other updates(side effects) after the analyzer completes
     public boolean breakBlock(World world, PlayerEntity player, BlockPos pos, BlockState state, BlockEntity blockEntity) {
         if (blockBreaking.get()) {
             return true;
