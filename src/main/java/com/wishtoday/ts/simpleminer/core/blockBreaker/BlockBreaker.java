@@ -21,6 +21,8 @@ import net.minecraft.world.World;
 
 import java.util.List;
 import java.util.function.Consumer;
+//Actually my imagination should attempt in another block breaker impl.
+
 //In my imagination, if we want faster, we should be like
 //1.Block breaking use palette.
 //2.S2C updata packet should be a batch operation instead of every block one update packet.
