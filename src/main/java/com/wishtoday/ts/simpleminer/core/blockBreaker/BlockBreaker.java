@@ -21,7 +21,10 @@ import net.minecraft.world.World;
 
 import java.util.List;
 import java.util.function.Consumer;
-
+//In my imagination, if we want faster, we should be like
+//1.Block breaking use palette.
+//2.S2C updata packet should be a batch operation instead of every block one update packet.
+//3.This is first opinion's side effect: waiting palette completed, after do those side effects.
 @Service
 public class BlockBreaker {
     private final PressManager pressManager;
