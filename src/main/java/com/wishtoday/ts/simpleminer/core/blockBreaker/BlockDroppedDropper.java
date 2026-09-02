@@ -18,6 +18,7 @@ import net.minecraft.world.World;
 
 import java.util.List;
 
+//We may also be able to sample 40 drops to test whether there is no change, and if so, we can multiply directly, and the probability of prediction error will only be 0.5 ^ 40. This idea should also be another implementation class.
 @Name("PUREAPI")
 @Service
 public class BlockDroppedDropper implements ItemCollector{
