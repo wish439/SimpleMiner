@@ -58,7 +58,7 @@ SimpleMiner 是一款为 Fabric 设计的连锁挖掘模组，专注于**性能�
 
 ---
 
-## 🔒 权限控制
+## 🔒 权限控制（暂未实现）
 
 服主可通过 `ServerConfig` 禁止特定玩家使用连锁挖掘：
 
@@ -101,7 +101,7 @@ SimpleMiner 是一款为 Fabric 设计的连锁挖掘模组，专注于**性能�
 | `Up / Down（上下箭头）` | 切换挖掘形状（需按住） |
 | `Left Alt + 滚轮` | 调整 Linear 形状参数 |
 | `Right Alt + 滚轮` | 调整 FullChunk 半径 |
-| `Ctrl + U` | 打开撤销列表 GUI |
+| `Ctrl + Z` | 打开撤销列表 GUI |
 
 ## ⚙️ 配置选项
 
@@ -113,7 +113,7 @@ SimpleMiner 是一款为 Fabric 设计的连锁挖掘模组，专注于**性能�
 | `maxUndoRecords` | 每玩家磁盘撤销记录上限 |
 | `collectStrategy` | `PUREAPI` / `INTERCEPT` |
 | `blockBreakStrategy` | `PUREAPI` / `VANILLA` |
-| `rightClickHandler` | `VANILLA` / `NOBLOCKITEM` / `CROP_HARVEST` |
+| `rightClickHandler` | `VANILLA` / `NOBLOCKITEM` |
 | `allowUndo` | 是否启用撤销功能 |
 | `blockFamilies` | 方块家族匹配规则（支持标签和具体方块） |
 
