@@ -24,7 +24,7 @@ import net.minecraft.util.shape.VoxelShapes;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
+//TODO: Try to remove the Shape class that exists in the client, because we may support KubeJS to add shapes.
 public class SimpleminerClient implements ClientModInitializer {
 
     @Getter
