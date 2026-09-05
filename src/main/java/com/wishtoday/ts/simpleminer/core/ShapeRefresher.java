@@ -4,18 +4,10 @@ import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
-import com.wishtoday.ts.simpleminer.config.ServerConfig;
-import com.wishtoday.ts.simpleminer.core.matcher.BlockMatcher;
 import com.wishtoday.ts.simpleminer.network.MineBlockSyncS2CPayload;
-import com.wishtoday.ts.simpleminer.shape.Shape;
-import com.wishtoday.ts.simpleminer.shape.ShapeContext;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
-import com.wishtoday.ts.simpleminer.shape.Shapes;
-import com.wishtoday.ts.simpleminer.utils.BlockSorter;
 import com.wishtoday.ts.simpleminer.utils.WorldUtils;
-import it.unimi.dsi.fastutil.longs.LongArrayList;
-import it.unimi.dsi.fastutil.longs.LongCollections;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongList;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
@@ -23,31 +15,39 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 @Service
 public class ShapeRefresher {
-    private final ServerConfig serverConfig;
     private final PressManager pressManager;
-    private final Shapes shapes;
-    private final BlockMatcher matcher;
+    private final ShapeWalker walker;
     @CreateConstruction
-    public ShapeRefresher(ServerConfig serverConfig, PressManager pressManager, Shapes shapes, BlockMatcher matcher) {
-        this.serverConfig = serverConfig;
+    public ShapeRefresher(PressManager pressManager, ShapeWalker walker) {
         this.pressManager = pressManager;
-        this.shapes = shapes;
-        this.matcher = matcher;
+        this.walker = walker;
     }
     public void onTick(MinecraftServer server) {
         pressManager.filterPressesPlayerInfos().forEach(this::tryRefresh);
     }
 
     private void tryRefresh(PlayerMinerInfo info) {
-        BlockPos raycast = WorldUtils.raycast(info.getPlayer());
+        PlayerEntity player = info.getPlayer();
+        BlockPos raycast = WorldUtils.raycast(player);
+        Vec3d rotationVec = player.getRotationVec(1.0f);
+        Direction facing = Direction.getFacing(rotationVec);
+        if (facing == null) return;
         if (raycast == null) {
+            return;
+        }
+        if (info.getCurrentDirection() == null) {
+            this.refresh(info, raycast);
+            info.setCurrentDirection(facing);
+            return;
+        }
+        if (!facing.equals(info.getCurrentDirection())) {
+            this.refresh(info, raycast);
+            info.setCurrentDirection(facing);
             return;
         }
         if (info.getCurrentBlockPos() == null) {
@@ -73,26 +73,10 @@ public class ShapeRefresher {
     public void refresh(PlayerMinerInfo info, BlockPos raycast) {
         if (raycast == null) return;
         if (info == null) return;
-        PlayerEntity player = info.getPlayer();
-        Shape shape = shapes.getFromIndex(info.getCurrentShape());
-        int maxSize = serverConfig.getMaxSize();
-        int personalMaxSize = info.getCurrentIndividualConfig().getPersonalMaxSize();
-        int i = personalMaxSize == -1 ? maxSize : Math.min(maxSize, personalMaxSize);
-
-        ShapeContext shapeContext = this.getShapeContext(player, i, raycast, info);
-
-        LongOpenHashSet blockPoses = shape.walk(shapeContext);
-        LongArrayList blockPos = new LongArrayList(blockPoses);
-        LongArrayList list = BlockSorter.sortWithPlayerManhattan(blockPos, player);
-        info.setBlockPoses(new ShapeResult(blockPoses, list));
+        ShapeResult shapeResult = this.walker.tryWalk(info, raycast);
+        info.setBlockPoses(shapeResult);
+        LongList list = shapeResult.getSortedBlockPoses();
         Set<BlockPos> collect = list.longStream().limit(256).mapToObj(BlockPos::fromLong).collect(HashSet::new, HashSet::add, HashSet::addAll);
-        ServerPlayNetworking.send((ServerPlayerEntity) player, new MineBlockSyncS2CPayload(list.size(), collect));
-    }
-
-    private @NotNull ShapeContext getShapeContext(@NotNull PlayerEntity player, int maxSize, BlockPos raycast, PlayerMinerInfo info) {
-        World world = player.getWorld();
-        Vec3d rotationVec = player.getRotationVec(1.0f);
-        Direction facing = Direction.getFacing(rotationVec);
-        return new ShapeContext(maxSize, player, raycast, world.getBlockState(raycast), world, facing, this.matcher, info.getCurrentIndividualConfig());
+        ServerPlayNetworking.send((ServerPlayerEntity) info.getPlayer(), new MineBlockSyncS2CPayload(list.size(), collect));
     }
 }

@@ -19,7 +19,7 @@ public class ChunkSectionScanner {
     public LongOpenHashSet matchSection(ChunkSection section
             , BiPredicate<BlockState, BlockState> predicate
             , BlockState matchState
-            , int baseX, int baseY, int baseZ, int maxSize, LongOpenHashSet result) {
+            , int baseX, int baseY, int baseZ, LongOpenHashSet result) {
         if (section.isEmpty()) {
             return result;
         }
@@ -38,12 +38,13 @@ public class ChunkSectionScanner {
         if (elementBits == 0) {
             BlockState state = palette.get(0);
             if (predicate.test(matchState, state)) {
-                this.addAllToResult(result, baseX, baseY, baseZ, maxSize);
+                this.addAllToResult(result, baseX, baseY, baseZ);
             }
         }
         long[] longs = storage.getData();
 
         BitSet set = this.builtAllowedBlockBiteSet(palette, matchState, predicate);
+        if (set.isEmpty()) return result;
 
         int elementsPerLong = (char) (64 / elementBits);
         long maxValue = (1L << elementBits) - 1L;
@@ -54,9 +55,6 @@ public class ChunkSectionScanner {
             value = aLong;
             int a = Math.min(elementsPerLong, size - index);
             for (int i = 0; i < a; i++) {
-                if (result.size() >= maxSize) {
-                    return result;
-                }
                 long l = value & maxValue;
                 if (set.get((int) l)) {
                     long relativePosFromIndex = this.computeRelativePosFromIndex(index, container);
@@ -73,13 +71,10 @@ public class ChunkSectionScanner {
     }
 
     private void addAllToResult(LongOpenHashSet set, int baseX
-            , int baseY, int baseZ, int maxSize) {
+            , int baseY, int baseZ) {
         for (int i = 0; i < 16; i++) {
             for (int j = 0; j < 16; j++) {
                 for (int k = 0; k < 16; k++) {
-                    if (set.size() >= maxSize) {
-                        return;
-                    }
                     set.add(BlockPos.asLong(baseX + i, baseY + j, baseZ + k));
                 }
             }

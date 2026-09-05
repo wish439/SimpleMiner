@@ -71,7 +71,7 @@ public class BlockBreaker {
         this.shapeRefresher.refresh(info, pos);
         ShapeResult shapeResult = info.getBlockPoses();
         if (shapeResult == null) return true;
-        LongArrayList sortedBlockPoses = shapeResult.getSortedBlockPoses();
+        LongList sortedBlockPoses = shapeResult.getSortedBlockPoses();
         LongOpenHashSet internal = shapeAnalyzer.calcCompleteSurrounded(shapeResult.getBlockPoses());
         BlockBreakContext context = new BlockBreakContext(world, player, pos, state, blockEntity, info, shapeResult, mainHandStack);
 

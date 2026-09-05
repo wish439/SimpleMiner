@@ -12,6 +12,7 @@ import com.wishtoday.ts.simpleminer.core.blockBreaker.ItemCollector;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.ItemDropper;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
@@ -51,7 +52,7 @@ public class MinerRightHandler {
         this.shapeRefresher.refresh(info, pos);
         ShapeResult shapeResult = info.getBlockPoses();
         if (shapeResult == null) return ActionResult.PASS;
-        LongArrayList sortedBlockPoses = shapeResult.getSortedBlockPoses();
+        LongList sortedBlockPoses = shapeResult.getSortedBlockPoses();
         LongOpenHashSet internal = shapeAnalyzer.calcCompleteSurrounded(shapeResult.getBlockPoses());
 
         BlockPos.Mutable mutable = new BlockPos.Mutable();

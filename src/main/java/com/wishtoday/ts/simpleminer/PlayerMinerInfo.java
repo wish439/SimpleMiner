@@ -7,6 +7,7 @@ import com.wishtoday.ts.simpleminer.shape.ShapeResult;
 import lombok.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,6 +27,7 @@ public class PlayerMinerInfo {
     @Nullable
     private BlockPos currentBlockPos;
     private IndividualConfig currentIndividualConfig;
+    private Direction currentDirection;
 
     private final UndoHistory undoHistory;
 
@@ -37,6 +39,7 @@ public class PlayerMinerInfo {
         this.blockPoses = null;
         this.currentBlockPos = null;
         this.currentIndividualConfig = individualConfig;
+        this.currentDirection = null;
     }
 
 }

@@ -55,20 +55,28 @@ public class FullChunkShape implements Shape {
         return result;
     }
 
-    private void handleChunk(ShapeContext context, BlockPos pos, int bottomY, ChunkSection[] array, BlockMatcher matcher, BlockState state, int startX, int startZ, LongOpenHashSet result) {
+    private boolean handleChunk(ShapeContext context, BlockPos pos, int bottomY, ChunkSection[] array, BlockMatcher matcher, BlockState state, int startX, int startZ, LongOpenHashSet result) {
         int playerSectionIndex = (pos.getY() - bottomY) / 16;
         int totalSections = array.length;
 
+        int size = context.getMaxSize();
         for (int i = playerSectionIndex; i >= 0; i--) {
             ChunkSection chunkSection = array[i];
             int baseY = bottomY + i * 16;
-            this.scanner.matchSection(chunkSection, matcher::match, state, startX, baseY, startZ, context.getMaxSize(), result);
+            this.scanner.matchSection(chunkSection, matcher::match, state, startX, baseY, startZ, result);
+            if (result.size() >= size) {
+                return false;
+            }
         }
         for (int i = playerSectionIndex + 1; i < totalSections; i++) {
             ChunkSection chunkSection = array[i];
             int baseY = bottomY + i * 16;
-            this.scanner.matchSection(chunkSection, matcher::match, state, startX, baseY, startZ, context.getMaxSize(), result);
+            this.scanner.matchSection(chunkSection, matcher::match, state, startX, baseY, startZ, result);
+            if (result.size() >= size) {
+                return false;
+            }
         }
+        return true;
     }
 
     @Override

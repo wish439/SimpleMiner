@@ -53,7 +53,6 @@ public class InterceptItemCollector implements ItemCollector, MixinDependCollect
 
     @Override
     public CollectedResult finish() {
-        System.out.println("map: " + this.map);
         return new CollectedResult(new Object2IntOpenHashMap<>(map));
     }
 
