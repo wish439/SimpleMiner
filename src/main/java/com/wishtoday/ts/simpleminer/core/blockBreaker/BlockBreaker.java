@@ -6,6 +6,8 @@ import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
 import com.wishtoday.ts.simpleminer.core.ShapeAnalyzer;
 import com.wishtoday.ts.simpleminer.core.ShapeRefresher;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector.ItemCollectorRouter;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.singleBlockBreaker.SingleBlockBreakerRouter;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldExtension;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
 import it.unimi.dsi.fastutil.longs.*;

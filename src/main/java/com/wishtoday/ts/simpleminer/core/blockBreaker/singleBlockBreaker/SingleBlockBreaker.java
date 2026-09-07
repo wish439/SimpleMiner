@@ -1,4 +1,4 @@
-package com.wishtoday.ts.simpleminer.core.blockBreaker;
+package com.wishtoday.ts.simpleminer.core.blockBreaker.singleBlockBreaker;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;

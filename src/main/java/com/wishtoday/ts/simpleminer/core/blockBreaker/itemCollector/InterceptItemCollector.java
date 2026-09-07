@@ -1,9 +1,13 @@
-package com.wishtoday.ts.simpleminer.core.blockBreaker;
+package com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Name;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.BlockBreaker;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectContext;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectedResult;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.MixinDependCollector;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;

@@ -1,4 +1,4 @@
-package com.wishtoday.ts.simpleminer.core.blockBreaker;
+package com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.DependOn;

@@ -1,4 +1,4 @@
-package com.wishtoday.ts.simpleminer.core.blockBreaker;
+package com.wishtoday.ts.simpleminer.core.blockBreaker.singleBlockBreaker;
 
 import com.wishtoday.simpleservices.services.annotation.Name;
 import com.wishtoday.simpleservices.services.annotation.Service;

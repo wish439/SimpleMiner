@@ -124,7 +124,7 @@ public class ServerConfig {
         return Option.<String>createBuilder()
                 .name(Text.translatable("simpleminer.config.collectStrategy"))
                 .binding("PUREAPI", config::getCollectStrategy, config::setCollectStrategy)
-                .controller(s -> CyclingListControllerBuilder.create(s).values("PUREAPI", "INTERCEPT").formatValue(Text::of)).build();
+                .controller(s -> CyclingListControllerBuilder.create(s).values("PUREAPI", "INTERCEPT", "EXPERIMENTAL").formatValue(Text::of)).build();
     }
 
     private static Option<String> blockBreakStrategy(ServerConfig config) {

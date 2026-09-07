@@ -1,4 +1,7 @@
-package com.wishtoday.ts.simpleminer.core.blockBreaker;
+package com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector;
+
+import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectContext;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectedResult;
 
 public interface ItemCollector {
     void start();

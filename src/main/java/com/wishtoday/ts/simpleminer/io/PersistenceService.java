@@ -7,6 +7,7 @@ import com.wishtoday.simpleservices.services.annotation.PostConstruct;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
+import com.wishtoday.ts.simpleminer.ReloadableReloader;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
 import com.wishtoday.ts.simpleminer.network.config.SyncIndividualConfigS2CPayload;
@@ -76,6 +77,8 @@ public class PersistenceService {
     private final ServerConfig serverConfig;
     private final PressManager pressManager;
 
+    private final ReloadableReloader reloader;
+
     @Nullable
     private volatile MinecraftServer server;
     /**
@@ -84,7 +87,8 @@ public class PersistenceService {
     private final Map<UUID, Set<UUID>> undoOnDisk;
 
     @CreateConstruction
-    public PersistenceService(ServerConfig serverConfig, PressManager pressManager) {
+    public PersistenceService(ServerConfig serverConfig, PressManager pressManager, ReloadableReloader reloader) {
+        this.reloader = reloader;
         this.ioExecutor = Executors.newVirtualThreadPerTaskExecutor();
         this.gson = new GsonBuilder().setPrettyPrinting().create();
         this.serverConfig = serverConfig;
@@ -146,6 +150,7 @@ public class PersistenceService {
             ServerConfig loaded = gson.fromJson(Files.readString(path), ServerConfig.class);
             if (loaded != null) {
                 this.serverConfig.setFromConfig(loaded);
+                this.reloader.reload();
                 LOGGER.info("Loaded server config from {}", path);
             }
         } catch (Exception e) {

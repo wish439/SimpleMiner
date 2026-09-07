@@ -5,7 +5,7 @@ import com.wishtoday.simpleservices.services.annotation.ServiceClass;
 import com.wishtoday.simpleservices.services.annotation.ServiceField;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.BlockBreaker;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectContext;
-import com.wishtoday.ts.simpleminer.core.blockBreaker.ItemCollectorRouter;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector.ItemCollectorRouter;
 import net.minecraft.block.BlockState;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;

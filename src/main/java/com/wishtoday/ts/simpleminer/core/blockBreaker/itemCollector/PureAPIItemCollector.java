@@ -1,12 +1,13 @@
-package com.wishtoday.ts.simpleminer.core.blockBreaker;
+package com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Name;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
 import com.wishtoday.ts.simpleminer.core.ItemStackCollector;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectContext;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectedResult;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import lombok.Getter;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -18,15 +19,14 @@ import net.minecraft.world.World;
 
 import java.util.List;
 
-//We may also be able to sample 40 drops to test whether there is no change, and if so, we can multiply directly, and the probability of prediction error will only be 0.5 ^ 40. This idea should also be another implementation class.
 @Name("PUREAPI")
 @Service
-public class BlockDroppedDropper implements ItemCollector{
+public class PureAPIItemCollector implements ItemCollector {
 
     private final ItemStackCollector stackCollector;
 
     @CreateConstruction
-    public BlockDroppedDropper() {
+    public PureAPIItemCollector() {
         this.stackCollector = new ItemStackCollector();
     }
 
