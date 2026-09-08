@@ -18,19 +18,7 @@ import java.util.Map;
 
 @Service(condition = ClientOnlyLoadCondition.class)
 public class ShapeScrollHandler {
-    private final Shapes shapes;
-    private final Map<Class<? extends Shape>, ShapeAdapter> adapters;
-
-    @CreateConstruction
-    public ShapeScrollHandler(Shapes shapes, List<ShapeAdapter> adapters) {
-        this.shapes = shapes;
-        Map<Class<? extends Shape>, ShapeAdapter> map = new HashMap<>();
-        for (ShapeAdapter adapter : adapters) {
-            map.put(adapter.supportedShape(), adapter);
-        }
-        this.adapters = map;
-    }
-
+    
     public boolean onMouseScrolled(double amountX, double amountY) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (!SimpleminerClient.isPressing()) return false;
@@ -40,7 +28,7 @@ public class ShapeScrollHandler {
         int delta = amountY < 0 ? 1 : -1;
         int i = SimpleminerClient.getShapeIndex();
         if (player.isSneaking()) {
-            int total = this.shapes.getShapeCount();
+            int total = SimpleminerClient.getRenderTexts().size();
             int newIndex = MathHelper.floorMod(i + delta, total);
             SimpleminerClient.setShapeIndex(newIndex);
             ClientPlayNetworking.send(new KeywordPressedPayload(SimpleminerClient.isPressing(), newIndex));
