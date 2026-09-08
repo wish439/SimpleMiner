@@ -7,6 +7,8 @@ import com.wishtoday.ts.simpleminer.config.ConfigType;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
 import com.wishtoday.ts.simpleminer.network.MineBlockSyncS2CPayload;
+import com.wishtoday.ts.simpleminer.network.OtherTextSyncS2CPayload;
+import com.wishtoday.ts.simpleminer.network.RenderTextSyncS2CPayload;
 import com.wishtoday.ts.simpleminer.network.config.OpenConfigS2CPayload;
 import com.wishtoday.ts.simpleminer.network.config.SyncConfigC2SPayload;
 import com.wishtoday.ts.simpleminer.network.config.SyncIndividualConfigS2CPayload;
@@ -40,8 +42,18 @@ public class ClientNetworkingRegistry {
         ClientPlayNetworking.registerGlobalReceiver(OpenConfigS2CPayload.ID, this::receiveOpenConfigPayload);
         ClientPlayNetworking.registerGlobalReceiver(MineBlockSyncS2CPayload.ID, this::receiveUndoDataSyncPayload);
         ClientPlayNetworking.registerGlobalReceiver(SyncIndividualConfigS2CPayload.ID, this::receiveSyncIndividualConfigS2CPayload);
+        ClientPlayNetworking.registerGlobalReceiver(RenderTextSyncS2CPayload.ID, this::receiveRenderTextSyncS2CPayload);
+        ClientPlayNetworking.registerGlobalReceiver(OtherTextSyncS2CPayload.ID, this::receiveOtherTextSyncS2CPayload);
 
         this.futures.forEach(ClientNetworkExtendFutures::initialize);
+    }
+
+    private void receiveOtherTextSyncS2CPayload(OtherTextSyncS2CPayload payload, ClientPlayNetworking.Context context) {
+        SimpleminerClient.updateOtherTexts(payload.map());
+    }
+
+    private void receiveRenderTextSyncS2CPayload(RenderTextSyncS2CPayload payload, ClientPlayNetworking.Context context) {
+        SimpleminerClient.updateRenderTexts(payload.texts());
     }
 
     private void receiveSyncIndividualConfigS2CPayload(SyncIndividualConfigS2CPayload payload, ClientPlayNetworking.Context context) {

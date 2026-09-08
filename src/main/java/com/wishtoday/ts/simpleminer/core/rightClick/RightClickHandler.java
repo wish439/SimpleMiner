@@ -8,5 +8,5 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.world.World;
 
 public interface RightClickHandler {
-    ActionResult onUse(ServerPlayerEntity player, World world, Hand hand, BlockHitResult hitResult, boolean isOutside, ItemStackCollector collector);
+    ActionResult onUse(ServerPlayerEntity player, World world, Hand hand, BlockHitResult hitResult, ItemStackCollector collector);
 }

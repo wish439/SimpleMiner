@@ -20,13 +20,15 @@ public class ConfigSyncPayloadHandler {
     private final ReloadableReloader reloader;
     private final PersistenceService persistence;
     private final MaxSizeChangedBroadcast maxSizeBroadcast;
+    private final ShapeSyncer shapeSyncer;
     @CreateConstruction
-    public ConfigSyncPayloadHandler(PressManager pressManager, ServerConfig serverConfig, ReloadableReloader reloader, PersistenceService persistence, MaxSizeChangedBroadcast maxSizeBroadcast) {
+    public ConfigSyncPayloadHandler(PressManager pressManager, ServerConfig serverConfig, ReloadableReloader reloader, PersistenceService persistence, MaxSizeChangedBroadcast maxSizeBroadcast, ShapeSyncer shapeSyncer) {
         this.pressManager = pressManager;
         this.serverConfig = serverConfig;
         this.reloader = reloader;
         this.persistence = persistence;
         this.maxSizeBroadcast = maxSizeBroadcast;
+        this.shapeSyncer = shapeSyncer;
     }
 
     public void handleSyncConfigS2C(SyncConfigC2SPayload payload, ServerPlayNetworking.Context context) {
@@ -44,6 +46,7 @@ public class ConfigSyncPayloadHandler {
         info.setCurrentIndividualConfig((IndividualConfig) payload.config());
         this.persistence.saveIndividualConfigAsync(player);
         this.reloader.reload();
+        this.shapeSyncer.syncShapeInfoTo(player);
         ServerPlayNetworking.send(player, new SyncIndividualConfigS2CPayload((IndividualConfig) payload.config()));
     }
 

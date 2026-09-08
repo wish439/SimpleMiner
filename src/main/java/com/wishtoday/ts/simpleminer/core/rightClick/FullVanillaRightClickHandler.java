@@ -13,7 +13,7 @@ import net.minecraft.world.World;
 @Service
 public class FullVanillaRightClickHandler implements RightClickHandler{
     @Override
-    public ActionResult onUse(ServerPlayerEntity player, World world, Hand hand, BlockHitResult hitResult, boolean isOutside, ItemStackCollector collector) {
+    public ActionResult onUse(ServerPlayerEntity player, World world, Hand hand, BlockHitResult hitResult, ItemStackCollector collector) {
         return player.interactionManager.interactBlock(player, world, player.getStackInHand(hand), hand, hitResult);
     }
 }

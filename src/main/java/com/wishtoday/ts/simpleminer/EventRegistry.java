@@ -26,9 +26,10 @@ public class EventRegistry {
     private final MinerRightHandler rightHandler;
     private final MainCommand mainCommand;
     private final PersistenceService persistence;
+    private final ShapeSyncer shapeSyncer;
 
     @CreateConstruction
-    public EventRegistry(PressManager manager, ServerConfig serverConfig, BlockBreaker blockBreaker, ShapeRefresher shapeRefresher, MinerRightHandler rightHandler, MainCommand mainCommand, PersistenceService persistence) {
+    public EventRegistry(PressManager manager, ServerConfig serverConfig, BlockBreaker blockBreaker, ShapeRefresher shapeRefresher, MinerRightHandler rightHandler, MainCommand mainCommand, PersistenceService persistence, ShapeSyncer shapeSyncer) {
         this.manager = manager;
         this.serverConfig = serverConfig;
         this.blockBreaker = blockBreaker;
@@ -36,6 +37,7 @@ public class EventRegistry {
         this.rightHandler = rightHandler;
         this.mainCommand = mainCommand;
         this.persistence = persistence;
+        this.shapeSyncer = shapeSyncer;
     }
 
     @PostConstruct
@@ -47,6 +49,9 @@ public class EventRegistry {
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
+            this.persistence.onPlayerJoin(player);
+            this.shapeSyncer.syncShapeNameTo(player);
+            this.shapeSyncer.syncShapeInfoTo(player);
             this.manager.togglePlayerState(false, player, 0);
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, sender) -> {

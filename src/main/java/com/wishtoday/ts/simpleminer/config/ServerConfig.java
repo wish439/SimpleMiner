@@ -90,6 +90,7 @@ public class ServerConfig {
     private static Option<Integer> maxSize(ServerConfig config) {
         return Option.<Integer>createBuilder()
                 .name(Text.translatable("simpleminer.config.maxSize"))
+                .description(OptionDescription.of(Text.translatable("simpleminer.config.maxSize.description")))
                 .binding(64, config::getMaxSize, config::setMaxSize)
                 .controller(integerOption -> IntegerFieldControllerBuilder
                         .create(integerOption)
@@ -102,6 +103,7 @@ public class ServerConfig {
     private static Option<Boolean> allowUndo(ServerConfig config) {
         return Option.<Boolean>createBuilder()
                 .name(Text.translatable("simpleminer.config.allowUndo"))
+                .description(OptionDescription.of(Text.translatable("simpleminer.config.allowUndo.description")))
                 .binding(false, config::isAllowUndo, config::setAllowUndo)
                 .controller(TickBoxControllerBuilder::create)
                 .build();
@@ -123,6 +125,7 @@ public class ServerConfig {
     private static Option<String> collectStrategy(ServerConfig config) {
         return Option.<String>createBuilder()
                 .name(Text.translatable("simpleminer.config.collectStrategy"))
+                .description(OptionDescription.of(Text.translatable("simpleminer.config.collectStrategy.description")))
                 .binding("PUREAPI", config::getCollectStrategy, config::setCollectStrategy)
                 .controller(s -> CyclingListControllerBuilder.create(s).values("PUREAPI", "INTERCEPT", "EXPERIMENTAL").formatValue(Text::of)).build();
     }
@@ -130,6 +133,7 @@ public class ServerConfig {
     private static Option<String> blockBreakStrategy(ServerConfig config) {
         return Option.<String>createBuilder()
                 .name(Text.translatable("simpleminer.config.blockBreakStrategy"))
+                .description(OptionDescription.of(Text.translatable("simpleminer.config.blockBreakStrategy.description")))
                 .binding("PUREAPI", config::getBlockBreakStrategy, config::setBlockBreakStrategy)
                 .controller(s -> CyclingListControllerBuilder.create(s).values("PUREAPI", "VANILLA").formatValue(Text::of))
                 .build();
@@ -138,34 +142,26 @@ public class ServerConfig {
     private static Option<String> rightClickHandler(ServerConfig config) {
         return Option.<String>createBuilder()
                 .name(Text.translatable("simpleminer.config.rightClickHandler"))
+                .description(OptionDescription.of(Text.translatable("simpleminer.config.rightClickHandler.description")))
                 .binding("NOBLOCKITEM", config::getRightClickHandler, config::setRightClickHandler)
-                .controller(s -> DropdownStringControllerBuilder.create(s).values("VANILLA", "NOBLOCKITEM"))
+                .controller(s -> CyclingListControllerBuilder.create(s).values("VANILLA", "NOBLOCKITEM"))
                 .build();
     }
 
     private static OptionGroup blockFamilies(ServerConfig config) {
-/*
         return ListOption.<String>createBuilder()
                 .name(Text.translatable("simpleminer.config.blockFamilies"))
+                .description(OptionDescription.of(Text.translatable("simpleminer.config.blockFamilies.description")))
                 .binding(List.of("#minecraft:base_stone_overworld"), config::getBlockFamilies, config::setBlockFamilies)
                 .controller(StringControllerBuilder::create)
                 .initial("")
                 .build();
-*/
-
-
-        return ListOption.<String>createBuilder()
-                .name(Text.translatable("simpleminer.config.blockFamilies"))
-                .binding(List.of("#minecraft:base_stone_overworld"), config::getBlockFamilies, config::setBlockFamilies)
-                .controller(StringControllerBuilder::create)
-                .initial("")
-                .build();
-
     }
 
     private static OptionGroup supportCrops(ServerConfig config) {
         return ListOption.<String>createBuilder()
                 .name(Text.translatable("simpleminer.config.supportCrops"))
+                .description(OptionDescription.of(Text.translatable("simpleminer.config.supportCrops.description")))
                 .binding(List.of("#minecraft:crops"), config::getSupportCrops, config::setSupportCrops)
                 .controller(StringControllerBuilder::create)
                 .initial("")

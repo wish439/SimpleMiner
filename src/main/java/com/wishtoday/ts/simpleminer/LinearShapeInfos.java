@@ -6,7 +6,7 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 
 @Data
-public class LinearShapeInfos {
+public class LinearShapeInfos implements ShapeInfo {
     public static final LinearShapeInfos DEFAULT = new LinearShapeInfos(1, 1);
 
     private int width;
@@ -21,5 +21,10 @@ public class LinearShapeInfos {
 
     public LinearShapeInfos copy() {
         return new LinearShapeInfos(height, width);
+    }
+
+    @Override
+    public int shapeIndex() {
+        return 1;
     }
 }

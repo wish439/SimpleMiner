@@ -2,6 +2,7 @@ package com.wishtoday.ts.simpleminer.shape;
 
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldExtension;
+import com.wishtoday.ts.simpleminer.services.ServerOnlyLoadCondition;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.block.BlockState;

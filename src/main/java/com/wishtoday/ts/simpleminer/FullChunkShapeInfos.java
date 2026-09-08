@@ -5,7 +5,7 @@ import lombok.Data;
 import net.minecraft.network.codec.PacketCodec;
 
 @Data
-public class FullChunkShapeInfos {
+public class FullChunkShapeInfos implements ShapeInfo{
     public static final FullChunkShapeInfos DEFAULT = new FullChunkShapeInfos(0, 0);
     private int radiusX;
     private int radiusZ;
@@ -22,5 +22,10 @@ public class FullChunkShapeInfos {
 
     public FullChunkShapeInfos copy() {
         return new FullChunkShapeInfos(radiusX, radiusZ);
+    }
+
+    @Override
+    public int shapeIndex() {
+        return 2;
     }
 }

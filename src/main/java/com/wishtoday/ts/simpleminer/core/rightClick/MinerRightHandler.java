@@ -60,14 +60,21 @@ public class MinerRightHandler {
         for (long sortedBlockPose : sortedBlockPoses) {
             mutable.set(sortedBlockPose);
             mutableBlockHitResult.setBlockPos(mutable);
-            handlingRightClick.set(true);
-            ActionResult result = rightHandler.onUse(player, world, hand, mutableBlockHitResult, !internal.contains(sortedBlockPose), collector);
-            handlingRightClick.set(false);
+            ActionResult result = this.tryRightClick(player, world, hand, mutableBlockHitResult, collector);
             if (result == ActionResult.SUCCESS) success = true;
         }
 
         CollectedResult result = collector.toResult();
         this.dropper.dropStack(world, pos, result);
         return success ? ActionResult.SUCCESS : ActionResult.PASS;
+    }
+
+    private ActionResult tryRightClick(ServerPlayerEntity player, World world, Hand hand, BlockHitResult hitResult, ItemStackCollector collector) {
+        try {
+            handlingRightClick.set(true);
+            return rightHandler.onUse(player, world, hand, hitResult, collector);
+        } finally {
+            handlingRightClick.set(false);
+        }
     }
 }

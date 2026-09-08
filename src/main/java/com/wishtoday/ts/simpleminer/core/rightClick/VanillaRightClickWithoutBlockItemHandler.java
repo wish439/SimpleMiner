@@ -32,7 +32,7 @@ public class VanillaRightClickWithoutBlockItemHandler implements RightClickHandl
     }
 
     @Override
-    public ActionResult onUse(ServerPlayerEntity player, World world, Hand hand, BlockHitResult hitResult, boolean isOutside, ItemStackCollector collector) {
+    public ActionResult onUse(ServerPlayerEntity player, World world, Hand hand, BlockHitResult hitResult, ItemStackCollector collector) {
         ItemStack stack = player.getStackInHand(hand);
         BlockPos blockPos = hitResult.getBlockPos();
         BlockState blockState = world.getBlockState(blockPos);

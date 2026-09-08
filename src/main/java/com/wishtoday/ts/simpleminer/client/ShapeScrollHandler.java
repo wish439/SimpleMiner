@@ -4,7 +4,7 @@ import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.network.KeywordPressedPayload;
 import com.wishtoday.ts.simpleminer.services.ClientOnlyLoadCondition;
-import com.wishtoday.ts.simpleminer.shape.ClientShapeAdapter;
+import com.wishtoday.ts.simpleminer.shape.ShapeAdapter;
 import com.wishtoday.ts.simpleminer.shape.Shape;
 import com.wishtoday.ts.simpleminer.shape.Shapes;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -19,13 +19,13 @@ import java.util.Map;
 @Service(condition = ClientOnlyLoadCondition.class)
 public class ShapeScrollHandler {
     private final Shapes shapes;
-    private final Map<Class<? extends Shape>, ClientShapeAdapter> adapters;
+    private final Map<Class<? extends Shape>, ShapeAdapter> adapters;
 
     @CreateConstruction
-    public ShapeScrollHandler(Shapes shapes, List<ClientShapeAdapter> adapters) {
+    public ShapeScrollHandler(Shapes shapes, List<ShapeAdapter> adapters) {
         this.shapes = shapes;
-        Map<Class<? extends Shape>, ClientShapeAdapter> map = new HashMap<>();
-        for (ClientShapeAdapter adapter : adapters) {
+        Map<Class<? extends Shape>, ShapeAdapter> map = new HashMap<>();
+        for (ShapeAdapter adapter : adapters) {
             map.put(adapter.supportedShape(), adapter);
         }
         this.adapters = map;
@@ -47,11 +47,12 @@ public class ShapeScrollHandler {
             return true;
         }
 
-        Shape shape = this.shapes.getFromIndex(i);
+        /*Shape shape = this.shapes.getFromIndex(i);
         if (shape == null) return false;
-        ClientShapeAdapter adapter = this.adapters.get(shape.getClass());
+        ShapeAdapter adapter = this.adapters.get(shape.getClass());
         if (adapter == null) return false;
-        return adapter.scroll(client, amountX, amountY, delta);
+        return adapter.scroll(client, amountX, amountY, delta);*/
+        return false;
 
         //hasScrolledYet = true;
 

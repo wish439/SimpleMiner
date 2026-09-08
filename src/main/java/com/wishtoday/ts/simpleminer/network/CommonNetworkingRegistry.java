@@ -42,5 +42,7 @@ public class CommonNetworkingRegistry {
         PayloadTypeRegistry.playS2C().register(SyncIndividualConfigS2CPayload.ID, SyncIndividualConfigS2CPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(UndoDataSyncS2CPayload.ID, UndoDataSyncS2CPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(UndoListSyncS2CPayload.ID, UndoListSyncS2CPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(RenderTextSyncS2CPayload.ID, RenderTextSyncS2CPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(OtherTextSyncS2CPayload.ID, OtherTextSyncS2CPayload.CODEC);
     }
 }

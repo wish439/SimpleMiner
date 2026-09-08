@@ -1,8 +1,6 @@
 package com.wishtoday.ts.simpleminer.client;
 
-import com.wishtoday.ts.simpleminer.shape.ClientShapeAdapter;
-import com.wishtoday.ts.simpleminer.shape.Shape;
-import com.wishtoday.ts.simpleminer.shape.Shapes;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
@@ -16,18 +14,9 @@ import net.minecraft.util.Formatting;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Environment(EnvType.CLIENT)
 public class ShapeDisplayInHud implements HudRenderCallback {
-    private final Shapes shapes;
-    private final Map<Class<? extends Shape>, ClientShapeAdapter> adapters;
-
-    public ShapeDisplayInHud(Shapes shapes, Map<Class<? extends Shape>, ClientShapeAdapter> adapters) {
-        this.shapes = shapes;
-        this.adapters = adapters;
-    }
-
     @Override
     public void onHudRender(DrawContext drawContext, RenderTickCounter tickCounter) {
         if (!SimpleminerClient.isPressing()) return;
@@ -35,9 +24,7 @@ public class ShapeDisplayInHud implements HudRenderCallback {
         if (client.player == null) return;
 
         int shapeIndex = SimpleminerClient.getShapeIndex();
-        Shape shape = this.shapes.getFromIndex(shapeIndex);
 
-        if (shape == null) return;
         List<Text> lines = new ArrayList<>();
         int currentBlocks = SimpleminerClient.getCurrentBlocks();
         if (currentBlocks != -1) {
@@ -46,33 +33,31 @@ public class ShapeDisplayInHud implements HudRenderCallback {
             lines.add(text1);
         }
 
-        Shape last = this.getLast(shape, shapes);
-        if (last != null) {
-            MutableText name = (MutableText) last.getDisplayName();
-            name.fillStyle(Style.EMPTY
-                    .withColor(Formatting.GRAY));
-            lines.add(name);
-        }
-        Text text = shape.getDisplayName();
+        List<Text> texts = SimpleminerClient.getRenderTexts();
+        int size = texts.size() - 1;
+        int last = this.getLast(shapeIndex, size);
+        MutableText name = texts.get(last).copy();
+        name.fillStyle(Style.EMPTY
+                .withColor(Formatting.GRAY));
+        lines.add(name);
+        MutableText text = texts.get(shapeIndex).copy();
         lines.add(text);
 
-        Shape next = this.getNext(shape, shapes);
-        if (next != null) {
-            MutableText t = (MutableText) next.getDisplayName();
-            t.fillStyle(Style.EMPTY
-                    .withColor(Formatting.GRAY));
-            lines.add(t);
-        }
+        int next = this.getNext(shapeIndex, size);
+        MutableText t = texts.get(next).copy();
+        t.fillStyle(Style.EMPTY
+                .withColor(Formatting.GRAY));
+        lines.add(t);
 
-        ClientShapeAdapter adapter = this.adapters.get(shape.getClass());
-        if (adapter != null) {
-            List<Text> displayLines = adapter.getDisplayLines();
+        Int2ObjectOpenHashMap<List<Text>> otherTexts = SimpleminerClient.getOtherTexts();
+        List<Text> displayLines = otherTexts.get(shapeIndex);
+        if (displayLines != null) {
             lines.addAll(displayLines);
         }
         int y = 0;
         MatrixStack matrices = drawContext.getMatrices();
         matrices.push();
-        matrices.translate(10,10,0);
+        matrices.translate(10, 10, 0);
         TextRenderer textRenderer = client.textRenderer;
         for (Text line : lines) {
             drawContext.drawText(textRenderer, line, 0, y, 0xFFFFFF, true);
@@ -81,25 +66,19 @@ public class ShapeDisplayInHud implements HudRenderCallback {
         matrices.pop();
     }
 
-    private Shape getNext(Shape shape, Shapes shapes) {
-        if (shape == null) {
-            return null;
+    private int getNext(int index, int last) {
+        int i = index + 1;
+        if (i >= last) {
+            i = 0;
         }
-        int k = shape.index() + 1;
-        if (k >= shapes.getShapeCount()) {
-            k = 0;
-        }
-        return shapes.getFromIndex(k);
+        return i;
     }
 
-    private Shape getLast(Shape shape, Shapes shapes) {
-        if (shape == null) {
-            return null;
+    private int getLast(int index, int last) {
+        int i = index - 1;
+        if (i <= 0) {
+            i = last;
         }
-        int index = shape.index();
-        if (index == 0) {
-            index = shapes.getShapeCount();
-        }
-        return shapes.getFromIndex(index - 1);
+        return i;
     }
 }

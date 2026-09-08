@@ -4,6 +4,7 @@ import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.core.matcher.BlockMatcher;
+import com.wishtoday.ts.simpleminer.services.ServerOnlyLoadCondition;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.text.Text;

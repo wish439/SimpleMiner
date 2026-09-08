@@ -7,6 +7,7 @@ import dev.isxander.yacl3.api.OptionDescription;
 import dev.isxander.yacl3.api.OptionGroup;
 import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
+import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -102,7 +103,6 @@ public class IndividualConfig {
     }
 
     private static OptionGroup linearShapeInfos(IndividualConfig config, int shapeIndex) {
-        boolean b = shapeIndex == 1;
         return OptionGroup.createBuilder()
                 .name(Text.translatable("simpleminer.config.individualConfig.linearShapeInfos"))
                 .description(OptionDescription.of(Text.translatable("simpleminer.config.linearShapeInfos.description")))
@@ -110,22 +110,19 @@ public class IndividualConfig {
                         .name(Text.translatable("simpleminer.config.individualConfig.linearShapeInfos.height"))
                         .description(OptionDescription.of(Text.translatable("simpleminer.config.linearShapeInfos.description")))
                         .binding(1, config.getLinearShapeInfos()::getHeight, config.getLinearShapeInfos()::setHeight)
-                        .available(b)
-                        .controller(o -> IntegerFieldControllerBuilder.create(o).range(1, 1000))
+                        .controller(o -> IntegerSliderControllerBuilder.create(o).range(1, 30))
                         .build())
                 .option(Option.<Integer>createBuilder()
                         .name(Text.translatable("simpleminer.config.individualConfig.linearShapeInfos.width"))
                         .description(OptionDescription.of(Text.translatable("simpleminer.config.linearShapeInfos.description")))
                         .binding(1, config.getLinearShapeInfos()::getWidth, config.getLinearShapeInfos()::setWidth)
-                        .available(b)
-                        .controller(o -> IntegerFieldControllerBuilder.create(o).range(1, 1000))
+                        .controller(o -> IntegerSliderControllerBuilder.create(o).range(1, 30))
                         .build())
                 .collapsed(true)
                 .build();
     }
 
     private static OptionGroup fullChunkInfos(IndividualConfig config, int shapeIndex) {
-        boolean b = shapeIndex == 2;
         return OptionGroup.createBuilder()
                 .name(Text.translatable("simpleminer.config.individualConfig.fullChunkInfos"))
                 .description(OptionDescription.of(Text.translatable("simpleminer.config.fullChunkInfos.description")))
@@ -133,15 +130,13 @@ public class IndividualConfig {
                         .name(Text.translatable("simpleminer.config.individualConfig.fullChunkInfos.radiusX"))
                         .description(OptionDescription.of(Text.translatable("simpleminer.config.fullChunkInfos.description")))
                         .binding(0, config.getFullChunkShapeInfos()::getRadiusX, config.getFullChunkShapeInfos()::setRadiusX)
-                        .available(b)
-                        .controller(o -> IntegerFieldControllerBuilder.create(o).range(0, 1000))
+                        .controller(o -> IntegerSliderControllerBuilder.create(o).range(0, 30))
                         .build())
                 .option(Option.<Integer>createBuilder()
                         .name(Text.translatable("simpleminer.config.individualConfig.fullChunkInfos.radiusZ"))
                         .description(OptionDescription.of(Text.translatable("simpleminer.config.fullChunkInfos.description")))
                         .binding(0, config.getFullChunkShapeInfos()::getRadiusZ, config.getFullChunkShapeInfos()::setRadiusZ)
-                        .available(b)
-                        .controller(o -> IntegerFieldControllerBuilder.create(o).range(0, 1000))
+                        .controller(o -> IntegerSliderControllerBuilder.create(o).range(0, 30))
                         .build())
                 .collapsed(true)
                 .build();

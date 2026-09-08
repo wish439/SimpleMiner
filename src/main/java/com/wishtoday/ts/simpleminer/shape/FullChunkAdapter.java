@@ -3,10 +3,8 @@ package com.wishtoday.ts.simpleminer.shape;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.FullChunkShapeInfos;
 import com.wishtoday.ts.simpleminer.client.SimpleminerClient;
+import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.network.ShapeInfosSyncC2SPayload;
-import com.wishtoday.ts.simpleminer.services.ClientOnlyLoadCondition;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.InputUtil;
@@ -16,15 +14,14 @@ import net.minecraft.text.Text;
 import java.util.ArrayList;
 import java.util.List;
 
-@Environment(EnvType.CLIENT)
-@Service(condition = ClientOnlyLoadCondition.class)
-public class FullChunkAdapter implements ClientShapeAdapter {
+@Service
+public class FullChunkAdapter implements ShapeAdapter {
     @Override
     public Class<? extends Shape> supportedShape() {
         return FullChunkShape.class;
     }
 
-    @Override
+    /*@Override
     public boolean scroll(MinecraftClient client, double amountX, double amountY, int computedDelta) {
         if (InputUtil.isKeyPressed(client.getWindow().getHandle()
                 , InputUtil.GLFW_KEY_LEFT_ALT)) {
@@ -51,12 +48,12 @@ public class FullChunkAdapter implements ClientShapeAdapter {
             return true;
         }
         return false;
-    }
+    }*/
 
     @Override
-    public List<Text> getDisplayLines() {
+    public List<Text> getDisplayLines(IndividualConfig config) {
         List<Text> lines = new ArrayList<>();
-        FullChunkShapeInfos infos = SimpleminerClient.getFullChunkShapeInfos();
+        FullChunkShapeInfos infos = config.getFullChunkShapeInfos();
         MutableText text1 = Text.stringifiedTranslatable("simpleminer.client.shapes.fullChunk.radiusXDisplay", infos.getRadiusX());
         lines.add(text1);
         MutableText text2 = Text.stringifiedTranslatable("simpleminer.client.shapes.fullChunk.radiusZDisplay", infos.getRadiusZ());
@@ -64,7 +61,7 @@ public class FullChunkAdapter implements ClientShapeAdapter {
         return lines;
     }
 
-    @Override
+    /*@Override
     public boolean scrollUp(int delta, MinecraftClient client) {
         return false;
     }
@@ -72,5 +69,5 @@ public class FullChunkAdapter implements ClientShapeAdapter {
     @Override
     public boolean scrollDown(int delta, MinecraftClient client) {
         return false;
-    }
+    }*/
 }

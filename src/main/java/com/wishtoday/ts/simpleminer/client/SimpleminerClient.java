@@ -1,11 +1,10 @@
 package com.wishtoday.ts.simpleminer.client;
 
-import com.wishtoday.ts.simpleminer.FullChunkShapeInfos;
-import com.wishtoday.ts.simpleminer.LinearShapeInfos;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.network.KeywordPressedPayload;
 import com.wishtoday.ts.simpleminer.undo.gui.UndoListScreen;
 import com.wishtoday.ts.simpleminer.undo.network.payloads.UndoListSyncRequestC2SPayload;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import net.fabricmc.api.ClientModInitializer;
@@ -21,10 +20,12 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 //TODO: Try to remove the Shape class that exists in the client, because we may support KubeJS to add shapes.
+//completed.Maybe?
 public class SimpleminerClient implements ClientModInitializer {
 
     @Getter
@@ -41,15 +42,30 @@ public class SimpleminerClient implements ClientModInitializer {
 
     //private static final List<RenderEdge> renderEdges = new ArrayList<>();
 
-    @Getter
+    /*@Getter
     private static final LinearShapeInfos linearShapeInfos = LinearShapeInfos.DEFAULT.copy();
 
     @Getter
-    private static final FullChunkShapeInfos fullChunkShapeInfos = FullChunkShapeInfos.DEFAULT.copy();
+    private static final FullChunkShapeInfos fullChunkShapeInfos = FullChunkShapeInfos.DEFAULT.copy();*/
+
+    @Getter
+    private static final List<Text> renderTexts = new ArrayList<>();
+
+    @Getter
+    private static final Int2ObjectOpenHashMap<List<Text>> otherTexts = new Int2ObjectOpenHashMap<>();
 
     public static void setRenderBlocks(Set<BlockPos> renderBlocks) {
         SimpleminerClient.renderBlocks = renderBlocks;
         //tryMergeBlocks(renderBlocks);
+    }
+
+    public static void updateRenderTexts(List<Text> texts) {
+        renderTexts.clear();
+        renderTexts.addAll(texts);
+    }
+
+    public static void updateOtherTexts(Int2ObjectOpenHashMap<List<Text>> map) {
+        otherTexts.putAll(map);
     }
 
     /*private static void tryMergeBlocks(Set<BlockPos> renderBlocks) {
@@ -104,13 +120,13 @@ public class SimpleminerClient implements ClientModInitializer {
     }
 
     public static void consumeIndividualConfig(IndividualConfig config) {
-        LinearShapeInfos infos = config.getLinearShapeInfos();
+        /*LinearShapeInfos infos = config.getLinearShapeInfos();
         linearShapeInfos.setWidth(infos.getWidth());
         linearShapeInfos.setHeight(infos.getHeight());
 
         FullChunkShapeInfos shapeInfos = config.getFullChunkShapeInfos();
         fullChunkShapeInfos.setRadiusX(shapeInfos.getRadiusX());
-        fullChunkShapeInfos.setRadiusZ(shapeInfos.getRadiusZ());
+        fullChunkShapeInfos.setRadiusZ(shapeInfos.getRadiusZ());*/
     }
 
     private void onTick() {

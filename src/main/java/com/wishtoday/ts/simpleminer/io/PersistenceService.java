@@ -109,12 +109,12 @@ public class PersistenceService {
                 this.saveAllAsync();
             }
         });
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, ignoredServer) -> {
-            ServerPlayerEntity player = handler.player;
-            this.loadIndividualConfig(player);
-            this.syncIndividualConfig(player);
-            this.scanUndoOnDisk(player.getUuid());
-        });
+    }
+
+    public void onPlayerJoin(ServerPlayerEntity player) {
+        this.loadIndividualConfig(player);
+        this.syncIndividualConfig(player);
+        this.scanUndoOnDisk(player.getUuid());
     }
 
     // ==================== 路径 ====================
