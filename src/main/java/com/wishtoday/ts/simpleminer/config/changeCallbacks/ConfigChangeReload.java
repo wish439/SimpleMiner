@@ -24,6 +24,6 @@ public class ConfigChangeReload implements ConfigChangeCallback {
 
     @Override
     public void onServerChange(ServerConfig oldConfig, ServerConfig newConfig, ServerPlayerEntity player) {
-        this.reloader.reload();
+        this.reloader.reload(newConfig);
     }
 }
