@@ -7,7 +7,7 @@ import com.wishtoday.simpleservices.services.annotation.PostConstruct;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
-import com.wishtoday.ts.simpleminer.ReloadableReloader;
+import com.wishtoday.ts.simpleminer.config.ReloadableReloader;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
 import com.wishtoday.ts.simpleminer.network.config.SyncIndividualConfigS2CPayload;
@@ -17,7 +17,6 @@ import com.wishtoday.ts.simpleminer.undo.UndoHistory;
 import com.wishtoday.ts.simpleminer.undo.UndoStorage;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -26,7 +25,6 @@ import net.minecraft.nbt.NbtSizeTracker;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +40,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -159,7 +156,11 @@ public class PersistenceService {
     }
 
     public void saveServerConfigAsync() {
-        String json = gson.toJson(this.serverConfig, ServerConfig.class);
+        this.saveServerConfigAsync(this.serverConfig);
+    }
+
+    public void saveServerConfigAsync(ServerConfig config) {
+        String json = gson.toJson(config, ServerConfig.class);
         Path path = serverConfigPath();
         this.ioExecutor.execute(() -> this.writeJson(path, json));
     }

@@ -48,8 +48,7 @@ public class ServerConfig {
     private int maxUndoRecords;
 
     @SerialEntry
-    private List<String> testList;
-
+    private int sampleCollectSampleCount;
 
     @CreateConstruction
     public ServerConfig() {
@@ -68,7 +67,7 @@ public class ServerConfig {
                 "minecraft:diamond_ore,minecraft:deepslate_diamond_ore");
         this.supportCrops = List.of("#minecraft:crops");
         this.maxUndoRecords = 50;
-        this.testList = new ArrayList();
+        this.sampleCollectSampleCount = 45;
     }
 
 
@@ -79,7 +78,8 @@ public class ServerConfig {
                 , maxUndoRecords(serverConfig)
                 , collectStrategy(serverConfig)
                 , blockBreakStrategy(serverConfig)
-                , rightClickHandler(serverConfig));
+                , rightClickHandler(serverConfig)
+                , sampleCollectSampleCount(serverConfig));
     }
 
     public static List<OptionGroup> getAllGroups(ServerConfig serverConfig) {
@@ -122,6 +122,19 @@ public class ServerConfig {
                 .build();
     }
 
+    private static Option<Integer> sampleCollectSampleCount(ServerConfig config) {
+        return Option.<Integer>createBuilder()
+                .name(Text.translatable("simpleminer.config.sampleCollectSampleCount"))
+                .description(OptionDescription.of(Text.translatable("simpleminer.config.sampleCollectSampleCount.description")))
+                .binding(45, config::getSampleCollectSampleCount, config::setSampleCollectSampleCount)
+                .controller(integerOption -> IntegerFieldControllerBuilder
+                        .create(integerOption)
+                        .max(100000)
+                        .min(1)
+                )
+                .build();
+    }
+
     private static Option<String> collectStrategy(ServerConfig config) {
         return Option.<String>createBuilder()
                 .name(Text.translatable("simpleminer.config.collectStrategy"))
@@ -144,7 +157,7 @@ public class ServerConfig {
                 .name(Text.translatable("simpleminer.config.rightClickHandler"))
                 .description(OptionDescription.of(Text.translatable("simpleminer.config.rightClickHandler.description")))
                 .binding("NOBLOCKITEM", config::getRightClickHandler, config::setRightClickHandler)
-                .controller(s -> CyclingListControllerBuilder.create(s).values("VANILLA", "NOBLOCKITEM"))
+                .controller(s -> CyclingListControllerBuilder.create(s).values("VANILLA", "NOBLOCKITEM").formatValue(Text::of))
                 .build();
     }
 
@@ -177,6 +190,7 @@ public class ServerConfig {
         buf.writeCollection(this.blockFamilies, PacketByteBuf::writeString);
         buf.writeCollection(this.supportCrops, PacketByteBuf::writeString);
         buf.writeVarInt(this.maxUndoRecords);
+        buf.writeVarInt(this.sampleCollectSampleCount);
     }
 
     private static ServerConfig read(PacketByteBuf buf) {
@@ -188,7 +202,8 @@ public class ServerConfig {
         ArrayList<String> strings = buf.readCollection(ArrayList::new, PacketByteBuf::readString);
         ArrayList<String> strings1 = buf.readCollection(ArrayList::new, PacketByteBuf::readString);
         int maxUndoRecords = buf.readVarInt();
-        return new ServerConfig(i, b, s, string, readString, strings, strings1, maxUndoRecords, null);
+        int sampleCollectSampleCount = buf.readVarInt();
+        return new ServerConfig(i, b, s, string, readString, strings, strings1, maxUndoRecords, sampleCollectSampleCount);
     }
 
     public void setFromConfig(ServerConfig config) {

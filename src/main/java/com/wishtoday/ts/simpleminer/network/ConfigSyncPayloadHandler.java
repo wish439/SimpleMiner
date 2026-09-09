@@ -3,13 +3,12 @@ package com.wishtoday.ts.simpleminer.network;
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.*;
-import com.wishtoday.ts.simpleminer.config.ConfigType;
-import com.wishtoday.ts.simpleminer.config.IndividualConfig;
-import com.wishtoday.ts.simpleminer.config.ServerConfig;
+import com.wishtoday.ts.simpleminer.config.*;
 import com.wishtoday.ts.simpleminer.io.PersistenceService;
 import com.wishtoday.ts.simpleminer.network.config.SyncConfigC2SPayload;
 import com.wishtoday.ts.simpleminer.network.config.SyncIndividualConfigS2CPayload;
-import com.wishtoday.ts.simpleminer.noticer.size.MaxSizeChangedBroadcast;
+import com.wishtoday.ts.simpleminer.noticer.MaxSizeChangedBroadcast;
+import com.wishtoday.ts.simpleminer.network.shape.ShapeSyncer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -17,18 +16,12 @@ import net.minecraft.server.network.ServerPlayerEntity;
 public class ConfigSyncPayloadHandler {
     private final PressManager pressManager;
     private final ServerConfig serverConfig;
-    private final ReloadableReloader reloader;
-    private final PersistenceService persistence;
-    private final MaxSizeChangedBroadcast maxSizeBroadcast;
-    private final ShapeSyncer shapeSyncer;
+    private final ConfigChangePublisher publisher;
     @CreateConstruction
-    public ConfigSyncPayloadHandler(PressManager pressManager, ServerConfig serverConfig, ReloadableReloader reloader, PersistenceService persistence, MaxSizeChangedBroadcast maxSizeBroadcast, ShapeSyncer shapeSyncer) {
+    public ConfigSyncPayloadHandler(PressManager pressManager, ServerConfig serverConfig, ReloadableReloader reloader, PersistenceService persistence, MaxSizeChangedBroadcast maxSizeBroadcast, ShapeSyncer shapeSyncer, ConfigChangePublisher publisher) {
         this.pressManager = pressManager;
         this.serverConfig = serverConfig;
-        this.reloader = reloader;
-        this.persistence = persistence;
-        this.maxSizeBroadcast = maxSizeBroadcast;
-        this.shapeSyncer = shapeSyncer;
+        this.publisher = publisher;
     }
 
     public void handleSyncConfigS2C(SyncConfigC2SPayload payload, ServerPlayNetworking.Context context) {
@@ -36,18 +29,16 @@ public class ConfigSyncPayloadHandler {
         if (payload.type() == ConfigType.SERVER) {
             if (!player.hasPermissionLevel(2)) return;
             ServerConfig newServerConfig = (ServerConfig) payload.config();
+            this.publisher.publishServerConfigChange(this.serverConfig, newServerConfig, player);
             this.serverConfig.setFromConfig(newServerConfig);
-            this.persistence.saveServerConfigAsync();
-            this.reloader.reload();
-            this.maxSizeBroadcast.tryBroadcast(player.getServer(), player, newServerConfig.getMaxSize());
             return;
         }
         PlayerMinerInfo info = pressManager.getPlayerMinerInfo(player);
-        info.setCurrentIndividualConfig((IndividualConfig) payload.config());
-        this.persistence.saveIndividualConfigAsync(player);
-        this.reloader.reload();
-        this.shapeSyncer.syncShapeInfoTo(player);
-        ServerPlayNetworking.send(player, new SyncIndividualConfigS2CPayload((IndividualConfig) payload.config()));
+        if (info == null) return;
+        IndividualConfig config = (IndividualConfig) payload.config();
+        this.publisher.publishIndividualConfigChange(info.getCurrentIndividualConfig(), config, player);
+        info.setCurrentIndividualConfig(config);
+        ServerPlayNetworking.send(player, new SyncIndividualConfigS2CPayload(config));
     }
 
     public void handleShapeInfosSyncC2SPayload(ShapeInfosSyncC2SPayload payload, ServerPlayNetworking.Context context) {
@@ -59,6 +50,6 @@ public class ConfigSyncPayloadHandler {
             case 1 -> individualConfig.setLinearShapeInfos((LinearShapeInfos) payload.info());
             case 2 -> individualConfig.setFullChunkShapeInfos((FullChunkShapeInfos) payload.info());
         }
-        this.persistence.saveIndividualConfigAsync(context.player());
+        this.publisher.publishIndividualConfigChange(info.getCurrentIndividualConfig(), individualConfig, context.player());
     }
 }

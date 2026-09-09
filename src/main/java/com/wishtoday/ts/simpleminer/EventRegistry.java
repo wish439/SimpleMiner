@@ -9,6 +9,7 @@ import com.wishtoday.ts.simpleminer.core.blockBreaker.BlockBreaker;
 import com.wishtoday.ts.simpleminer.core.ShapeRefresher;
 import com.wishtoday.ts.simpleminer.core.rightClick.MinerRightHandler;
 import com.wishtoday.ts.simpleminer.io.PersistenceService;
+import com.wishtoday.ts.simpleminer.network.shape.ShapeSyncer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;

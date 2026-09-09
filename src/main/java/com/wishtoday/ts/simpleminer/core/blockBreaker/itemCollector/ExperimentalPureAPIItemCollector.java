@@ -22,28 +22,23 @@ import net.minecraft.world.World;
 
 import java.util.*;
 
-//Emmm, because the weather here is pretty hot, the code might not be that easy to understand/look nice,
-//and there might be some small bugs.
-//In short, based on my tests, his speed might be about 30%-50% faster than the PureAPI mode.
-
-//TODO: refactor, the logic is so messy right now.
 @Service
 @Name("EXPERIMENTAL")
 public class ExperimentalPureAPIItemCollector implements ItemCollector {
     private final ItemStackCollector stackCollector;
-    private final Map<BlockState, SampleEntry> samples;
-    private static final int SAMPLE_COUNT = 45;
+    private final ProbabilityItemTester tester;
+    //private final Map<BlockState, SampleEntry> samples;
 
     @CreateConstruction
-    public ExperimentalPureAPIItemCollector() {
+    public ExperimentalPureAPIItemCollector(ProbabilityItemTester tester) {
+        this.tester = tester;
         this.stackCollector = new ItemStackCollector();
-        this.samples = new HashMap<>();
     }
 
     @Override
     public void start() {
         this.stackCollector.clear();
-        this.samples.clear();
+        this.tester.initialize();
     }
 
     @Override
@@ -63,17 +58,7 @@ public class ExperimentalPureAPIItemCollector implements ItemCollector {
     @Override
     public CollectedResult finish() {
         Object2IntOpenHashMap<ItemStackKey> map = new Object2IntOpenHashMap<>(this.stackCollector.getMap());
-        Object2IntOpenHashMap<ItemStackKey> temp = new Object2IntOpenHashMap<>();
-        Set<Map.Entry<BlockState, SampleEntry>> set = this.samples.entrySet();
-        for (Map.Entry<BlockState, SampleEntry> entry : set) {
-            SampleEntry value = entry.getValue();
-            if (!value.successful) continue;
-            Set<Map.Entry<ItemStackKey, SampleEntry.Counter>> entries = value.counterMap.entrySet();
-            int matchCount = value.matchCount;
-            for (Map.Entry<ItemStackKey, SampleEntry.Counter> counterEntry : entries) {
-                temp.addTo(counterEntry.getKey(), counterEntry.getValue().firstCount * matchCount);
-            }
-        }
+        Object2IntOpenHashMap<ItemStackKey> temp = this.tester.end();
         map.putAll(temp);
         return new CollectedResult(map);
     }
@@ -94,24 +79,13 @@ public class ExperimentalPureAPIItemCollector implements ItemCollector {
         BlockState blockState = world.getBlockState(pos);
         PlayerEntity player = context.getPlayer();
         boolean b = player.canHarvest(blockState);
-        SampleEntry sampleEntry = this.samples.computeIfAbsent(blockState, q -> new SampleEntry());
-        if (sampleEntry.successful) {
-            if (!b) return;
-            sampleEntry.addMatchCount(1);
-            return;
-        }
-        if (sampleEntry.matchCount >= SAMPLE_COUNT && sampleEntry.isStable(SAMPLE_COUNT)) {
-            sampleEntry.successful = true;
-            if (!b) return;
-            sampleEntry.addMatchCount(1);
+        this.tester.incrementBlockCount(blockState, b);
+        if (!this.tester.shouldContinueGetDropped(blockState)) {
             return;
         }
         Object2IntOpenHashMap<ItemStackKey> map = new Object2IntOpenHashMap<>();
         this.collectItemStack(world, blockState, player, context.getHandStack(), pos, map, b);
-        if (sampleEntry.matchCount < SAMPLE_COUNT) {
-            sampleEntry.match(map);
-            sampleEntry.addMatchCount(1);
-        }
+        this.tester.matchOneBlock(blockState, map);
         Object2IntMap.FastEntrySet<ItemStackKey> entries = map.object2IntEntrySet();
         Object2IntOpenHashMap<ItemStackKey> collectorMap = this.stackCollector.getMap();
         for (Object2IntMap.Entry<ItemStackKey> entry : entries) {

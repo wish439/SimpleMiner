@@ -49,7 +49,7 @@ public class SimpleminerClient implements ClientModInitializer {
     private static final FullChunkShapeInfos fullChunkShapeInfos = FullChunkShapeInfos.DEFAULT.copy();*/
 
     @Getter
-    private static final List<Text> renderTexts = new ArrayList<>();
+    private static final List<Text> shapesTexts = new ArrayList<>();
 
     @Getter
     private static final Int2ObjectOpenHashMap<List<Text>> otherTexts = new Int2ObjectOpenHashMap<>();
@@ -60,8 +60,8 @@ public class SimpleminerClient implements ClientModInitializer {
     }
 
     public static void updateRenderTexts(List<Text> texts) {
-        renderTexts.clear();
-        renderTexts.addAll(texts);
+        shapesTexts.clear();
+        shapesTexts.addAll(texts);
     }
 
     public static void updateOtherTexts(Int2ObjectOpenHashMap<List<Text>> map) {

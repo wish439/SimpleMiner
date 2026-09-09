@@ -2,27 +2,20 @@ package com.wishtoday.ts.simpleminer.shape;
 
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.LinearShapeInfos;
-import com.wishtoday.ts.simpleminer.client.SimpleminerClient;
 import com.wishtoday.ts.simpleminer.core.matcher.BlockMatcher;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldExtension;
-import com.wishtoday.ts.simpleminer.services.ServerOnlyLoadCondition;
 import com.wishtoday.ts.simpleminer.utils.BlockSorter;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Predicate;
 
 @Service

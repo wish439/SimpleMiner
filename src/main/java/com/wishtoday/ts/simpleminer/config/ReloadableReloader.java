@@ -1,7 +1,7 @@
-package com.wishtoday.ts.simpleminer;
+package com.wishtoday.ts.simpleminer.config;
 
 import com.wishtoday.simpleservices.services.annotation.Service;
-import com.wishtoday.ts.simpleminer.config.ServerConfig;
+import com.wishtoday.ts.simpleminer.Reloadable;
 
 import java.util.List;
 

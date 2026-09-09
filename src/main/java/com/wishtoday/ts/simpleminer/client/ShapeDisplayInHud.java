@@ -33,7 +33,7 @@ public class ShapeDisplayInHud implements HudRenderCallback {
             lines.add(text1);
         }
 
-        List<Text> texts = SimpleminerClient.getRenderTexts();
+        List<Text> texts = SimpleminerClient.getShapesTexts();
         int size = texts.size() - 1;
         int last = this.getLast(shapeIndex, size);
         MutableText name = texts.get(last).copy();

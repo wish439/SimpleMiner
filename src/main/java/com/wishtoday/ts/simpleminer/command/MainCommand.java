@@ -6,8 +6,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
-import com.wishtoday.ts.simpleminer.Reloadable;
-import com.wishtoday.ts.simpleminer.ReloadableReloader;
+import com.wishtoday.ts.simpleminer.config.ReloadableReloader;
 import com.wishtoday.ts.simpleminer.config.ConfigType;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
@@ -17,7 +16,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-import java.util.List;
 import java.util.function.Function;
 
 import static net.minecraft.server.command.CommandManager.argument;

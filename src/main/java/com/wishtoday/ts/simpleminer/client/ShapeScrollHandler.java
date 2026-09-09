@@ -1,20 +1,12 @@
 package com.wishtoday.ts.simpleminer.client;
 
-import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.network.KeywordPressedPayload;
 import com.wishtoday.ts.simpleminer.services.ClientOnlyLoadCondition;
-import com.wishtoday.ts.simpleminer.shape.ShapeAdapter;
-import com.wishtoday.ts.simpleminer.shape.Shape;
-import com.wishtoday.ts.simpleminer.shape.Shapes;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.util.math.MathHelper;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Service(condition = ClientOnlyLoadCondition.class)
 public class ShapeScrollHandler {
@@ -28,7 +20,7 @@ public class ShapeScrollHandler {
         int delta = amountY < 0 ? 1 : -1;
         int i = SimpleminerClient.getShapeIndex();
         if (player.isSneaking()) {
-            int total = SimpleminerClient.getRenderTexts().size();
+            int total = SimpleminerClient.getShapesTexts().size();
             int newIndex = MathHelper.floorMod(i + delta, total);
             SimpleminerClient.setShapeIndex(newIndex);
             ClientPlayNetworking.send(new KeywordPressedPayload(SimpleminerClient.isPressing(), newIndex));

@@ -53,5 +53,7 @@
   "simpleminer.config.blockBreakStrategy.description": "",
   "simpleminer.config.rightClickHandler.description": "",
   "simpleminer.config.blockFamilies.description": "",
-  "simpleminer.config.supportCrops.description": ""
+  "simpleminer.config.supportCrops.description": "",
+  "simpleminer.config.sampleCollectSampleCount": "Sample collect sample count",
+  "simpleminer.config.sampleCollectSampleCount.description": ""
 }

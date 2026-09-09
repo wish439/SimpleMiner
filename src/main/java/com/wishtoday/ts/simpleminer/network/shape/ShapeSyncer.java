@@ -1,7 +1,10 @@
-package com.wishtoday.ts.simpleminer;
+package com.wishtoday.ts.simpleminer.network.shape;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
+import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
+import com.wishtoday.ts.simpleminer.PressManager;
+import com.wishtoday.ts.simpleminer.ShapeInfo;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.network.OtherTextSyncS2CPayload;
 import com.wishtoday.ts.simpleminer.network.RenderTextSyncS2CPayload;
