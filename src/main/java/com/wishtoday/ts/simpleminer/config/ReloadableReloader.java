@@ -15,8 +15,11 @@ public class ReloadableReloader {
     }
 
     public void reload() {
+        this.reload(this.serverConfig);
+    }
+    public void reload(ServerConfig config) {
         for (Reloadable reloadable : reloadables) {
-            reloadable.reload(serverConfig);
+            reloadable.reload(config);
         }
     }
     public void addReloadable(Reloadable reloadable) {
