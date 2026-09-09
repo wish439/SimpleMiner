@@ -215,5 +215,6 @@ public class ServerConfig {
         this.rightClickHandler = config.rightClickHandler;
         this.supportCrops = config.supportCrops;
         this.maxUndoRecords = config.maxUndoRecords;
+        this.sampleCollectSampleCount = config.sampleCollectSampleCount;
     }
 }
