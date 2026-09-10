@@ -76,15 +76,16 @@ public class ExperimentalPureAPIItemCollector implements ItemCollector {
     private void collectItemStack(CollectContext context) {
         World world = context.getWorld();
         BlockPos pos = context.getPos();
-        BlockState blockState = world.getBlockState(pos);
+        BlockState blockState = context.getBlockState();
         PlayerEntity player = context.getPlayer();
-        boolean b = player.canHarvest(blockState);
+        boolean b = context.isCanHarvest();
         this.tester.incrementBlockCount(blockState, b);
         if (!this.tester.shouldContinueGetDropped(blockState)) {
             return;
         }
+        BlockEntity blockEntity = world.getBlockEntity(pos);
         Object2IntOpenHashMap<ItemStackKey> map = new Object2IntOpenHashMap<>();
-        this.collectItemStack(world, blockState, player, context.getHandStack(), pos, map, b);
+        this.collectItemStack(world, player, blockState, blockEntity, context.getHandStack(), pos, map, b);
         this.tester.matchOneBlock(blockState, map);
         Object2IntMap.FastEntrySet<ItemStackKey> entries = map.object2IntEntrySet();
         Object2IntOpenHashMap<ItemStackKey> collectorMap = this.stackCollector.getMap();
@@ -93,25 +94,28 @@ public class ExperimentalPureAPIItemCollector implements ItemCollector {
         }
     }
 
-    private void collectItemStack(World world, BlockState state, PlayerEntity player, ItemStack stack, BlockPos pos, Object2IntOpenHashMap<ItemStackKey> map, boolean toolFit) {
+    private void collectItemStack(World world, PlayerEntity player, BlockState currentBlockState, BlockEntity entity, ItemStack stack, BlockPos pos, Object2IntOpenHashMap<ItemStackKey> map, boolean toolFit) {
         if (toolFit) {
-            this.insertItemStack(world, state, player, pos, stack, map);
+            this.insertItemStack(world, player, currentBlockState, entity, pos, stack, map);
         }
-        this.insertContainerItemStack(world, pos, player, map);
+        this.insertContainerItemStack(world, pos, entity, player, map);
     }
 
-    private void insertItemStack(World world, BlockState state, PlayerEntity player, BlockPos blockPose, ItemStack mainHandStack, Object2IntOpenHashMap<ItemStackKey> map) {
-        List<ItemStack> droppedStacks = Block.getDroppedStacks(state, (ServerWorld) world, blockPose, world.getBlockEntity(blockPose), player, mainHandStack);
+    private void insertItemStack(World world, PlayerEntity player, BlockState currentBlockState, BlockEntity blockEntity, BlockPos blockPose, ItemStack mainHandStack, Object2IntOpenHashMap<ItemStackKey> map) {
+        List<ItemStack> droppedStacks = Block.getDroppedStacks(currentBlockState, (ServerWorld) world, blockPose, blockEntity, player, mainHandStack);
         for (ItemStack stack : droppedStacks) {
             int count = stack.getCount();
             ItemStackKey key = new ItemStackKey(stack);
             //System.out.println("AAABBBCCC:::" + key);
-            map.addTo(key, count);
+            if (map.containsKey(key)) {
+                map.addTo(key, count);
+            } else {
+                map.put(key, count);
+            }
         }
     }
 
-    private void insertContainerItemStack(World world, BlockPos pos, PlayerEntity player, Object2IntOpenHashMap<ItemStackKey> map) {
-        BlockEntity blockEntity = world.getBlockEntity(pos);
+    private void insertContainerItemStack(World world, BlockPos pos, BlockEntity blockEntity, PlayerEntity player, Object2IntOpenHashMap<ItemStackKey> map) {
         if (blockEntity == null) return;
         if (!(blockEntity instanceof Inventory inventory)) return;
         if (inventory.isEmpty()) return;

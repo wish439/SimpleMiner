@@ -5,9 +5,11 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "INTERCEPT_ServerEntityManagerMixin",
+    "PUREAPI_BlockMixin",
     "PUREAPI_ItemScatterMixin",
     "WorldChunkMixin",
     "WorldMixin",
+    "Accessor.ExperienceDroppingBlockAccessor",
     "Accessor.IntPropertyAccessor",
     "Accessor.PalettedContainerAccessor",
     "Accessor.PalettedContainerPaletteProviderAccessor",

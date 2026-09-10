@@ -13,7 +13,7 @@ import net.minecraft.world.World;
 @Service
 public class VanillaSingleBlockBreaker implements SingleBlockBreaker {
     @Override
-    public boolean breakBlock(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update) {
+    public boolean breakBlock(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update, boolean canHarvest) {
         if (!(player instanceof ServerPlayerEntity serverPlayerEntity)) return false;
         serverPlayerEntity.interactionManager.tryBreakBlock(pos);
         return true;

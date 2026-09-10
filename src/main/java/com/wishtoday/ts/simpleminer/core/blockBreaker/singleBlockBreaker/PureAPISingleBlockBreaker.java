@@ -14,12 +14,19 @@ import net.minecraft.world.World;
 @Service
 public class PureAPISingleBlockBreaker implements SingleBlockBreaker {
     @Override
-    public boolean breakBlock(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update) {
+    public boolean breakBlock(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update, boolean canHarvest) {
         int flag = update ? Block.NOTIFY_ALL : Block.NOTIFY_LISTENERS;
-        state.getBlock().onBreak(world, pos, state, player);
-        world.setBlockState(pos, Blocks.AIR.getDefaultState(), flag);
+        Block block = state.getBlock();
+        block.onBreak(world, pos, state, player);
+        boolean b = world.setBlockState(pos, Blocks.AIR.getDefaultState(), flag);
+        if (b) {
+            block.onBroken(world, pos, state);
+        }
         if (!player.isCreative()) {
             mainHandStack.postMine(world, state, pos, player);
+            if (b && canHarvest) {
+                block.afterBreak(world, player, pos, state, world.getBlockEntity(pos), mainHandStack.copy());
+            }
         }
         return true;
     }

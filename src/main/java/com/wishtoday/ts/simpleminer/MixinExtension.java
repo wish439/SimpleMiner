@@ -62,7 +62,6 @@ public class MixinExtension implements IMixinConfigPlugin {
         if (!hasAnnotation) {
             return;
         }
-        //System.out.println("triggered inject" + classNode.name);
 
 
         if (type == ServiceFieldType.CLASS) {
@@ -76,19 +75,7 @@ public class MixinExtension implements IMixinConfigPlugin {
 
                 insnList.add(new VarInsnNode(Opcodes.ALOAD, 0));//this
                 insnList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "com/wishtoday/simpleservices/services/ServiceInjector", "inject", "(Ljava/lang/Object;)V", false));
-                //method.instructions.insertBefore(returnNode, insnList);
                 method.instructions.insert(superNode, insnList);
-
-                //method.maxStack++;
-                //method.maxLocals++;
-
-                /*for (AbstractInsnNode insn : method.instructions) {
-                    if (insn instanceof FrameNode) {
-                        method.instructions.remove(insn);
-                    }
-                }
-                method.maxStack = 0;
-                method.maxLocals = 0;*/
 
                 return;
             }

@@ -12,6 +12,6 @@ import net.minecraft.world.World;
 public class IndependentHandleRightClickHandler implements RightClickHandler{
     @Override
     public ActionResult onUse(ServerPlayerEntity player, World world, Hand hand, BlockHitResult hitResult, ItemStackCollector collector) {
-        return null;
+        return ActionResult.PASS;
     }
 }

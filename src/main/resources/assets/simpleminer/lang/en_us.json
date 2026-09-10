@@ -55,5 +55,7 @@
   "simpleminer.config.blockFamilies.description": "",
   "simpleminer.config.supportCrops.description": "",
   "simpleminer.config.sampleCollectSampleCount": "Sample collect sample count",
-  "simpleminer.config.sampleCollectSampleCount.description": ""
+  "simpleminer.config.sampleCollectSampleCount.description": "",
+  "simpleminer.config.exhaustionPerBlocks": "exhaustion per block",
+  "simpleminer.config.exhaustionPerBlocks.description": ""
 }

@@ -7,5 +7,5 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public interface SingleBlockBreaker {
-    boolean breakBlock(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update);
+    boolean breakBlock(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update, boolean canHarvest);
 }

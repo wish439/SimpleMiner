@@ -50,6 +50,9 @@ public class ServerConfig {
     @SerialEntry
     private int sampleCollectSampleCount;
 
+    @SerialEntry
+    private float exhaustionPerBlocks;
+
     @CreateConstruction
     public ServerConfig() {
         this.maxSize = 64;
@@ -68,6 +71,7 @@ public class ServerConfig {
         this.supportCrops = List.of("#minecraft:crops");
         this.maxUndoRecords = 50;
         this.sampleCollectSampleCount = 45;
+        this.exhaustionPerBlocks = 0F;
     }
 
 
@@ -79,7 +83,8 @@ public class ServerConfig {
                 , collectStrategy(serverConfig)
                 , blockBreakStrategy(serverConfig)
                 , rightClickHandler(serverConfig)
-                , sampleCollectSampleCount(serverConfig));
+                , sampleCollectSampleCount(serverConfig)
+                , exhaustionPerBlocks(serverConfig));
     }
 
     public static List<OptionGroup> getAllGroups(ServerConfig serverConfig) {
@@ -131,6 +136,19 @@ public class ServerConfig {
                         .create(integerOption)
                         .max(100000)
                         .min(1)
+                )
+                .build();
+    }
+
+    private static Option<Float> exhaustionPerBlocks(ServerConfig config) {
+        return Option.<Float>createBuilder()
+                .name(Text.translatable("simpleminer.config.exhaustionPerBlocks"))
+                .description(OptionDescription.of(Text.translatable("simpleminer.config.exhaustionPerBlocks.description")))
+                .binding(0F, config::getExhaustionPerBlocks, config::setExhaustionPerBlocks)
+                .controller(integerOption -> FloatFieldControllerBuilder
+                        .create(integerOption)
+                        .max(1F)
+                        .min(0F)
                 )
                 .build();
     }
@@ -191,6 +209,7 @@ public class ServerConfig {
         buf.writeCollection(this.supportCrops, PacketByteBuf::writeString);
         buf.writeVarInt(this.maxUndoRecords);
         buf.writeVarInt(this.sampleCollectSampleCount);
+        buf.writeFloat(this.exhaustionPerBlocks);
     }
 
     private static ServerConfig read(PacketByteBuf buf) {
@@ -203,7 +222,8 @@ public class ServerConfig {
         ArrayList<String> strings1 = buf.readCollection(ArrayList::new, PacketByteBuf::readString);
         int maxUndoRecords = buf.readVarInt();
         int sampleCollectSampleCount = buf.readVarInt();
-        return new ServerConfig(i, b, s, string, readString, strings, strings1, maxUndoRecords, sampleCollectSampleCount);
+        float exhaustionPerBlocks = buf.readFloat();
+        return new ServerConfig(i, b, s, string, readString, strings, strings1, maxUndoRecords, sampleCollectSampleCount, exhaustionPerBlocks);
     }
 
     public void setFromConfig(ServerConfig config) {
@@ -216,5 +236,6 @@ public class ServerConfig {
         this.supportCrops = config.supportCrops;
         this.maxUndoRecords = config.maxUndoRecords;
         this.sampleCollectSampleCount = config.sampleCollectSampleCount;
+        this.exhaustionPerBlocks = config.exhaustionPerBlocks;
     }
 }

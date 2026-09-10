@@ -26,4 +26,9 @@ public class CollectContext {
 
     @Nullable
     private Entity itemEntity;
+
+    @Nullable
+    private BlockState blockState;
+
+    private boolean canHarvest;
 }

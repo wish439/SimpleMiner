@@ -5,10 +5,12 @@ import com.wishtoday.simpleservices.services.annotation.Name;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
 import com.wishtoday.ts.simpleminer.core.ItemStackCollector;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.BlockBreaker;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectContext;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectedResult;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
@@ -61,6 +63,7 @@ public class PureAPIItemCollector implements ItemCollector {
                 && context.getWorld() != null
                 && context.getHandStack() == null
                 && context.getItemEntity() == null
+                && BlockBreaker.getBlockBreaking()
                 && mixinName.startsWith("PUREAPI");
     }
 
@@ -68,19 +71,21 @@ public class PureAPIItemCollector implements ItemCollector {
         World world = context.getWorld();
         PlayerEntity player = context.getPlayer();
         BlockPos pos = context.getPos();
-        boolean b = player.canHarvest(world.getBlockState(pos));
-        this.collectItemStack(world, player, context.getHandStack(), pos, this.stackCollector.getMap(), b);
+        boolean b = context.isCanHarvest();
+        BlockState state = context.getBlockState();
+        BlockEntity blockEntity = world.getBlockEntity(pos);
+        this.collectItemStack(world, player, state, blockEntity, context.getHandStack(), pos, this.stackCollector.getMap(), b);
     }
 
-    private void collectItemStack(World world, PlayerEntity player, ItemStack stack, BlockPos pos, Object2IntOpenHashMap<ItemStackKey> map, boolean toolFit) {
+    private void collectItemStack(World world, PlayerEntity player, BlockState currentBlockState, BlockEntity entity, ItemStack stack, BlockPos pos, Object2IntOpenHashMap<ItemStackKey> map, boolean toolFit) {
         if (toolFit) {
-            this.insertItemStack(world, player, pos, stack, map);
+            this.insertItemStack(world, player, currentBlockState, entity, pos, stack, map);
         }
-        this.insertContainerItemStack(world, pos, player, map);
+        this.insertContainerItemStack(world, pos, entity, player, map);
     }
 
-    private void insertItemStack(World world, PlayerEntity player, BlockPos blockPose, ItemStack mainHandStack, Object2IntOpenHashMap<ItemStackKey> map) {
-        List<ItemStack> droppedStacks = Block.getDroppedStacks(world.getBlockState(blockPose), (ServerWorld) world, blockPose, world.getBlockEntity(blockPose), player, mainHandStack);
+    private void insertItemStack(World world, PlayerEntity player, BlockState currentBlockState, BlockEntity blockEntity, BlockPos blockPose, ItemStack mainHandStack, Object2IntOpenHashMap<ItemStackKey> map) {
+        List<ItemStack> droppedStacks = Block.getDroppedStacks(currentBlockState, (ServerWorld) world, blockPose, blockEntity, player, mainHandStack);
         for (ItemStack stack : droppedStacks) {
             int count = stack.getCount();
             ItemStackKey key = new ItemStackKey(stack);
@@ -93,8 +98,7 @@ public class PureAPIItemCollector implements ItemCollector {
         }
     }
 
-    private void insertContainerItemStack(World world, BlockPos pos, PlayerEntity player, Object2IntOpenHashMap<ItemStackKey> map) {
-        BlockEntity blockEntity = world.getBlockEntity(pos);
+    private void insertContainerItemStack(World world, BlockPos pos, BlockEntity blockEntity, PlayerEntity player, Object2IntOpenHashMap<ItemStackKey> map) {
         if (blockEntity == null) return;
         if (!(blockEntity instanceof Inventory inventory)) return;
         if (inventory.isEmpty()) return;

@@ -8,10 +8,13 @@ import com.wishtoday.ts.simpleminer.core.ShapeAnalyzer;
 import com.wishtoday.ts.simpleminer.core.ShapeRefresher;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector.ItemCollectorRouter;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.singleBlockBreaker.SingleBlockBreakerRouter;
+import com.wishtoday.ts.simpleminer.mixin.Accessor.ExperienceDroppingBlockAccessor;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldExtension;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
 import it.unimi.dsi.fastutil.longs.*;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.ExperienceDroppingBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.ExperienceOrbEntity;
@@ -19,6 +22,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.intprovider.IntProvider;
 import net.minecraft.world.World;
 
 import java.util.List;
@@ -38,6 +42,7 @@ public class BlockBreaker {
     private final ItemCollectorRouter collector;
     private final ItemDropper dropper;
     private final SingleBlockBreakerRouter blockBreaker;
+    private final ExhaustionConsumer exhaustionConsumer;
     private static final ThreadLocal<Boolean> blockBreaking = ThreadLocal.withInitial(() -> false);
 
     @CreateConstruction
@@ -46,7 +51,7 @@ public class BlockBreaker {
             , List<BlockBreakerFeature> features
             , ShapeAnalyzer shapeAnalyzer
             , ItemCollectorRouter collector
-            , ItemDropper dropper, SingleBlockBreakerRouter blockBreaker
+            , ItemDropper dropper, SingleBlockBreakerRouter blockBreaker, ExhaustionConsumer exhaustionConsumer
     ) {
         this.pressManager = pressManager;
         this.shapeRefresher = shapeRefresher;
@@ -55,6 +60,7 @@ public class BlockBreaker {
         this.collector = collector;
         this.dropper = dropper;
         this.blockBreaker = blockBreaker;
+        this.exhaustionConsumer = exhaustionConsumer;
     }
 
     public static boolean getBlockBreaking() {
@@ -83,17 +89,22 @@ public class BlockBreaker {
         int experience = 0;
         BlockPos.Mutable mutable = new BlockPos.Mutable();
         //Long2ObjectLinkedOpenHashMap<BlockStorage> linkedOpenHashMap = new Long2ObjectLinkedOpenHashMap<>();
-        CollectContext collectContext = new CollectContext(world, player, null, mainHandStack, null);
+        CollectContext collectContext = new CollectContext(world, player, null, mainHandStack, null, null, false);
+        ServerWorld serverWorld = (ServerWorld) world;
         MAINCYCLE:
         for (long blockPose : sortedBlockPoses) {
 
             mutable.set(blockPose);
             context.setCurrentPos(mutable);
-            context.setCurrentState(((WorldExtension)world).simpleMiner$getBlockState(blockPose));
+            BlockState currentState = ((WorldExtension) world).simpleMiner$getBlockState(blockPose);
+            context.setCurrentState(currentState);
+            collectContext.setBlockState(currentState);
 
             this.forEachFeatures(b -> b.beforeBlockBreak(context));
 
             collectContext.setPos(mutable);
+            boolean canHarvest = player.canHarvest(currentState);
+            collectContext.setCanHarvest(canHarvest);
             boolean collectItem = true;
             for (BlockBreakerFeature feature : this.features) {
                 if (!feature.allowCollectItem(context, collectContext)) {
@@ -101,11 +112,22 @@ public class BlockBreaker {
                     break;
                 }
             }
+
             if (this.collector.shouldCollectItem(collectContext) && collectItem) {
                 this.collector.collectItem(collectContext);
             }
 
-            experience += EnchantmentHelper.getBlockExperience((ServerWorld) world, mainHandStack, 0);
+            Block block = state.getBlock();
+            int base;
+            if (block instanceof ExperienceDroppingBlock e) {
+                ExperienceDroppingBlockAccessor accessor = (ExperienceDroppingBlockAccessor) e;
+                IntProvider experienceDropped = accessor.getExperienceDropped();
+                base = EnchantmentHelper.getBlockExperience(serverWorld, mainHandStack, experienceDropped.get(serverWorld.getRandom()));
+            } else {
+                base = 0;
+            }
+
+            experience += EnchantmentHelper.getBlockExperience(serverWorld, mainHandStack, base);
 
             boolean breakBlock = true;
 
@@ -117,8 +139,10 @@ public class BlockBreaker {
 
             boolean empty = mainHandStack.isEmpty();
 
-            if (breakBlock)
-                this.breakBlock(mutable, context.getCurrentState(), world, player, mainHandStack, !internal.contains(blockPose));
+            if (breakBlock) {
+                this.breakBlock(mutable, currentState, world, player, mainHandStack, !internal.contains(blockPose), canHarvest);
+                this.exhaustionConsumer.consume(player);
+            }
 
 
             if (!empty && player.getMainHandStack().isEmpty()) {
@@ -141,7 +165,7 @@ public class BlockBreaker {
             return false;
         }
         ExperienceOrbEntity experienceOrbEntity = new ExperienceOrbEntity(world, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, experience);
-        ((ServerWorld) world).spawnEntityAndPassengers(experienceOrbEntity);
+        (serverWorld).spawnEntityAndPassengers(experienceOrbEntity);
         return false;
     }
 
@@ -150,7 +174,7 @@ public class BlockBreaker {
         this.features.forEach(consumer);
     }
 
-    private void breakBlock(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update) {
+    private void breakBlock(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update, boolean canHarvest) {
 
         try {
             //world.setBlockState(pos, Blocks.AIR.getDefaultState(), 0);
@@ -161,7 +185,7 @@ public class BlockBreaker {
         if (!player.isCreative()) {
             mainHandStack.postMine(world, state, pos, player);
         }*/
-            this.blockBreaker.breakBlock(pos, state, world, player, mainHandStack, update);
+            this.blockBreaker.breakBlock(pos, state, world, player, mainHandStack, update, canHarvest);
         } finally {
             blockBreaking.set(false);
         }
