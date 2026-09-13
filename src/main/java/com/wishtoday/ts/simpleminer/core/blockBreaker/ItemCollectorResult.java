@@ -7,7 +7,6 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class CollectedResult {
+public class ItemCollectorResult {
     private final Object2IntOpenHashMap<ItemStackKey> map;
-    private final int experience;
 }

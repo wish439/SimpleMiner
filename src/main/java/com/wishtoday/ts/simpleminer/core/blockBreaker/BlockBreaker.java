@@ -86,9 +86,7 @@ public class BlockBreaker {
         this.forEachFeatures(b -> b.beforeCycle(context));
 
         this.collector.start();
-        int experience = 0;
         BlockPos.Mutable mutable = new BlockPos.Mutable();
-        //Long2ObjectLinkedOpenHashMap<BlockStorage> linkedOpenHashMap = new Long2ObjectLinkedOpenHashMap<>();
         CollectContext collectContext = new CollectContext(world, player, null, mainHandStack, null, null, false);
         ServerWorld serverWorld = (ServerWorld) world;
         MAINCYCLE:
@@ -106,28 +104,25 @@ public class BlockBreaker {
             boolean canHarvest = player.canHarvest(currentState);
             collectContext.setCanHarvest(canHarvest);
             boolean collectItem = true;
+            boolean collectExperience = true;
             for (BlockBreakerFeature feature : this.features) {
                 if (!feature.allowCollectItem(context, collectContext)) {
                     collectItem = false;
                     break;
                 }
             }
+            for (BlockBreakerFeature feature : this.features) {
+                if (!feature.allowCollectExperience(context, collectContext)) {
+                    collectExperience = false;
+                    break;
+                }
+            }
 
-            if (this.collector.shouldCollectItem(collectContext) && collectItem) {
+            if (this.collector.shouldCollect(collectContext) && collectItem) {
                 this.collector.collectItem(collectContext);
+                if (collectExperience)
+                    this.collector.collectExperience(collectContext);
             }
-
-            Block block = state.getBlock();
-            int base;
-            if (block instanceof ExperienceDroppingBlock e) {
-                ExperienceDroppingBlockAccessor accessor = (ExperienceDroppingBlockAccessor) e;
-                IntProvider experienceDropped = accessor.getExperienceDropped();
-                base = EnchantmentHelper.getBlockExperience(serverWorld, mainHandStack, experienceDropped.get(serverWorld.getRandom()));
-            } else {
-                base = 0;
-            }
-
-            experience += EnchantmentHelper.getBlockExperience(serverWorld, mainHandStack, base);
 
             boolean breakBlock = true;
 
@@ -156,15 +151,14 @@ public class BlockBreaker {
             }
         }
         CollectedResult result = this.collector.finish();
-        List<ItemStack> droppedStacks = this.dropper.dropStack(context.getWorld(), context.getOriginPos(), result);
+        List<ItemStack> droppedStacks = this.dropper.dropStack(context.getWorld(), context.getOriginPos(), result.getMap());
 
         this.forEachFeatures(b -> b.afterCycle(context, droppedStacks, result.getMap()));
 
-        //this.makeUndoForPlayer(info, linkedOpenHashMap, droppedStacks);
-        if (experience <= 0) {
+        if (result.getExperience() <= 0) {
             return false;
         }
-        ExperienceOrbEntity experienceOrbEntity = new ExperienceOrbEntity(world, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, experience);
+        ExperienceOrbEntity experienceOrbEntity = new ExperienceOrbEntity(world, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, result.getExperience());
         (serverWorld).spawnEntityAndPassengers(experienceOrbEntity);
         return false;
     }
@@ -175,16 +169,8 @@ public class BlockBreaker {
     }
 
     private void breakBlock(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update, boolean canHarvest) {
-
         try {
-            //world.setBlockState(pos, Blocks.AIR.getDefaultState(), 0);
             blockBreaking.set(true);
-        /*int flag = update ? Block.NOTIFY_ALL : Block.NOTIFY_LISTENERS;
-        state.getBlock().onBreak(world, pos, state, player);
-        world.setBlockState(pos, Blocks.AIR.getDefaultState(), flag);
-        if (!player.isCreative()) {
-            mainHandStack.postMine(world, state, pos, player);
-        }*/
             this.blockBreaker.breakBlock(pos, state, world, player, mainHandStack, update, canHarvest);
         } finally {
             blockBreaking.set(false);

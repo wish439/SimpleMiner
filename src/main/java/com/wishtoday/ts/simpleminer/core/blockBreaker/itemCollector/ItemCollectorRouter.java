@@ -11,36 +11,36 @@ import lombok.experimental.Delegate;
 import java.util.Map;
 
 @Service
-@DependOn(ItemCollector.class)
+@DependOn(DroppedCollector.class)
 public class ItemCollectorRouter implements Reloadable {
     @Delegate
     @Getter
-    private volatile ItemCollector collector;
-    private final Map<String, ItemCollector> delegates;
+    private volatile DroppedCollector collector;
+    private final Map<String, DroppedCollector> delegates;
     private static final String DEFAULT_IMPLEMENTATION_KEY = "PUREAPI";
-    private static ItemCollector defaultCollector;
+    private static DroppedCollector defaultCollector;
 
     @CreateConstruction
-    public ItemCollectorRouter(ServerConfig config, Map<String, ItemCollector> map) {
+    public ItemCollectorRouter(ServerConfig config, Map<String, DroppedCollector> map) {
         this.delegates = map;
         this.reload(config);
     }
 
     @Override
     public boolean reload(ServerConfig config) {
-        ItemCollector c = delegates.get(config.getCollectStrategy().toUpperCase());
+        DroppedCollector c = delegates.get(config.getCollectStrategy().toUpperCase());
         if (c != null) {
             this.collector = c;
             return true;
         }
         if (defaultCollector == null) {
-            ItemCollector itemCollector = this.delegates.get(DEFAULT_IMPLEMENTATION_KEY);
-            if (itemCollector == null) throw new IllegalStateException("No ItemCollector implementation defined");
+            DroppedCollector itemCollector = this.delegates.get(DEFAULT_IMPLEMENTATION_KEY);
+            if (itemCollector == null) throw new IllegalStateException("No DroppedCollector implementation defined");
             defaultCollector = itemCollector;
         }
         this.collector = defaultCollector;
         return false;
-        //Optional<ItemCollector> first = Container.getInstance().getFirst(ItemCollector.class);
+        //Optional<DroppedCollector> first = Container.getInstance().getFirst(DroppedCollector.class);
         //first.ifPresent(itemCollector -> this.collector = itemCollector);
     }
 

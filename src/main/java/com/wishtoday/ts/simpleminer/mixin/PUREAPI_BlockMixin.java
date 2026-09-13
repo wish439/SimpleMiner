@@ -2,9 +2,6 @@ package com.wishtoday.ts.simpleminer.mixin;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.wishtoday.simpleservices.services.Container;
-import com.wishtoday.simpleservices.services.ServiceFieldType;
-import com.wishtoday.simpleservices.services.ServiceInjector;
-import com.wishtoday.simpleservices.services.annotation.ServiceClass;
 import com.wishtoday.simpleservices.services.annotation.ServiceField;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.BlockBreaker;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectContext;
@@ -30,6 +27,7 @@ public class PUREAPI_BlockMixin {
     @WrapWithCondition(method = "afterBreak", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/Block;dropStacks(Lnet/minecraft/block/BlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/entity/BlockEntity;Lnet/minecraft/entity/Entity;Lnet/minecraft/item/ItemStack;)V"))
     public boolean afterBreak(BlockState state, World world, BlockPos pos, BlockEntity blockEntity, Entity entity, ItemStack tool) {
         //No way......Because Block is before onInitialize.
+        //I have an idea now. But I can't solve it right now.
         if (router == null) {
             router = Container.getInstance().getFirst(ItemCollectorRouter.class)
                     .orElseThrow();

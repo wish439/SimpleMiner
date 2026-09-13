@@ -8,6 +8,7 @@ import com.wishtoday.ts.simpleminer.core.ItemStackCollector;
 import com.wishtoday.ts.simpleminer.core.ShapeAnalyzer;
 import com.wishtoday.ts.simpleminer.core.ShapeRefresher;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectedResult;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.ItemCollectorResult;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.ItemDropper;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
 import it.unimi.dsi.fastutil.longs.LongList;
@@ -51,8 +52,6 @@ public class MinerRightHandler {
         ShapeResult shapeResult = info.getBlockPoses();
         if (shapeResult == null) return ActionResult.PASS;
         LongList sortedBlockPoses = shapeResult.getSortedBlockPoses();
-        LongOpenHashSet internal = shapeAnalyzer.calcCompleteSurrounded(shapeResult.getBlockPoses());
-
         BlockPos.Mutable mutable = new BlockPos.Mutable();
         MutableBlockHitResult mutableBlockHitResult = new MutableBlockHitResult(hitResult.getPos(), hitResult.getSide(), hitResult.getBlockPos(), hitResult.isInsideBlock());
         boolean success = false;
@@ -64,8 +63,8 @@ public class MinerRightHandler {
             if (result == ActionResult.SUCCESS) success = true;
         }
 
-        CollectedResult result = collector.toResult();
-        this.dropper.dropStack(world, pos, result);
+        ItemCollectorResult result = collector.toResult();
+        this.dropper.dropStack(world, pos, result.getMap());
         return success ? ActionResult.SUCCESS : ActionResult.PASS;
     }
 

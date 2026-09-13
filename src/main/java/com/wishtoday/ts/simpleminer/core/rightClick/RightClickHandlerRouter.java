@@ -30,7 +30,7 @@ public class RightClickHandlerRouter implements Reloadable {
         }
         if (defaultCollector == null) {
             RightClickHandler itemCollector = this.delegates.get(DEFAULT_IMPLEMENTATION_KEY);
-            if (itemCollector == null) throw new IllegalStateException("No ItemCollector implementation defined");
+            if (itemCollector == null) throw new IllegalStateException("No DroppedCollector implementation defined");
             defaultCollector = itemCollector;
         }
         this.handler = defaultCollector;

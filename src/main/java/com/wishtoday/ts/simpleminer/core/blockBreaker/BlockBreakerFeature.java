@@ -30,4 +30,8 @@ public interface BlockBreakerFeature {
     default boolean allowCollectItem(BlockBreakContext blockBreakContext, CollectContext collectContext) {
         return true;
     }
+
+    default boolean allowCollectExperience(BlockBreakContext blockBreakContext, CollectContext collectContext) {
+        return true;
+    }
 }

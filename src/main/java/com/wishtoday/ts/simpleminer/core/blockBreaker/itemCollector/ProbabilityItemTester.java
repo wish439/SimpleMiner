@@ -59,6 +59,9 @@ public class ProbabilityItemTester implements Reloadable {
     public void incrementBlockCount(BlockState state, boolean toolFit) {
         if (!toolFit) return;
         SampleEntry sampleEntry = this.samples.computeIfAbsent(state, b -> new SampleEntry(this.sampleCount));
+        if (!sampleEntry.successful) {
+            return;
+        }
         sampleEntry.increaseBlockCount();
     }
 

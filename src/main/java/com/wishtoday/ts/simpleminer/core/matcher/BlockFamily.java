@@ -44,7 +44,7 @@ public class BlockFamily {
         RegistryEntry.Reference<Block> entry = a.getRegistryEntry();
         RegistryEntryReferenceAccessor<Block> accessor = (RegistryEntryReferenceAccessor<Block>) entry;
         return accessor.getTags()
-                .stream().filter(allowedTags::contains)
+                .stream().filter(t -> this.allowedTags.contains(t) || this.deniedTags.contains(t))
                 .collect(Collectors.toSet());
     }
 

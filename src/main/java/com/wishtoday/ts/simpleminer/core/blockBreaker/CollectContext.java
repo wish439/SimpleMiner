@@ -25,7 +25,7 @@ public class CollectContext {
     private ItemStack handStack;
 
     @Nullable
-    private Entity itemEntity;
+    private Entity entity;
 
     @Nullable
     private BlockState blockState;

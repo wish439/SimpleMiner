@@ -40,6 +40,7 @@ public class ChunkSectionScanner {
             if (predicate.test(matchState, state)) {
                 this.addAllToResult(result, baseX, baseY, baseZ);
             }
+            return result;
         }
         long[] longs = storage.getData();
 

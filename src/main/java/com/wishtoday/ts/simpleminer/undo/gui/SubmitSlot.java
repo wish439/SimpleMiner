@@ -59,8 +59,9 @@ public class SubmitSlot extends Slot {
         int i = undoStorage.addCurrentCountTo(key, stack.getCount());
         if (i >= 0) {
             stack.setCount(i);
+            return stack;
         }
-        if (i >= 0) {
+        if (i == -1) {
             return stack;
         }
         //stack.decrement(min);

@@ -2,6 +2,7 @@ package com.wishtoday.ts.simpleminer.core;
 
 import com.wishtoday.ts.simpleminer.ItemStackKey;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectedResult;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.ItemCollectorResult;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
 import net.minecraft.item.ItemStack;
@@ -28,7 +29,7 @@ public class ItemStackCollector {
         }
     }
 
-    public CollectedResult toResult() {
-        return new CollectedResult(new Object2IntOpenHashMap<>(this.map));
+    public ItemCollectorResult toResult() {
+        return new ItemCollectorResult(new Object2IntOpenHashMap<>(this.map));
     }
 }

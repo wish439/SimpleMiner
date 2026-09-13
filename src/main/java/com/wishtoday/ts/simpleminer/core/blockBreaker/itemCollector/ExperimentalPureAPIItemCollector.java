@@ -7,31 +7,37 @@ import com.wishtoday.ts.simpleminer.ItemStackKey;
 import com.wishtoday.ts.simpleminer.core.ItemStackCollector;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectContext;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectedResult;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.ExperienceCollector;
+import com.wishtoday.ts.simpleminer.mixin.Accessor.ExperienceDroppingBlockAccessor;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import lombok.Getter;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.ExperienceDroppingBlock;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.intprovider.IntProvider;
 import net.minecraft.world.World;
 
 import java.util.*;
 
 @Service
 @Name("EXPERIMENTAL")
-public class ExperimentalPureAPIItemCollector implements ItemCollector {
+public class ExperimentalPureAPIItemCollector implements DroppedCollector {
     private final ItemStackCollector stackCollector;
     private final ProbabilityItemTester tester;
+    private final ExperienceCollector experienceCollector;
     //private final Map<BlockState, SampleEntry> samples;
 
     @CreateConstruction
-    public ExperimentalPureAPIItemCollector(ProbabilityItemTester tester) {
+    public ExperimentalPureAPIItemCollector(ProbabilityItemTester tester, ExperienceCollector experienceCollector) {
         this.tester = tester;
+        this.experienceCollector = experienceCollector;
         this.stackCollector = new ItemStackCollector();
     }
 
@@ -42,12 +48,12 @@ public class ExperimentalPureAPIItemCollector implements ItemCollector {
     }
 
     @Override
-    public boolean shouldCollectItem(CollectContext context) {
+    public boolean shouldCollect(CollectContext context) {
         return context.getPos() != null
                 && context.getPlayer() != null
                 && context.getWorld() != null
                 && context.getHandStack() != null
-                && context.getItemEntity() == null;
+                && context.getEntity() == null;
     }
 
     @Override
@@ -59,8 +65,10 @@ public class ExperimentalPureAPIItemCollector implements ItemCollector {
     public CollectedResult finish() {
         Object2IntOpenHashMap<ItemStackKey> map = new Object2IntOpenHashMap<>(this.stackCollector.getMap());
         Object2IntOpenHashMap<ItemStackKey> temp = this.tester.end();
-        map.putAll(temp);
-        return new CollectedResult(map);
+        for (Object2IntMap.Entry<ItemStackKey> entry : temp.object2IntEntrySet()) {
+            map.addTo(entry.getKey(), entry.getIntValue());
+        }
+        return new CollectedResult(map, this.experienceCollector.getExperience());
     }
 
     @Override
@@ -69,7 +77,7 @@ public class ExperimentalPureAPIItemCollector implements ItemCollector {
                 && context.getPlayer() == null
                 && context.getWorld() != null
                 && context.getHandStack() == null
-                && context.getItemEntity() == null
+                && context.getEntity() == null
                 && mixinName.startsWith("PUREAPI");
     }
 
@@ -131,72 +139,26 @@ public class ExperimentalPureAPIItemCollector implements ItemCollector {
         }
     }
 
-
-    private static class SampleEntry {
-        private int matchCount;
-        private final Map<ItemStackKey, Counter> counterMap;
-        private boolean isStable;
-        private boolean successful;
-        private int firstItemCount;
-
-        private SampleEntry() {
-            this.matchCount = 0;
-            this.counterMap = new HashMap<>();
-            this.successful = false;
-            this.isStable = true;
-            this.firstItemCount = -1;
+    @Override
+    public void collectExperience(CollectContext context) {
+        BlockState currentState = context.getBlockState();
+        World world = context.getWorld();
+        if (!(world instanceof ServerWorld serverWorld)) return;
+        ItemStack mainHandStack = context.getHandStack();
+        if (currentState == null) return;
+        if (mainHandStack == null) return;
+        Block block = currentState.getBlock();
+        int base;
+        if (block instanceof ExperienceDroppingBlock e) {
+            ExperienceDroppingBlockAccessor accessor = (ExperienceDroppingBlockAccessor) e;
+            IntProvider experienceDropped = accessor.getExperienceDropped();
+            base = experienceDropped.get(serverWorld.getRandom());
+        } else {
+            base = 0;
         }
-
-        public boolean isStable(int maxSampleCount) {
-            if (!isStable) return false;
-            Collection<Counter> values = counterMap.values();
-            for (Counter value : values) {
-                if (value.admitted < maxSampleCount) return false;
-            }
-            return true;
-        }
-
-        public void addMatchCount(int count) {
-            this.matchCount += count;
-        }
-
-        public void match(Object2IntOpenHashMap<ItemStackKey> map) {
-            if (!isStable) {
-                return;
-            }
-            Object2IntMap.FastEntrySet<ItemStackKey> entries = map.object2IntEntrySet();
-            if (this.firstItemCount == -1) this.firstItemCount = map.size();
-            if (map.size() != this.firstItemCount) {
-                this.isStable = false;
-                return;
-            }
-            for (Object2IntMap.Entry<ItemStackKey> entry : entries) {
-                ItemStackKey key = entry.getKey();
-                int intValue = entry.getIntValue();
-                boolean b = this.counterMap.computeIfAbsent(key, k -> new Counter(intValue))
-                        .tryAdmit(intValue);
-                if (!b) {
-                    this.isStable = false;
-                }
-            }
-        }
-
-        @Getter
-        private static class Counter {
-            private final int firstCount;
-            private int admitted;
-            public Counter(int firstCount) {
-                this.firstCount = firstCount;
-                this.admitted = 1;
-            }
-
-            public boolean tryAdmit(int current) {
-                if (this.firstCount == current) {
-                    this.admitted++;
-                    return true;
-                }
-                return false;
-            }
-        }
+        int experience = EnchantmentHelper.getBlockExperience(serverWorld, mainHandStack, base);
+        this.experienceCollector.consumeExperience(experience);
     }
+
+
 }

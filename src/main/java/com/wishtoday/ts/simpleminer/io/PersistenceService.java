@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
@@ -82,6 +84,10 @@ public class PersistenceService {
      * 玩家 -> 磁盘上的 undo 记录 uuid(主线程维护)
      */
     private final Map<UUID, Set<UUID>> undoOnDisk;
+    /**
+     * 已删除的 undo 记录 uuid:防止延迟的写任务把已删记录写回磁盘(幽灵复活)。跨线程访问,用并发集合。
+     */
+    private final Set<UUID> deletedUndo;
 
     @CreateConstruction
     public PersistenceService(ServerConfig serverConfig, PressManager pressManager, ReloadableReloader reloader) {
@@ -92,6 +98,7 @@ public class PersistenceService {
         this.pressManager = pressManager;
         this.server = null;
         this.undoOnDisk = new HashMap<>();
+        this.deletedUndo = ConcurrentHashMap.newKeySet();
     }
 
     @PostConstruct
@@ -216,15 +223,15 @@ public class PersistenceService {
         UUID playerUuid = player.getUuid();
         String configJson = gson.toJson(info.getCurrentIndividualConfig(), IndividualConfig.class);
         Path configPath = individualConfigPath(playerUuid);
-        List<Map.Entry<Path, NbtCompound>> undoWrites = new ArrayList<>();
+        List<Map.Entry<UUID, NbtCompound>> undoWrites = new ArrayList<>();
         for (UndoStorage storage : info.getUndoHistory().getUndoStorages()) {
             NbtCompound tag = UndoStorageCodec.encode(storage, this.registryManager());
-            undoWrites.add(Map.entry(undoPath(playerUuid, storage.getUuid()), tag));
+            undoWrites.add(Map.entry(storage.getUuid(), tag));
         }
         this.ioExecutor.execute(() -> {
             this.writeJson(configPath, configJson);
-            for (Map.Entry<Path, NbtCompound> entry : undoWrites) {
-                this.writeUndo(entry.getKey(), entry.getValue());
+            for (Map.Entry<UUID, NbtCompound> entry : undoWrites) {
+                this.writeUndoRecord(playerUuid, entry.getKey(), entry.getValue());
             }
         });
     }
@@ -238,8 +245,8 @@ public class PersistenceService {
         UndoStorage storage = info.getUndoHistory().getUndoStorage(undoUuid);
         if (storage == null) return;
         NbtCompound tag = UndoStorageCodec.encode(storage, this.registryManager());
-        Path path = undoPath(player.getUuid(), undoUuid);
-        this.ioExecutor.execute(() -> this.writeUndo(path, tag));
+        UUID playerUuid = player.getUuid();
+        this.ioExecutor.execute(() -> this.writeUndoRecord(playerUuid, undoUuid, tag));
     }
 
     // ==================== Undo: 保存/加载/删除/索引 ====================
@@ -259,15 +266,7 @@ public class PersistenceService {
         }
 
         NbtCompound tag = UndoStorageCodec.encode(storage, this.registryManager());
-        Path path = undoPath(playerUuid, storage.getUuid());
-        this.ioExecutor.execute(() -> {
-            try {
-                Files.createDirectories(path.getParent());
-                NbtIo.writeCompressed(tag, path);
-            } catch (IOException e) {
-                LOGGER.error("Failed to write undo record {}", path, e);
-            }
-        });
+        this.ioExecutor.execute(() -> this.writeUndoRecord(playerUuid, storage.getUuid(), tag));
 
         // 磁盘上限淘汰(异步读时间删最旧),上限取个人配置与服务器配置的较小值
         if (disk.size() > maxUndoRecords) {
@@ -288,7 +287,11 @@ public class PersistenceService {
                 UndoStorage storage = UndoStorageCodec.decode(tag, this.registryManager());
                 current.execute(() -> callback.accept(storage, null));
             } catch (Exception e) {
-                LOGGER.error("Failed to load undo record {}", path, e);
+                LOGGER.error("Failed to load undo record {}, removing corrupted record", path, e);
+                try {
+                    Files.deleteIfExists(path);
+                } catch (IOException ignored) {
+                }
                 current.execute(() -> callback.accept(null, e));
             }
         });
@@ -296,6 +299,8 @@ public class PersistenceService {
 
     public void removeUndoRecord(ServerPlayerEntity player, UUID undoUuid) {
         UUID playerUuid = player.getUuid();
+        // 登记墓碑:阻止延迟的写任务把这条已删记录写回磁盘(幽灵复活)
+        this.deletedUndo.add(undoUuid);
         PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(player);
         if (info != null) {
             info.getUndoHistory().removeUndoStorage(undoUuid);
@@ -344,18 +349,34 @@ public class PersistenceService {
         RegistryWrapper.WrapperLookup lookup = this.registryManager();
         this.ioExecutor.execute(() -> {
             List<UndoDisplayInfo> diskInfos = new ArrayList<>();
+            List<UUID> corrupted = new ArrayList<>();
             for (UUID undoUuid : onDisk) {
+                Path path = undoPath(playerUuid, undoUuid);
                 try {
-                    NbtCompound tag = NbtIo.readCompressed(undoPath(playerUuid, undoUuid), NbtSizeTracker.ofUnlimitedBytes());
+                    NbtCompound tag = NbtIo.readCompressed(path, NbtSizeTracker.ofUnlimitedBytes());
                     diskInfos.add(UndoStorageCodec.decodeMeta(tag, lookup));
                 } catch (Exception e) {
-                    LOGGER.error("Failed to load undo meta {}", undoPath(playerUuid, undoUuid), e);
+                    LOGGER.error("Failed to load undo meta {}, removing corrupted record", path, e);
+                    corrupted.add(undoUuid);
+                    try {
+                        Files.deleteIfExists(path);
+                    } catch (IOException ignored) {
+                    }
                 }
             }
             List<UndoDisplayInfo> all = new ArrayList<>(inMemory);
             all.addAll(diskInfos);
             all.sort(Comparator.comparingLong(UndoDisplayInfo::getTime).reversed());
-            current.execute(() -> callback.accept(all));
+            current.execute(() -> {
+                if (!corrupted.isEmpty()) {
+                    Set<UUID> set = this.undoOnDisk.get(playerUuid);
+                    if (set != null) {
+                        set.removeAll(corrupted);
+                        if (set.isEmpty()) this.undoOnDisk.remove(playerUuid);
+                    }
+                }
+                callback.accept(all);
+            });
         });
     }
 
@@ -373,8 +394,8 @@ public class PersistenceService {
             writeTasks.add(() -> this.writeJson(individualConfigPath(playerUuid), json));
             for (UndoStorage storage : info.getUndoHistory().getUndoStorages()) {
                 NbtCompound tag = UndoStorageCodec.encode(storage, this.registryManager());
-                Path path = undoPath(playerUuid, storage.getUuid());
-                writeTasks.add(() -> this.writeUndo(path, tag));
+                UUID undoUuid = storage.getUuid();
+                writeTasks.add(() -> this.writeUndoRecord(playerUuid, undoUuid, tag));
             }
         }
         this.ioExecutor.execute(() -> writeTasks.forEach(Runnable::run));
@@ -389,7 +410,7 @@ public class PersistenceService {
                 UUID playerUuid = info.getPlayer().getUuid();
                 this.writeJson(individualConfigPath(playerUuid), gson.toJson(info.getCurrentIndividualConfig(), IndividualConfig.class));
                 for (UndoStorage storage : info.getUndoHistory().getUndoStorages()) {
-                    this.writeUndo(undoPath(playerUuid, storage.getUuid()), UndoStorageCodec.encode(storage, this.registryManager()));
+                    this.writeUndoRecord(playerUuid, storage.getUuid(), UndoStorageCodec.encode(storage, this.registryManager()));
                 }
             }
         } catch (Exception e) {
@@ -469,7 +490,17 @@ public class PersistenceService {
         Path dir = undoHistoryDir(playerUuid);
         if (!Files.isDirectory(dir)) return;
         try (Stream<Path> stream = Files.list(dir)) {
-            Set<UUID> uuids = stream
+            List<Path> files = stream.toList();
+            // 清理崩溃残留的临时文件(原子写的中间产物)
+            for (Path file : files) {
+                if (file.getFileName().toString().endsWith(".tmp")) {
+                    try {
+                        Files.deleteIfExists(file);
+                    } catch (IOException ignored) {
+                    }
+                }
+            }
+            Set<UUID> uuids = files.stream()
                     .filter(p -> p.getFileName().toString().endsWith(".dat"))
                     .map(p -> p.getFileName().toString().replace(".dat", ""))
                     .map(u -> {
@@ -526,12 +557,30 @@ public class PersistenceService {
         }
     }
 
-    private void writeUndo(Path path, NbtCompound tag) {
+    private void writeUndoRecord(UUID playerUuid, UUID undoUuid, NbtCompound tag) {
+        // 已被删除的记录不要再写回(写任务可能在删除之后才执行)
+        if (this.deletedUndo.contains(undoUuid)) return;
+        Path path = undoPath(playerUuid, undoUuid);
         try {
             Files.createDirectories(path.getParent());
-            NbtIo.writeCompressed(tag, path);
+            // 唯一临时文件 + 原子移动:同一条记录可能被多处(新记录/GUI关闭/定时/断开)并发重写,
+            // 直接写目标文件会互相截断造成损坏,原子替换保证读者只能看到完整的旧文件或新文件。
+            Path tmp = path.resolveSibling(path.getFileName() + "." + UUID.randomUUID() + ".tmp");
+            try {
+                NbtIo.writeCompressed(tag, tmp);
+                Files.move(tmp, path, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } finally {
+                Files.deleteIfExists(tmp);
+            }
         } catch (IOException e) {
             LOGGER.error("Failed to write {}", path, e);
+        }
+        // 写完再确认一次:期间若被删除,清理刚写回的文件
+        if (this.deletedUndo.contains(undoUuid)) {
+            try {
+                Files.deleteIfExists(path);
+            } catch (IOException ignored) {
+            }
         }
     }
 }

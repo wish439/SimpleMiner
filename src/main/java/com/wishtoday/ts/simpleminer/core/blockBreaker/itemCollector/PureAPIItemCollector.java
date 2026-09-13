@@ -8,42 +8,51 @@ import com.wishtoday.ts.simpleminer.core.ItemStackCollector;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.BlockBreaker;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectContext;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectedResult;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.ExperienceCollector;
+import com.wishtoday.ts.simpleminer.mixin.Accessor.ExperienceDroppingBlockAccessor;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.ExperienceDroppingBlock;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.intprovider.IntProvider;
 import net.minecraft.world.World;
 
 import java.util.List;
 
 @Name("PUREAPI")
 @Service
-public class PureAPIItemCollector implements ItemCollector {
+public class PureAPIItemCollector implements DroppedCollector {
 
     private final ItemStackCollector stackCollector;
 
+    private final ExperienceCollector experienceCollector;
+
     @CreateConstruction
-    public PureAPIItemCollector() {
+    public PureAPIItemCollector(ExperienceCollector experienceCollector) {
+        this.experienceCollector = experienceCollector;
         this.stackCollector = new ItemStackCollector();
     }
 
     @Override
     public void start() {
         this.stackCollector.clear();
+        this.experienceCollector.initialize();
     }
 
     @Override
-    public boolean shouldCollectItem(CollectContext context) {
+    public boolean shouldCollect(CollectContext context) {
         return context.getPos() != null
                 && context.getPlayer() != null
                 && context.getWorld() != null
                 && context.getHandStack() != null
-                && context.getItemEntity() == null;
+                && context.getEntity() == null;
     }
 
     @Override
@@ -53,7 +62,7 @@ public class PureAPIItemCollector implements ItemCollector {
 
     @Override
     public CollectedResult finish() {
-        return new CollectedResult(new Object2IntOpenHashMap<>(this.stackCollector.getMap()));
+        return new CollectedResult(new Object2IntOpenHashMap<>(this.stackCollector.getMap()), this.experienceCollector.getExperience());
     }
 
     @Override
@@ -62,9 +71,30 @@ public class PureAPIItemCollector implements ItemCollector {
                 && context.getPlayer() == null
                 && context.getWorld() != null
                 && context.getHandStack() == null
-                && context.getItemEntity() == null
+                && context.getEntity() == null
                 && BlockBreaker.getBlockBreaking()
                 && mixinName.startsWith("PUREAPI");
+    }
+
+    @Override
+    public void collectExperience(CollectContext context) {
+        BlockState currentState = context.getBlockState();
+        World world = context.getWorld();
+        if (!(world instanceof ServerWorld serverWorld)) return;
+        ItemStack mainHandStack = context.getHandStack();
+        if (currentState == null) return;
+        if (mainHandStack == null) return;
+        Block block = currentState.getBlock();
+        int base;
+        if (block instanceof ExperienceDroppingBlock e) {
+            ExperienceDroppingBlockAccessor accessor = (ExperienceDroppingBlockAccessor) e;
+            IntProvider experienceDropped = accessor.getExperienceDropped();
+            base = experienceDropped.get(serverWorld.getRandom());
+        } else {
+            base = 0;
+        }
+        int experience = EnchantmentHelper.getBlockExperience(serverWorld, mainHandStack, base);
+        this.experienceCollector.consumeExperience(experience);
     }
 
     public void collectItemStack(CollectContext context) {
