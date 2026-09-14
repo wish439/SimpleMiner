@@ -57,10 +57,11 @@ public class ServerConfig {
     public ServerConfig() {
         this.maxSize = 64;
         this.allowUndo = false;
-        this.collectStrategy = "PUREAPI";
-        this.blockBreakStrategy = "PUREAPI";
+        this.collectStrategy = "INTERCEPT";
+        this.blockBreakStrategy = "VANILLA";
         this.rightClickHandler = "NOBLOCKITEM";
-        this.blockFamilies = List.of("#minecraft:base_stone_overworld", "minecraft:coal_ore,minecraft:deepslate_coal_ore",
+        this.blockFamilies = List.of("#minecraft:base_stone_overworld",
+                "minecraft:coal_ore,minecraft:deepslate_coal_ore",
                 "minecraft:iron_ore,minecraft:deepslate_iron_ore",
                 "minecraft:copper_ore,minecraft:deepslate_copper_ore",
                 "minecraft:gold_ore,minecraft:deepslate_gold_ore",
@@ -157,15 +158,15 @@ public class ServerConfig {
         return Option.<String>createBuilder()
                 .name(Text.translatable("simpleminer.config.collectStrategy"))
                 .description(OptionDescription.of(Text.translatable("simpleminer.config.collectStrategy.description")))
-                .binding("PUREAPI", config::getCollectStrategy, config::setCollectStrategy)
-                .controller(s -> CyclingListControllerBuilder.create(s).values("PUREAPI", "INTERCEPT", "EXPERIMENTAL").formatValue(Text::of)).build();
+                .binding("INTERCEPT", config::getCollectStrategy, config::setCollectStrategy)
+                .controller(s -> CyclingListControllerBuilder.create(s).values("PUREAPI", "INTERCEPT", "SAMPLE").formatValue(Text::of)).build();
     }
 
     private static Option<String> blockBreakStrategy(ServerConfig config) {
         return Option.<String>createBuilder()
                 .name(Text.translatable("simpleminer.config.blockBreakStrategy"))
                 .description(OptionDescription.of(Text.translatable("simpleminer.config.blockBreakStrategy.description")))
-                .binding("PUREAPI", config::getBlockBreakStrategy, config::setBlockBreakStrategy)
+                .binding("VANILLA", config::getBlockBreakStrategy, config::setBlockBreakStrategy)
                 .controller(s -> CyclingListControllerBuilder.create(s).values("PUREAPI", "VANILLA").formatValue(Text::of))
                 .build();
     }

@@ -27,7 +27,7 @@ import net.minecraft.world.World;
 import java.util.*;
 
 @Service
-@Name("EXPERIMENTAL")
+@Name("SAMPLE")
 public class ExperimentalPureAPIItemCollector implements DroppedCollector {
     private final ItemStackCollector stackCollector;
     private final ProbabilityItemTester tester;
