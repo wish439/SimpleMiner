@@ -21,6 +21,7 @@ public class ShapeScrollHandler {
         int i = SimpleminerClient.getShapeIndex();
         if (player.isSneaking()) {
             int total = SimpleminerClient.getShapesTexts().size();
+            if (total <= 0) return false;
             int newIndex = MathHelper.floorMod(i + delta, total);
             SimpleminerClient.setShapeIndex(newIndex);
             ClientPlayNetworking.send(new KeywordPressedPayload(SimpleminerClient.isPressing(), newIndex));
