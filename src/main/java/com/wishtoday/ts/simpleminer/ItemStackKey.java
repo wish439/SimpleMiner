@@ -32,8 +32,8 @@ public class ItemStackKey {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof ItemStackKey(ItemStack stack, int hash1))) return false;
-        return ItemStack.areItemsAndComponentsEqual(this.itemStack, stack);
+        if (!(obj instanceof ItemStackKey key)) return false;
+        return ItemStack.areItemsAndComponentsEqual(this.itemStack, key.itemStack);
     }
 
     @Override
