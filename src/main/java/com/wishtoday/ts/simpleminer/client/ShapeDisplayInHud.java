@@ -68,7 +68,7 @@ public class ShapeDisplayInHud implements HudRenderCallback {
 
     private int getNext(int index, int last) {
         int i = index + 1;
-        if (i >= last) {
+        if (i > last) {
             i = 0;
         }
         return i;
@@ -76,7 +76,7 @@ public class ShapeDisplayInHud implements HudRenderCallback {
 
     private int getLast(int index, int last) {
         int i = index - 1;
-        if (i <= 0) {
+        if (i < 0) {
             i = last;
         }
         return i;
