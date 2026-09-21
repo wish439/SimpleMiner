@@ -8,7 +8,8 @@ import org.jetbrains.annotations.NotNull;
 public record ItemStackKey(ItemStack itemStack, int hash) {
 
     public ItemStackKey(ItemStack itemStack) {
-        this(itemStack.copyWithCount(1), ItemStack.hashCode(itemStack));
+        ItemStack stack = itemStack.copyWithCount(1);
+        this(stack, ItemStack.hashCode(stack));
     }
     public static final PacketCodec<RegistryByteBuf, ItemStackKey> PACKET_CODEC = PacketCodec.of((value, buf) -> ItemStack.PACKET_CODEC.encode(buf,value.itemStack), buf -> new ItemStackKey(ItemStack.PACKET_CODEC.decode(buf)));
 
