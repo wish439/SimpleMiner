@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -77,7 +78,14 @@ public class UndoScreen extends HandledScreen<UndoScreenHandler> {
         super.render(context, mouseX, mouseY, delta);
         this.drawMouseoverTooltip(context, mouseX, mouseY);
         //this.listEntry.render(context, mouseX, mouseY, delta);
-        this.undoButton.active = this.handler.getUndoStorage().isFully();
+        boolean isCreative = false;
+        if (this.client != null) {
+            ClientPlayerEntity player = this.client.player;
+            if (player != null) {
+                isCreative = player.isCreative();
+            }
+        }
+        this.undoButton.active = this.handler.getUndoStorage().isFully() || isCreative;
         this.undoButton.render(context, mouseX, mouseY, delta);
         if (empty) context.drawText(this.textRenderer, Text.translatable("simpleminer.screen.undo.emptyMaterial"), this.x, this.y, 0xFFFFFFFF, false);
     }

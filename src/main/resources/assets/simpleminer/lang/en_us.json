@@ -60,5 +60,6 @@
   "simpleminer.config.sampleCollectSampleCount": "Sample collect sample count",
   "simpleminer.config.sampleCollectSampleCount.description": "see Collect strategy SAMPLE",
   "simpleminer.config.exhaustionPerBlocks": "exhaustion per block",
-  "simpleminer.config.exhaustionPerBlocks.description": "Exhaustion per blocks."
+  "simpleminer.config.exhaustionPerBlocks.description": "Exhaustion per blocks.",
+  "simpleminer.message.undo.hasNotAir": "There's something in the space, not just air, %s."
 }

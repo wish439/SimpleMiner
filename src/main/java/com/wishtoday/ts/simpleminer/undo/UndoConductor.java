@@ -7,11 +7,11 @@ import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
 import com.wishtoday.ts.simpleminer.core.BlockStorage;
 import com.wishtoday.ts.simpleminer.io.PersistenceService;
+import com.wishtoday.ts.simpleminer.mixinInterface.WorldExtension;
 import com.wishtoday.ts.simpleminer.utils.ItemStackUtils;
-import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UndoConductor {
@@ -92,6 +93,11 @@ public class UndoConductor {
             player.sendMessage(Text.translatable("simpleminer.message.undo.chunkNotLoaded"), false);
             return;
         }
+        LongArrayList longs = this.notAirInBlocks(world, undoStorage.getMap());
+        if (!longs.isEmpty()) {
+            player.sendMessage(Text.stringifiedTranslatable("simpleminer.message.undo.hasNotAir", longs.longStream().mapToObj(BlockPos::fromLong).map(BlockPos::toShortString).toList().toString()));
+            return;
+        }
         this.undo(world, undoStorage);
         if (player instanceof ServerPlayerEntity serverPlayer) {
             this.persistence.removeUndoRecord(serverPlayer, uuid);
@@ -115,6 +121,17 @@ public class UndoConductor {
             checkedChunk.add(k);
         }
         return true;
+    }
+
+    private LongArrayList notAirInBlocks(World world, Long2ObjectLinkedOpenHashMap<BlockStorage> map) {
+        LongArrayList list = new LongArrayList();
+        WorldExtension extension = (WorldExtension) world;
+        LongSortedSet longs = map.keySet();
+        for (long l : longs) {
+            BlockState state = extension.simpleMiner$getBlockState(l);
+            if (!state.isAir()) list.add(l);
+        }
+        return list;
     }
 
     private void undo(World world, UndoStorage undoStorage) {

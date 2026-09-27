@@ -133,7 +133,7 @@ public class UndoNetworkingRegistry implements ServerNetworkExtendFutures {
         if (payload.syncId() != syncId) return;
         if (!(handler instanceof UndoScreenHandler undoScreenHandler)) return;
         boolean fully = undoScreenHandler.getUndoStorage().isFully();
-        if (!fully) return;
+        if ((!fully) && !player.isCreative()) return;
         this.undoConductor.undo(player, undoScreenHandler.getUuid());
         player.closeHandledScreen();
     }
