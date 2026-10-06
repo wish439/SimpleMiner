@@ -2,8 +2,6 @@ package com.wishtoday.ts.simpleminer.network.shape;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
-import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
-import com.wishtoday.ts.simpleminer.PressManager;
 import com.wishtoday.ts.simpleminer.ShapeInfo;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.network.OtherTextSyncS2CPayload;
@@ -16,6 +14,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,13 +22,11 @@ import java.util.List;
 @Service
 public class ShapeSyncer {
     private final Shapes shapes;
-    private final PressManager pressManager;
     private final ShapeAdapterManager manager;
 
     @CreateConstruction
-    public ShapeSyncer(Shapes shapes, PressManager pressManager, ShapeAdapterManager manager) {
+    public ShapeSyncer(Shapes shapes, ShapeAdapterManager manager) {
         this.shapes = shapes;
-        this.pressManager = pressManager;
         this.manager = manager;
     }
 
@@ -42,12 +39,7 @@ public class ShapeSyncer {
         ServerPlayNetworking.send(playerEntity, new RenderTextSyncS2CPayload(texts));
     }
 
-    public void syncShapeInfoTo(ServerPlayerEntity playerEntity) {
-        PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(playerEntity);
-        if (info == null) {
-            return;
-        }
-        IndividualConfig config = info.getCurrentIndividualConfig();
+    public void syncShapeInfoTo(ServerPlayerEntity playerEntity, @NotNull IndividualConfig config) {
         List<ShapeInfo> shapeInfos = new ArrayList<>();
         shapeInfos.add(config.getLinearShapeInfos());
         shapeInfos.add(config.getFullChunkShapeInfos());

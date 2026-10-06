@@ -39,7 +39,7 @@ public class PlayerMinerInfo {
         this.blockPoses = null;
         this.currentBlockPos = null;
         this.currentIndividualConfig = individualConfig;
-        this.currentDirection = null;
+        this.currentDirection = Direction.UP;
     }
 
 }

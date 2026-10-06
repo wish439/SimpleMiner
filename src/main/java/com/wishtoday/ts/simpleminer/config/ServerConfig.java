@@ -184,7 +184,15 @@ public class ServerConfig {
         return ListOption.<String>createBuilder()
                 .name(Text.translatable("simpleminer.config.blockFamilies"))
                 .description(OptionDescription.of(Text.translatable("simpleminer.config.blockFamilies.description")))
-                .binding(List.of("#minecraft:base_stone_overworld"), config::getBlockFamilies, config::setBlockFamilies)
+                .binding(List.of("#minecraft:base_stone_overworld",
+                        "minecraft:coal_ore,minecraft:deepslate_coal_ore",
+                        "minecraft:iron_ore,minecraft:deepslate_iron_ore",
+                        "minecraft:copper_ore,minecraft:deepslate_copper_ore",
+                        "minecraft:gold_ore,minecraft:deepslate_gold_ore",
+                        "minecraft:redstone_ore,minecraft:deepslate_redstone_ore",
+                        "minecraft:emerald_ore,minecraft:deepslate_emerald_ore",
+                        "minecraft:lapis_ore,minecraft:deepslate_lapis_ore",
+                        "minecraft:diamond_ore,minecraft:deepslate_diamond_ore"), config::getBlockFamilies, config::setBlockFamilies)
                 .controller(StringControllerBuilder::create)
                 .initial("")
                 .build();

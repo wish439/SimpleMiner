@@ -135,8 +135,10 @@ public class BlockBreaker {
             boolean empty = mainHandStack.isEmpty();
 
             if (breakBlock) {
-                this.breakBlock(mutable, currentState, world, player, mainHandStack, !internal.contains(blockPose), canHarvest);
-                this.exhaustionConsumer.consume(player);
+                boolean b = this.breakBlock(mutable, currentState, world, player, mainHandStack, !internal.contains(blockPose), canHarvest);
+                if (canHarvest && b) {
+                    this.exhaustionConsumer.consume(player);
+                }
             }
 
 
@@ -168,10 +170,10 @@ public class BlockBreaker {
         this.features.forEach(consumer);
     }
 
-    private void breakBlock(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update, boolean canHarvest) {
+    private boolean breakBlock(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update, boolean canHarvest) {
         try {
             blockBreaking.set(true);
-            this.blockBreaker.breakBlock(pos, state, world, player, mainHandStack, update, canHarvest);
+            return this.blockBreaker.breakBlock(pos, state, world, player, mainHandStack, update, canHarvest);
         } finally {
             blockBreaking.set(false);
         }

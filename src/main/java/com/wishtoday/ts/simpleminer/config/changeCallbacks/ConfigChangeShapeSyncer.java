@@ -19,7 +19,7 @@ public class ConfigChangeShapeSyncer implements ConfigChangeCallback {
 
     @Override
     public void onIndividualChange(IndividualConfig oldConfig, IndividualConfig newConfig, ServerPlayerEntity player) {
-        this.shapeSyncer.syncShapeInfoTo(player);
+        this.shapeSyncer.syncShapeInfoTo(player, newConfig);
     }
 
     @Override

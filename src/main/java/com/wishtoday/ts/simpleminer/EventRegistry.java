@@ -50,10 +50,10 @@ public class EventRegistry {
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
+            PlayerMinerInfo info = this.manager.togglePlayerState(false, player, 0);
             this.persistence.onPlayerJoin(player);
             this.shapeSyncer.syncShapeNameTo(player);
-            this.shapeSyncer.syncShapeInfoTo(player);
-            this.manager.togglePlayerState(false, player, 0);
+            this.shapeSyncer.syncShapeInfoTo(player, info.getCurrentIndividualConfig());
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, sender) -> {
             ServerPlayerEntity player = handler.getPlayer();

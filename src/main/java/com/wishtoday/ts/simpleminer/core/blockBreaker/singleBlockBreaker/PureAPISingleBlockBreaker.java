@@ -28,6 +28,6 @@ public class PureAPISingleBlockBreaker implements SingleBlockBreaker {
                 block.afterBreak(world, player, pos, state, world.getBlockEntity(pos), mainHandStack.copy());
             }
         }
-        return true;
+        return b;
     }
 }

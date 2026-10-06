@@ -21,7 +21,7 @@ public class PressManager {
         this.playerMinerInfos.remove(uuid);
     }
 
-    public void togglePlayerState(boolean state, PlayerEntity player, int index) {
+    public PlayerMinerInfo togglePlayerState(boolean state, PlayerEntity player, int index) {
         if (pressedPlayer.contains(player.getUuid()) && !state) {
             this.pressedPlayer.remove(player.getUuid());
         }
@@ -32,9 +32,11 @@ public class PressManager {
             PlayerMinerInfo info = this.playerMinerInfos.get(player.getUuid());
             info.setKeyPressed(state);
             info.setCurrentShape(index);
-            return;
+            return info;
         }
-        this.playerMinerInfos.put(player.getUuid(), new PlayerMinerInfo(index, state, player, new IndividualConfig()));
+        PlayerMinerInfo info = new PlayerMinerInfo(index, state, player, new IndividualConfig());
+        this.playerMinerInfos.put(player.getUuid(), info);
+        return info;
     }
 
     private PlayerMinerInfo getPlayerMinerInfo(UUID uuid) {
