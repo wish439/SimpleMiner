@@ -32,6 +32,7 @@ import java.util.function.Consumer;
 //In my imagination, if we want faster, we should be like
 //1.Block breaking use palette.
 //2.S2C updata packet should be a batch operation instead of every block one update packet.
+//eeee, this has already been done in vanilla.
 //3.This is first opinion's side effect: waiting palette completed, after do those side effects.
 @Service
 public class BlockBreaker {
@@ -79,9 +80,11 @@ public class BlockBreaker {
         this.shapeRefresher.refresh(info, pos);
         ShapeResult shapeResult = info.getBlockPoses();
         if (shapeResult == null) return true;
+//        long a = System.nanoTime();
         LongList sortedBlockPoses = shapeResult.getSortedBlockPoses();
-        LongOpenHashSet internal = shapeAnalyzer.calcCompleteSurrounded(shapeResult.getBlockPoses());
+        LongOpenHashSet internal = this.blockBreaker.canControlUpdate() ? shapeAnalyzer.calcCompleteSurrounded(shapeResult.getBlockPoses()) : new LongOpenHashSet();
         BlockBreakContext context = new BlockBreakContext(world, player, pos, state, blockEntity, info, shapeResult, mainHandStack);
+//        System.out.println("internal consuming" + (System.nanoTime() - a));
 
         this.forEachFeatures(b -> b.beforeCycle(context));
 
@@ -89,9 +92,10 @@ public class BlockBreaker {
         BlockPos.Mutable mutable = new BlockPos.Mutable();
         CollectContext collectContext = new CollectContext(world, player, null, mainHandStack, null, null, false);
         ServerWorld serverWorld = (ServerWorld) world;
+//        long d = 0;
+//        long c = 0;
         MAINCYCLE:
         for (long blockPose : sortedBlockPoses) {
-
             mutable.set(blockPose);
             context.setCurrentPos(mutable);
             BlockState currentState = ((WorldExtension) world).simpleMiner$getBlockState(blockPose);
@@ -119,9 +123,11 @@ public class BlockBreaker {
             }
 
             if (this.collector.shouldCollect(collectContext) && collectItem) {
+//                long _s = System.nanoTime();
                 this.collector.collectItem(collectContext);
                 if (collectExperience)
                     this.collector.collectExperience(collectContext);
+//                c += System.nanoTime() - _s;
             }
 
             boolean breakBlock = true;
@@ -135,10 +141,12 @@ public class BlockBreaker {
             boolean empty = mainHandStack.isEmpty();
 
             if (breakBlock) {
+//                long _s = System.nanoTime();
                 boolean b = this.breakBlock(mutable, currentState, world, player, mainHandStack, !internal.contains(blockPose), canHarvest);
                 if (canHarvest && b) {
                     this.exhaustionConsumer.consume(player);
                 }
+//                d += System.nanoTime() - _s;
             }
 
 
@@ -152,6 +160,8 @@ public class BlockBreaker {
                 }
             }
         }
+//        System.out.println("breaking " + d);
+//        System.out.println("collecting " + c);
         CollectedResult result = this.collector.finish();
         List<ItemStack> droppedStacks = this.dropper.dropStack(context.getWorld(), context.getOriginPos(), result.getMap());
 

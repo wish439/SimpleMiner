@@ -21,17 +21,14 @@ import java.util.List;
 
 @Service
 public class ShapeSyncer {
-    private final Shapes shapes;
     private final ShapeAdapterManager manager;
 
     @CreateConstruction
-    public ShapeSyncer(Shapes shapes, ShapeAdapterManager manager) {
-        this.shapes = shapes;
+    public ShapeSyncer(ShapeAdapterManager manager) {
         this.manager = manager;
     }
 
-    public void syncShapeNameTo(ServerPlayerEntity playerEntity) {
-        List<Shape> list = shapes.sortedShapes();
+    public void syncShapeNameTo(ServerPlayerEntity playerEntity, List<Shape> list) {
         List<Text> texts = new ArrayList<>();
         for (Shape shape : list) {
             texts.add(shape.getDisplayName());

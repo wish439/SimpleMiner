@@ -1,7 +1,9 @@
 package com.wishtoday.ts.simpleminer.shape;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
+import com.wishtoday.simpleservices.services.annotation.ExtensionClassProvider;
 import com.wishtoday.simpleservices.services.annotation.Service;
+import com.wishtoday.ts.simpleminer.registry.Registry;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import java.util.ArrayList;
@@ -9,7 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @Service
-public class Shapes {
+public class Shapes implements Registry<Shape> {
     private final Int2ObjectOpenHashMap<Shape> shapes;
     private final List<Shape> sortedShapes;
     @CreateConstruction
@@ -47,5 +49,16 @@ public class Shapes {
             this.refreshShapesCache();
         }
         return sortedShapes;
+    }
+
+    @Override
+    public boolean register(Shape shape) {
+        return this.shapes.putIfAbsent(shape.index(), shape) == null;
+    }
+
+    @ExtensionClassProvider
+    @Override
+    public Class<Shape> handleClass() {
+        return Shape.class;
     }
 }

@@ -8,4 +8,5 @@ import net.minecraft.world.World;
 
 public interface SingleBlockBreaker {
     boolean breakBlock(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update, boolean canHarvest);
+    boolean canControlUpdate();
 }

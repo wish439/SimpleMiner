@@ -151,12 +151,11 @@ public class PersistenceService {
         Path path = serverConfigPath();
         if (!Files.exists(path)) return;
         try {
-            ServerConfig loaded = gson.fromJson(Files.readString(path), ServerConfig.class);
-            if (loaded != null) {
-                this.serverConfig.setFromConfig(loaded);
-                this.reloader.reload();
-                LOGGER.info("Loaded server config from {}", path);
-            }
+            ServerConfig config = gson.fromJson(Files.readString(path), ServerConfig.class);
+            ServerConfig loaded = config == null ? new ServerConfig() : config;
+            this.serverConfig.setFromConfig(loaded);
+            this.reloader.reload();
+            //LOGGER.info("Loaded server config from {}", path);
         } catch (Exception e) {
             LOGGER.error("Failed to load server config from {}", path, e);
         }

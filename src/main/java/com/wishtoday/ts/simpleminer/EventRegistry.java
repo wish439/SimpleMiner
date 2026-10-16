@@ -10,6 +10,7 @@ import com.wishtoday.ts.simpleminer.core.ShapeRefresher;
 import com.wishtoday.ts.simpleminer.core.rightClick.MinerRightHandler;
 import com.wishtoday.ts.simpleminer.io.PersistenceService;
 import com.wishtoday.ts.simpleminer.network.shape.ShapeSyncer;
+import com.wishtoday.ts.simpleminer.shape.Shapes;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
@@ -28,9 +29,10 @@ public class EventRegistry {
     private final MainCommand mainCommand;
     private final PersistenceService persistence;
     private final ShapeSyncer shapeSyncer;
+    private final Shapes shapes;
 
     @CreateConstruction
-    public EventRegistry(PressManager manager, ServerConfig serverConfig, BlockBreaker blockBreaker, ShapeRefresher shapeRefresher, MinerRightHandler rightHandler, MainCommand mainCommand, PersistenceService persistence, ShapeSyncer shapeSyncer) {
+    public EventRegistry(PressManager manager, ServerConfig serverConfig, BlockBreaker blockBreaker, ShapeRefresher shapeRefresher, MinerRightHandler rightHandler, MainCommand mainCommand, PersistenceService persistence, ShapeSyncer shapeSyncer, Shapes shapes) {
         this.manager = manager;
         this.serverConfig = serverConfig;
         this.blockBreaker = blockBreaker;
@@ -39,6 +41,7 @@ public class EventRegistry {
         this.mainCommand = mainCommand;
         this.persistence = persistence;
         this.shapeSyncer = shapeSyncer;
+        this.shapes = shapes;
     }
 
     @PostConstruct
@@ -52,7 +55,7 @@ public class EventRegistry {
             ServerPlayerEntity player = handler.getPlayer();
             PlayerMinerInfo info = this.manager.togglePlayerState(false, player, 0);
             this.persistence.onPlayerJoin(player);
-            this.shapeSyncer.syncShapeNameTo(player);
+            this.shapeSyncer.syncShapeNameTo(player, this.shapes.sortedShapes());
             this.shapeSyncer.syncShapeInfoTo(player, info.getCurrentIndividualConfig());
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, sender) -> {

@@ -30,4 +30,9 @@ public class PureAPISingleBlockBreaker implements SingleBlockBreaker {
         }
         return b;
     }
+
+    @Override
+    public boolean canControlUpdate() {
+        return true;
+    }
 }

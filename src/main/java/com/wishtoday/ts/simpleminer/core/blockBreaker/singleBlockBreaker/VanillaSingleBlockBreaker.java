@@ -17,4 +17,9 @@ public class VanillaSingleBlockBreaker implements SingleBlockBreaker {
         if (!(player instanceof ServerPlayerEntity serverPlayerEntity)) return false;
         return serverPlayerEntity.interactionManager.tryBreakBlock(pos);
     }
+
+    @Override
+    public boolean canControlUpdate() {
+        return false;
+    }
 }
