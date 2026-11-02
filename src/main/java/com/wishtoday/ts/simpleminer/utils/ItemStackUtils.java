@@ -2,7 +2,6 @@ package com.wishtoday.ts.simpleminer.utils;
 
 import com.wishtoday.ts.simpleminer.ItemStackKey;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenCustomHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.item.ItemStack;
 

@@ -36,6 +36,7 @@ public class ConfigSyncPayloadHandler {
         PlayerMinerInfo info = pressManager.getPlayerMinerInfo(player);
         if (info == null) return;
         IndividualConfig config = (IndividualConfig) payload.config();
+        config.validateAndClamp();
         this.publisher.publishIndividualConfigChange(info.getCurrentIndividualConfig(), config, player);
         info.setCurrentIndividualConfig(config);
         ServerPlayNetworking.send(player, new SyncIndividualConfigS2CPayload(config));

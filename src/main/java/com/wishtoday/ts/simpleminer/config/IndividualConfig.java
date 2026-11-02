@@ -161,4 +161,14 @@ public class IndividualConfig {
         int maxUndoRecords = buf.readInt();
         return new IndividualConfig(personalMaxSize1, preventBroken, decode, fullChunkShapeInfos, receiveMaxSizeUpdate, maxUndoRecords);
     }
+
+    public void validateAndClamp() {
+        LinearShapeInfos infos = this.linearShapeInfos;
+        FullChunkShapeInfos fullChunkShapeInfos = this.fullChunkShapeInfos;
+        infos.setWidth(Math.clamp(infos.getWidth(), 1, 30));
+        infos.setHeight(Math.clamp(infos.getHeight(), 1, 30));
+
+        fullChunkShapeInfos.setRadiusX(Math.clamp(fullChunkShapeInfos.getRadiusX(), 0, 30));
+        fullChunkShapeInfos.setRadiusZ(Math.clamp(fullChunkShapeInfos.getRadiusZ(), 0, 30));
+    }
 }

@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -88,6 +89,10 @@ public class PersistenceService {
      * 已删除的 undo 记录 uuid:防止延迟的写任务把已删记录写回磁盘(幽灵复活)。跨线程访问,用并发集合。
      */
     private final Set<UUID> deletedUndo;
+    /**
+     * 每个 undo 记录的写锁:同一条记录的多个写任务(新记录/GUI关闭/定时/断开)串行执行。
+     */
+    private final Map<UUID, Object> undoWriteLocks;
 
     @CreateConstruction
     public PersistenceService(ServerConfig serverConfig, PressManager pressManager, ReloadableReloader reloader) {
@@ -99,6 +104,7 @@ public class PersistenceService {
         this.server = null;
         this.undoOnDisk = new HashMap<>();
         this.deletedUndo = ConcurrentHashMap.newKeySet();
+        this.undoWriteLocks = new ConcurrentHashMap<>();
     }
 
     @PostConstruct
@@ -286,7 +292,16 @@ public class PersistenceService {
                 UndoStorage storage = UndoStorageCodec.decode(tag, this.registryManager());
                 current.execute(() -> callback.accept(storage, null));
             } catch (Exception e) {
-                LOGGER.error("Failed to load undo record {}, removing corrupted record", path, e);
+                // 瞬时竞争重试一次
+                try {
+                    Thread.sleep(50L);
+                    NbtCompound tag = NbtIo.readCompressed(path, NbtSizeTracker.ofUnlimitedBytes());
+                    UndoStorage storage = UndoStorageCodec.decode(tag, this.registryManager());
+                    current.execute(() -> callback.accept(storage, null));
+                    return;
+                } catch (Exception retry) {
+                    LOGGER.error("Failed to load undo record {}, removing corrupted record", path, retry);
+                }
                 try {
                     Files.deleteIfExists(path);
                 } catch (IOException ignored) {
@@ -355,11 +370,18 @@ public class PersistenceService {
                     NbtCompound tag = NbtIo.readCompressed(path, NbtSizeTracker.ofUnlimitedBytes());
                     diskInfos.add(UndoStorageCodec.decodeMeta(tag, lookup));
                 } catch (Exception e) {
-                    LOGGER.error("Failed to load undo meta {}, removing corrupted record", path, e);
-                    corrupted.add(undoUuid);
+                    // 读失败可能只是写替换的瞬时竞争:短暂等待后重试一次,再判定为损坏
                     try {
-                        Files.deleteIfExists(path);
-                    } catch (IOException ignored) {
+                        Thread.sleep(50L);
+                        NbtCompound tag = NbtIo.readCompressed(path, NbtSizeTracker.ofUnlimitedBytes());
+                        diskInfos.add(UndoStorageCodec.decodeMeta(tag, lookup));
+                    } catch (Exception retry) {
+                        LOGGER.error("Failed to load undo meta {}, removing corrupted record", path, retry);
+                        corrupted.add(undoUuid);
+                        try {
+                            Files.deleteIfExists(path);
+                        } catch (IOException ignored) {
+                        }
                     }
                 }
             }
@@ -559,27 +581,58 @@ public class PersistenceService {
     private void writeUndoRecord(UUID playerUuid, UUID undoUuid, NbtCompound tag) {
         // 已被删除的记录不要再写回(写任务可能在删除之后才执行)
         if (this.deletedUndo.contains(undoUuid)) return;
-        Path path = undoPath(playerUuid, undoUuid);
-        try {
-            Files.createDirectories(path.getParent());
-            // 唯一临时文件 + 原子移动:同一条记录可能被多处(新记录/GUI关闭/定时/断开)并发重写,
-            // 直接写目标文件会互相截断造成损坏,原子替换保证读者只能看到完整的旧文件或新文件。
+        // 同一记录的并发写(新记录/GUI关闭/定时/断开)串行化:避免临时文件互踩与 Windows 上的替换冲突
+        Object lock = this.undoWriteLocks.computeIfAbsent(undoUuid, k -> new Object());
+        synchronized (lock) {
+            Path path = undoPath(playerUuid, undoUuid);
+            this.writeAtomicWithRetry(path, tag);
+            // 写完再确认一次:期间若被删除,清理刚写回的文件
+            if (this.deletedUndo.contains(undoUuid)) {
+                try {
+                    Files.deleteIfExists(path);
+                } catch (IOException ignored) {
+                }
+            }
+        }
+    }
+
+    /**
+     * 原子写:写唯一临时文件再原子移动。Windows 上目标文件可能被读者/杀毒/索引器短暂占用,
+     * 移动会抛 AccessDeniedException,此时短暂重试;多次失败后退化为直接写,保证数据仍能落盘。
+     */
+    private void writeAtomicWithRetry(Path path, NbtCompound tag) {
+        for (int attempt = 1; attempt <= 3; attempt++) {
             Path tmp = path.resolveSibling(path.getFileName() + "." + UUID.randomUUID() + ".tmp");
             try {
+                Files.createDirectories(path.getParent());
                 NbtIo.writeCompressed(tag, tmp);
                 Files.move(tmp, path, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+                return;
+            } catch (AccessDeniedException e) {
+                LOGGER.warn("Retrying undo write {} (attempt {}/3)", path, attempt);
+                try {
+                    Thread.sleep(20L * attempt);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            } catch (IOException e) {
+                LOGGER.error("Failed to write {}", path, e);
+                return;
             } finally {
-                Files.deleteIfExists(tmp);
+                try {
+                    Files.deleteIfExists(tmp);
+                } catch (IOException ignored) {
+                }
             }
-        } catch (IOException e) {
-            LOGGER.error("Failed to write {}", path, e);
         }
-        // 写完再确认一次:期间若被删除,清理刚写回的文件
-        if (this.deletedUndo.contains(undoUuid)) {
-            try {
-                Files.deleteIfExists(path);
-            } catch (IOException ignored) {
-            }
+        // 重试仍被占用:退化为直接写(牺牲原子性,但保证内容落盘)
+        try {
+            Files.createDirectories(path.getParent());
+            NbtIo.writeCompressed(tag, path);
+            LOGGER.warn("Fell back to direct write for {}", path);
+        } catch (IOException e) {
+            LOGGER.error("Failed to write {} (after retries)", path, e);
         }
     }
 }
