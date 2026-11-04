@@ -2,7 +2,7 @@ package com.wishtoday.ts.simpleminer.undo.network;
 
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
-import com.wishtoday.ts.simpleminer.client.ClientNetworkExtendFutures;
+import com.wishtoday.ts.simpleminer.client.network.ClientNetworkExtendFutures;
 import com.wishtoday.ts.simpleminer.services.ClientOnlyLoadCondition;
 import com.wishtoday.ts.simpleminer.undo.MaterialInfo;
 import com.wishtoday.ts.simpleminer.undo.UndoData;

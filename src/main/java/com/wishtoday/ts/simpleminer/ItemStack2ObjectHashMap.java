@@ -25,6 +25,6 @@ public class ItemStack2ObjectHashMap<V> extends Object2ObjectOpenCustomHashMap<I
         if (stack == null) {
             return super.put(null, v);
         }
-        return super.put(stack.copy(), v);
+        return super.put(stack.copyWithCount(1), v);
     }
 }

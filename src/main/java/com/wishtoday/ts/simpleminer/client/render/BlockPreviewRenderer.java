@@ -25,10 +25,11 @@
 * */
 
 
-package com.wishtoday.ts.simpleminer.client;
+package com.wishtoday.ts.simpleminer.client.render;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.wishtoday.ts.simpleminer.client.SimpleminerClient;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;

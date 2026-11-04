@@ -1,4 +1,4 @@
-package com.wishtoday.ts.simpleminer.client;
+package com.wishtoday.ts.simpleminer.client.utils;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;

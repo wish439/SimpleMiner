@@ -1,13 +1,10 @@
 package com.wishtoday.ts.simpleminer.undo.gui;
 
-import com.wishtoday.ts.simpleminer.client.RenderUtils;
+import com.wishtoday.ts.simpleminer.client.utils.RenderUtils;
 import com.wishtoday.ts.simpleminer.undo.UndoDisplayInfo;
-import com.wishtoday.ts.simpleminer.undo.UndoStorage;
 import com.wishtoday.ts.simpleminer.undo.network.payloads.DeleteUndoC2SPayload;
 import com.wishtoday.ts.simpleminer.undo.network.payloads.RequestOpenSingleUndoScreenHandlerC2SPayload;
 import com.wishtoday.ts.simpleminer.undo.network.payloads.UndoListSyncRequestC2SPayload;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -22,7 +19,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 public class UndoListEntry extends AlwaysSelectedEntryListWidget<UndoListEntry.Entry> {

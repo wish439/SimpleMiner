@@ -1,5 +1,6 @@
 package com.wishtoday.ts.simpleminer.client;
 
+import com.wishtoday.ts.simpleminer.client.render.BlockPreviewRenderer;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.network.KeywordPressedPayload;
 import com.wishtoday.ts.simpleminer.undo.gui.UndoListScreen;
