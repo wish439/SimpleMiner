@@ -39,7 +39,8 @@ public class UndoScreenHandler extends ScreenHandler {
 
         this.undoStorage = new UndoGuiStorageContext();
         EmptyInventory inventory = new EmptyInventory();
-        SubmitSlot slot = new SubmitSlot(inventory, 36, 80, 36, undoStorage);
+        // 与 UndoScreen 的 SUBMIT_X / SUBMIT_Y 保持一致
+        SubmitSlot slot = new SubmitSlot(inventory, 36, 8, 196, undoStorage);
         this.addSlot(slot);
         this.submitSlot = slot;
         this.pressManager = null;

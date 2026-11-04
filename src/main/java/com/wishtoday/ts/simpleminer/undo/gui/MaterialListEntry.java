@@ -31,7 +31,6 @@ public class MaterialListEntry extends AlwaysSelectedEntryListWidget<MaterialLis
 
     public MaterialListEntry(MinecraftClient minecraftClient, int width, int height, int y, int itemHeight, List<ItemStack> itemStacks) {
         this(minecraftClient, width, height, y, itemHeight);
-        //this.itemStacks = itemStacks;
         Map<ItemStackKey, Entry> hashMap = new HashMap<>();
         for (ItemStack stack : itemStacks) {
             Entry entry = new Entry(stack.getItem(), stack.getCount(), 0);
@@ -44,38 +43,35 @@ public class MaterialListEntry extends AlwaysSelectedEntryListWidget<MaterialLis
 
     public void setEntryMap(Map<ItemStackKey, Entry> entryMap) {
         this.entryMap = entryMap;
+        this.rebuild();
     }
 
     public void setEntryMapFromMaterialInfos(Map<ItemStackKey, MaterialInfo> entryMap) {
         Map<ItemStackKey, Entry> map = new HashMap<>();
         for (Map.Entry<ItemStackKey, MaterialInfo> entry : entryMap.entrySet()) {
-            ItemStackKey key = entry.getKey();
-            MaterialInfo materialInfo = entry.getValue();
-            map.put(key, new Entry(materialInfo));
+            map.put(entry.getKey(), new Entry(entry.getValue()));
         }
         this.entryMap = map;
+        this.rebuild();
     }
 
-    @Override
-    public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderEntries(this.entryMap.values());
-        super.renderWidget(context, mouseX, mouseY, delta);
-    }
-
-    private void renderEntries(Collection<Entry> itemStacks) {
+    private void rebuild() {
         this.clearEntries();
-        for (Entry entry : itemStacks) {
-            this.addEntry(entry);
+        if (this.entryMap != null) {
+            this.entryMap.values().stream()
+                    .sorted((a, b) -> Integer.compare(b.info.getMaxCount(), a.info.getMaxCount()))
+                    .forEach(this::addEntry);
         }
     }
 
     @Override
     protected void drawMenuListBackground(DrawContext context) {
+        // 背景由 UndoScreen 绘制
     }
 
     @Override
     public int getRowWidth() {
-        return this.width;
+        return this.width - 4;
     }
 
     public static class Entry extends AlwaysSelectedEntryListWidget.Entry<MaterialListEntry.Entry> {
@@ -83,57 +79,78 @@ public class MaterialListEntry extends AlwaysSelectedEntryListWidget<MaterialLis
         private final MaterialInfo info;
         private final MinecraftClient minecraftClient;
         private int x;
+        private int renderWidth;
 
         public Entry(Item item, int maxSize, int currentSize) {
             this.info = new MaterialInfo(item, maxSize, currentSize);
             this.minecraftClient = MinecraftClient.getInstance();
-            this.x = 0;
         }
 
         public Entry(MaterialInfo info) {
             this.info = info;
             this.minecraftClient = MinecraftClient.getInstance();
-            this.x = 0;
         }
 
         @Override
         public Text getNarration() {
-            return Text.of("Hello World!");
+            return Text.of(this.info.getItemStack().getName().getString());
         }
 
         @Override
         public void render(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
-            ItemStack itemStack = this.info.getItemStack();
-            context.drawItem(itemStack, x, y);
             this.x = x;
-            String s = info.getCurrentCount() + "/" + info.getMaxCount();
-            int color = info.isFinished() ? 0x00FF00 : 0xFF0000;
-            context.drawText(minecraftClient.textRenderer, s, x + 32, y, color, false);
+            this.renderWidth = entryWidth;
+            int rowBottom = y + entryHeight - 1;
+
+            if (hovered) {
+                context.fill(x, y, x + entryWidth, rowBottom, UndoTheme.ROW_HOVER);
+            } else if ((index & 1) == 1) {
+                context.fill(x, y, x + entryWidth, rowBottom, UndoTheme.ROW_ALT);
+            }
+
+            ItemStack itemStack = this.info.getItemStack();
+            context.drawItem(itemStack, x + 2, y + (entryHeight - 16) / 2);
+
+            int current = this.info.getCurrentCount();
+            int max = this.info.getMaxCount();
+            boolean finished = this.info.isFinished();
+            int color = finished ? UndoTheme.SUCCESS : UndoTheme.WARNING;
+            Text count = Text.literal(current + " / " + max);
+            context.drawText(this.minecraftClient.textRenderer, count, x + 24, y + (entryHeight - 8) / 2 - 1, color, false);
+
+            // 进度条
+            int barX = x + 84;
+            int barWidth = Math.max(0, entryWidth - 90);
+            if (barWidth > 8) {
+                context.fill(barX, y + (entryHeight - 4) / 2, barX + barWidth, y + (entryHeight - 4) / 2 + 4, 0x33000000);
+                int filled = max <= 0 ? 0 : (int) ((long) barWidth * Math.min(current, max) / max);
+                context.fill(barX, y + (entryHeight - 4) / 2, barX + filled, y + (entryHeight - 4) / 2 + 4, color);
+            }
+
             if (!this.isMouseOver(mouseX, mouseY)) return;
-            if ((this.x + 20) < mouseX) return;
-            context.drawItemTooltip(minecraftClient.textRenderer, itemStack, mouseX, mouseY);
+            if (mouseX < x + 22) return;
+            context.drawItemTooltip(this.minecraftClient.textRenderer, itemStack, mouseX, mouseY);
         }
 
         @Override
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
-            if ((this.x + 20) < mouseX) return super.mouseClicked(mouseX, mouseY, button);
-            if (info.getCurrentCount() <= 0) return super.mouseClicked(mouseX, mouseY, button);
+            if (button != 0) return false;
+            if (mouseX < this.x + 22) return false;
+            if (this.info.getCurrentCount() <= 0) return false;
             ClientPlayerEntity player = minecraftClient.player;
             if (player == null) {
                 return true;
             }
             ScreenHandler handler = player.currentScreenHandler;
-            if (handler == null) return true;
-            int min = Math.min(info.getCurrentCount(), info.getItemStack().getMaxCount());
             if (!(handler instanceof UndoScreenHandler undoScreenHandler)) return true;
 
-            ItemStackKey key = new ItemStackKey(info.getItemStack());
+            int min = Math.min(this.info.getCurrentCount(), this.info.getItemStack().getMaxCount());
+            ItemStackKey key = new ItemStackKey(this.info.getItemStack());
             if (!undoScreenHandler.getCursorStack().isEmpty()) return true;
             if (undoScreenHandler.getUndoStorage().addCurrentCountTo(key, -min) != -1) {
                 ClientPlayNetworking.send(new TakeItemSyncC2SPayload(key, min, handler.syncId));
             }
-            //handler.setCursorStack();
-            return super.mouseClicked(mouseX, mouseY, button);
+            return true;
         }
     }
 }

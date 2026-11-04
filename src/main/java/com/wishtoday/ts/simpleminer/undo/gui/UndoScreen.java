@@ -14,48 +14,59 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 
 import java.util.Map;
 
 @Environment(EnvType.CLIENT)
 public class UndoScreen extends HandledScreen<UndoScreenHandler> {
-    private static final Identifier TEXTURE = Identifier.of("simpleminer","textures/gui/inventory.png");
-    public UndoScreen(UndoScreenHandler handler, PlayerInventory playerInventory, Text title) {
-        super(handler, playerInventory, title);
-    }
+    /** 面板高:原版 166 + 底部按钮/提交区 */
+    private static final int PANEL_HEIGHT = 236;
+    /** 材料列表区 */
+    private static final int LIST_X = 8;
+    private static final int LIST_Y = 26;
+    private static final int LIST_WIDTH = 160;
+    private static final int LIST_HEIGHT = 56;
+    /** 提交槽位置(与 UndoScreenHandler 中保持一致) */
+    private static final int SUBMIT_X = 8;
+    private static final int SUBMIT_Y = 196;
+    /** 按钮行 */
+    private static final int BUTTON_Y = 170;
+    private static final int BUTTON_WIDTH = 76;
+    private static final int BUTTON_HEIGHT = 20;
 
     private ButtonWidget returnAllButton;
     private ButtonWidget undoButton;
     private MaterialListEntry listEntry;
     private boolean empty;
 
+    public UndoScreen(UndoScreenHandler handler, PlayerInventory playerInventory, Text title) {
+        super(handler, playerInventory, title);
+        this.backgroundWidth = 176;
+        this.backgroundHeight = PANEL_HEIGHT;
+    }
+
     @Override
     protected void init() {
         super.init();
-        /*List<ItemStack> itemStacks = new ArrayList<>(List.of(new ItemStack(Items.DIAMOND)));
-        itemStacks.add(new ItemStack(Items.EMERALD));
-        itemStacks.add(new ItemStack(Items.GOLD_INGOT));*/
-        MaterialListEntry materialListEntry = new MaterialListEntry(client, this.width / 2 - 50, this.height / 2, this.y, 20);
-        UndoGuiStorageContext undoStorage = this.handler.getUndoStorage();
-        materialListEntry.setEntryMapFromMaterialInfos(undoStorage.getUndoStorage());
-        this.listEntry = materialListEntry;
-        listEntry.setDimensionsAndPosition(this.backgroundWidth, this.backgroundHeight / 2 + 4, this.x, this.y);
+
+        this.listEntry = new MaterialListEntry(client, LIST_WIDTH, LIST_HEIGHT, LIST_Y, 20);
+        this.listEntry.setDimensionsAndPosition(LIST_WIDTH, LIST_HEIGHT, this.x + LIST_X, this.y + LIST_Y);
+        this.listEntry.setEntryMapFromMaterialInfos(this.handler.getUndoStorage().getUndoStorage());
         this.addDrawableChild(this.listEntry);
-        int listEntryX = this.listEntry.getX();
-        int listEntryY = this.listEntry.getY();
-        int listEntryWidth = this.listEntry.getWidth();
-        int listEntryHeight = this.listEntry.getHeight();
-        ButtonWidget build = ButtonWidget.builder(Text.translatable("simpleminer.screen.undo.undo"), button -> ClientPlayNetworking.send(new RequestUndoC2SPayload(this.handler.syncId)))
-                .dimensions(listEntryX - listEntryWidth / 4, listEntryY, listEntryWidth / 4, listEntryHeight / 4)
+
+        this.undoButton = ButtonWidget.builder(
+                        Text.translatable("simpleminer.screen.undo.undo"),
+                        button -> ClientPlayNetworking.send(new RequestUndoC2SPayload(this.handler.syncId)))
+                .dimensions(this.x + 8, this.y + BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT)
                 .build();
-        this.undoButton = build;
-        ButtonWidget build1 = ButtonWidget.builder(Text.translatable("simpleminer.screen.undo.returnItems"), this::returnAllMaterial)
-                .dimensions(build.getX(), build.getY() + build.getHeight(), build.getWidth(), build.getHeight())
+        this.returnAllButton = ButtonWidget.builder(
+                        Text.translatable("simpleminer.screen.undo.returnItems"),
+                        this::returnAllMaterial)
+                .dimensions(this.x + 88, this.y + BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT)
                 .build();
-        this.returnAllButton = build1;
-        this.addDrawableChild(build);
-        this.addDrawableChild(build1);
+        this.addDrawableChild(this.undoButton);
+        this.addDrawableChild(this.returnAllButton);
+
         this.playerInventoryTitleY = this.y - 94;
         this.playerInventoryTitleX = this.x;
     }
@@ -68,33 +79,52 @@ public class UndoScreen extends HandledScreen<UndoScreenHandler> {
 
     public void refreshEntryMap() {
         Map<ItemStackKey, MaterialInfo> undoStorage = this.handler.getUndoStorage().getUndoStorage();
-        this.listEntry.setEntryMapFromMaterialInfos(undoStorage);
+        if (this.listEntry != null) {
+            this.listEntry.setEntryMapFromMaterialInfos(undoStorage);
+        }
         this.handler.setUndoStorage(undoStorage);
         this.empty = undoStorage.isEmpty();
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
-        this.drawMouseoverTooltip(context, mouseX, mouseY);
-        //this.listEntry.render(context, mouseX, mouseY, delta);
         boolean isCreative = false;
-        if (this.client != null) {
-            ClientPlayerEntity player = this.client.player;
-            if (player != null) {
-                isCreative = player.isCreative();
-            }
+        ClientPlayerEntity player = this.client == null ? null : this.client.player;
+        if (player != null) {
+            isCreative = player.isCreative();
         }
         this.undoButton.active = this.handler.getUndoStorage().isFully() || isCreative;
-        this.undoButton.render(context, mouseX, mouseY, delta);
-        if (empty) context.drawText(this.textRenderer, Text.translatable("simpleminer.screen.undo.emptyMaterial"), this.x, this.y, 0xFFFFFFFF, false);
+        super.render(context, mouseX, mouseY, delta);
+        this.drawMouseoverTooltip(context, mouseX, mouseY);
     }
 
     @Override
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
-        //context.drawTexture(TEXTURE, this.x, this.y, 0, 0, 167, 166);
-        context.fill(this.x, this.y, this.x + 175, this.y + 166, 0, 0xFF888888);
-        context.drawTexture(TEXTURE, this.x, this.y + 80, 0, 0, this.backgroundWidth, this.backgroundHeight);
-        //context.fill(this.x, this.y, this.x + backgroundWidth, this.y + backgroundHeight, 0, 0xFFFFFFFF);
+        int x = this.x;
+        int y = this.y;
+        int width = this.backgroundWidth;
+        int height = this.backgroundHeight;
+
+        // 面板
+        UndoTheme.panel(context, x, y, width, height);
+        UndoTheme.titleBar(context, x, y, width, 20, this.title);
+
+        // 材料区标题与底纹
+        context.drawText(this.textRenderer, Text.translatable("simpleminer.screen.undo.materials"),
+                x + LIST_X, y + LIST_Y - 11, UndoTheme.TEXT_DIM, false);
+        context.fill(x + LIST_X, y + LIST_Y, x + LIST_X + LIST_WIDTH, y + LIST_Y + LIST_HEIGHT, 0x0CFFFFFF);
+
+        if (this.empty) {
+            UndoTheme.centeredText(context, Text.translatable("simpleminer.screen.undo.emptyMaterial"),
+                    x + LIST_X + LIST_WIDTH / 2, y + LIST_Y + LIST_HEIGHT / 2 - 4, UndoTheme.TEXT_DIM);
+        }
+
+        // 提交槽外框与说明
+        UndoTheme.slotFrame(context, x + SUBMIT_X, y + SUBMIT_Y);
+        context.drawText(this.textRenderer, Text.translatable("simpleminer.screen.undo.submitHint"),
+                x + SUBMIT_X + 24, y + SUBMIT_Y + 4, UndoTheme.TEXT_DIM, false);
+
+        // 按钮上方的分隔线
+        UndoTheme.divider(context, x + 8, y + BUTTON_Y - 4, width - 16);
     }
 }

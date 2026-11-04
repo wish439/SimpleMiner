@@ -80,7 +80,7 @@ public class UndoNetworkingRegistry implements ServerNetworkExtendFutures {
 
     private void openUndoScreen(ServerPlayerEntity player, UndoStorage storage, UUID uuid) {
         Map<ItemStackKey, MaterialInfo> map = storage.getItems();
-        player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, playerInventory, player1) -> new UndoScreenHandler(syncId, playerInventory, map, this.pressManager, storage.getCompletedCount(), uuid, this.persistence), Text.of("Test")));
+        player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, playerInventory, player1) -> new UndoScreenHandler(syncId, playerInventory, map, this.pressManager, storage.getCompletedCount(), uuid, this.persistence), Text.translatable("simpleminer.screen.undo.title")));
         ScreenHandler handler = player.currentScreenHandler;
         ServerPlayNetworking.send(player, new UndoDataSyncS2CPayload(handler.syncId, new UndoData(map, storage.getCompletedCount(), uuid)));
     }
