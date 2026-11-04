@@ -19,6 +19,10 @@ public class PendingGUISessionManager {
         return this.guids.containsKey(uuid);
     }
 
+    public boolean validateGUIDAndPlayer(UUID uuid, PlayerEntity player) {
+        return this.containsGUID(uuid) && this.guids.get(uuid).equals(player.getUuid());
+    }
+
     public boolean recordGUI(UUID uuid, PlayerEntity player) {
         return this.guids.put(uuid, player.getUuid()) != null;
     }

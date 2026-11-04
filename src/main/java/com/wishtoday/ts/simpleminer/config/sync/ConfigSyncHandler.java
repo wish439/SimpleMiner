@@ -52,8 +52,8 @@ public class ConfigSyncHandler implements Initializer {
 
     public void handleSyncConfigS2C(SyncConfigC2SPayload payload, ServerPlayNetworking.Context context) {
         UUID uuid = payload.uuid();
-        boolean b = this.pendingGUIManager.containsGUID(uuid);
         ServerPlayerEntity player = context.player();
+        boolean b = this.pendingGUIManager.validateGUIDAndPlayer(uuid, player);
         this.pendingGUIManager.removeGUID(uuid);
         if (!b) {
             this.handleUUIDNotExists(player, uuid);
