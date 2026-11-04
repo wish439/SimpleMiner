@@ -4,6 +4,7 @@ import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.PostConstruct;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.*;
+import com.wishtoday.ts.simpleminer.config.sync.ConfigSyncHandler;
 import com.wishtoday.ts.simpleminer.core.ShapeRefresher;
 import com.wishtoday.ts.simpleminer.network.config.SyncConfigC2SPayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -15,14 +16,14 @@ public class NetworkingRegistry {
     private final PressManager pressManager;
     private final List<ServerNetworkExtendFutures> futures;
     private final ShapeRefresher shapeRefresher;
-    private final ConfigSyncPayloadHandler configSyncHandler;
+    private final ConfigSyncHandler configSyncHandler;
 
 
     @CreateConstruction
     public NetworkingRegistry(PressManager pressManager
             , List<ServerNetworkExtendFutures> futures
             , ShapeRefresher shapeRefresher
-            , ConfigSyncPayloadHandler configSyncHandler) {
+            , ConfigSyncHandler configSyncHandler) {
         this.pressManager = pressManager;
         this.futures = futures;
         this.shapeRefresher = shapeRefresher;

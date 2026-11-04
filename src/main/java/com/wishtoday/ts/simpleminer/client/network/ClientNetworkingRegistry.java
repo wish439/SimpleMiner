@@ -74,6 +74,7 @@ public class ClientNetworkingRegistry {
         if (type == ConfigType.INDIVIDUAL) {
             openIndividualConfigScreen((IndividualConfig) payload.currentConfig());
         }
+        SimpleminerClient.setCurrentConfigScreenID(payload.generatedUUID());
     }
 
     private void openServerConfigScreen(ServerConfig serverConfig) {
@@ -87,7 +88,7 @@ public class ClientNetworkingRegistry {
                         .options(options)
                         .groups(groups)
                         .build())
-                .save(() -> ClientPlayNetworking.send(new SyncConfigC2SPayload(ConfigType.SERVER, serverConfig)))
+                .save(() -> ClientPlayNetworking.send(new SyncConfigC2SPayload(ConfigType.SERVER, SimpleminerClient.getCurrentConfigScreenID(), serverConfig)))
                 .build();
         MinecraftClient mc = MinecraftClient.getInstance();
         Screen screen = build.generateScreen(mc.currentScreen);
@@ -107,7 +108,7 @@ public class ClientNetworkingRegistry {
                 .title(Text.translatable(translationKey))
                 .category(category)
                 .save(() -> {
-                    ClientPlayNetworking.send(new SyncConfigC2SPayload(ConfigType.INDIVIDUAL, config));
+                    ClientPlayNetworking.send(new SyncConfigC2SPayload(ConfigType.INDIVIDUAL, SimpleminerClient.getCurrentConfigScreenID(), config));
                     //SimpleminerClient.consumeIndividualConfig(config);
                 })
                 .build();

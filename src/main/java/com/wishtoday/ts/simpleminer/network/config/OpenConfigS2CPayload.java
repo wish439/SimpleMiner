@@ -8,8 +8,10 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
-public record OpenConfigS2CPayload(ConfigType type, Object currentConfig) implements CustomPayload {
-    public static final CustomPayload.Id<OpenConfigS2CPayload> ID = new Id<>(Identifier.of("simpleminer","openconfig_s2c"));
+import java.util.UUID;
+
+public record OpenConfigS2CPayload(ConfigType type, UUID generatedUUID, Object currentConfig) implements CustomPayload {
+    public static final CustomPayload.Id<OpenConfigS2CPayload> ID = new Id<>(Identifier.of("simpleminer", "openconfig_s2c"));
     public static final PacketCodec<PacketByteBuf, OpenConfigS2CPayload> CODEC = PacketCodec.of(
             OpenConfigS2CPayload::encode, OpenConfigS2CPayload::decode);
 
@@ -20,6 +22,7 @@ public record OpenConfigS2CPayload(ConfigType type, Object currentConfig) implem
 
     private static void encode(OpenConfigS2CPayload value, PacketByteBuf buf) {
         buf.writeEnumConstant(value.type);
+        buf.writeUuid(value.generatedUUID);
         if (value.type == ConfigType.SERVER) {
             ServerConfig.CODEC.encode(buf, (ServerConfig) value.currentConfig);
         }
@@ -31,13 +34,14 @@ public record OpenConfigS2CPayload(ConfigType type, Object currentConfig) implem
 
     private static OpenConfigS2CPayload decode(PacketByteBuf buf) {
         ConfigType configType = buf.readEnumConstant(ConfigType.class);
+        UUID uuid = buf.readUuid();
         Object currentConfig;
         if (configType == ConfigType.SERVER) {
-           currentConfig = ServerConfig.CODEC.decode(buf);
+            currentConfig = ServerConfig.CODEC.decode(buf);
         } else {
-           currentConfig = IndividualConfig.CODEC.decode(buf);
+            currentConfig = IndividualConfig.CODEC.decode(buf);
         }
         //int varInt = buf.readVarInt();
-        return new OpenConfigS2CPayload(configType, currentConfig);
+        return new OpenConfigS2CPayload(configType, uuid, currentConfig);
     }
 }

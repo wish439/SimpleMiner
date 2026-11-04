@@ -3,6 +3,7 @@ package com.wishtoday.ts.simpleminer.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.PressManager;
@@ -10,12 +11,14 @@ import com.wishtoday.ts.simpleminer.config.ReloadableReloader;
 import com.wishtoday.ts.simpleminer.config.ConfigType;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
+import com.wishtoday.ts.simpleminer.config.sync.ConfigSyncHandler;
 import com.wishtoday.ts.simpleminer.network.config.OpenConfigS2CPayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import java.util.UUID;
 import java.util.function.Function;
 
 import static net.minecraft.server.command.CommandManager.argument;
@@ -25,16 +28,25 @@ import static net.minecraft.server.command.CommandManager.literal;
 public class MainCommand {
     private final ReloadableReloader reloader;
     private final PressManager manager;
+    private final ConfigSyncHandler handler;
 
-    public MainCommand(ReloadableReloader reloader, PressManager manager) {
+    @CreateConstruction
+    public MainCommand(ReloadableReloader reloader, PressManager manager, ConfigSyncHandler handler) {
         this.reloader = reloader;
         this.manager = manager;
+        this.handler = handler;
     }
 
     public void register(CommandDispatcher<ServerCommandSource> dispatcher, Function<PlayerEntity, ServerConfig> configSupplier, Function<PlayerEntity, IndividualConfig> individualConfigSupplier) {
         dispatcher.register(literal("simpleminer")
                 .then(literal("config")
                         .then(literal("individual")
+                                /*.then(literal("a")
+                                        .executes(context -> {
+                                            ServerPlayerEntity player = context.getSource().getPlayer();
+                                            if (player == null) return -1;
+                                            return executeOpenGUIA(ConfigType.INDIVIDUAL, context, individualConfigSupplier.apply(player));
+                                        }))*/
                                 .executes(context -> {
                                     ServerPlayerEntity player = context.getSource().getPlayer();
                                     if (player == null) return -1;
@@ -59,9 +71,19 @@ public class MainCommand {
                         ));
     }
 
-    private static int executeOpenGUI(ConfigType type, CommandContext<ServerCommandSource> context, Object supplier) {
+    private int executeOpenGUI(ConfigType type, CommandContext<ServerCommandSource> context, Object supplier) {
         ServerPlayerEntity player = context.getSource().getPlayer();
-        ServerPlayNetworking.send(player, new OpenConfigS2CPayload(type, supplier));
+        if (player == null) return -1;
+        this.handler.openGUITo(type, player);
+        //ServerPlayNetworking.send(player, new OpenConfigS2CPayload(type, UUID.randomUUID(), supplier));
+        return 1;
+    }
+
+    private int executeOpenGUIA(ConfigType type, CommandContext<ServerCommandSource> context, Object supplier) {
+        ServerPlayerEntity player = context.getSource().getPlayer();
+        if (player == null) return -1;
+        //this.handler.openGUITo(type, player);
+        ServerPlayNetworking.send(player, new OpenConfigS2CPayload(type, UUID.randomUUID(), supplier));
         return 1;
     }
 

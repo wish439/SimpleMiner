@@ -8,7 +8,9 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
-public record SyncConfigC2SPayload(ConfigType type, Object config) implements CustomPayload {
+import java.util.UUID;
+
+public record SyncConfigC2SPayload(ConfigType type, UUID uuid, Object config) implements CustomPayload {
     public static final CustomPayload.Id<SyncConfigC2SPayload> ID = new Id<>(Identifier.of("simpleminer","sync_config_c2s"));
     public static final PacketCodec<PacketByteBuf, SyncConfigC2SPayload> CODEC = PacketCodec.of(SyncConfigC2SPayload::encode, SyncConfigC2SPayload::decode);
     @Override
@@ -17,6 +19,7 @@ public record SyncConfigC2SPayload(ConfigType type, Object config) implements Cu
     }
     private static void encode(SyncConfigC2SPayload value, PacketByteBuf buf) {
         buf.writeEnumConstant(value.type);
+        buf.writeUuid(value.uuid);
         if (value.type == ConfigType.SERVER) {
             ServerConfig.CODEC.encode(buf, (ServerConfig) value.config);
         }
@@ -28,6 +31,7 @@ public record SyncConfigC2SPayload(ConfigType type, Object config) implements Cu
 
     private static SyncConfigC2SPayload decode(PacketByteBuf buf) {
         ConfigType configType = buf.readEnumConstant(ConfigType.class);
+        UUID read = buf.readUuid();
         Object currentConfig;
         if (configType == ConfigType.SERVER) {
             currentConfig = ServerConfig.CODEC.decode(buf);
@@ -35,6 +39,6 @@ public record SyncConfigC2SPayload(ConfigType type, Object config) implements Cu
             currentConfig = IndividualConfig.CODEC.decode(buf);
         }
         //int varInt = buf.readVarInt();
-        return new SyncConfigC2SPayload(configType, currentConfig);
+        return new SyncConfigC2SPayload(configType, read, currentConfig);
     }
 }

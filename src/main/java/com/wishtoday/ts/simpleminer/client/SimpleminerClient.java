@@ -20,11 +20,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
 //TODO: Try to remove the Shape class that exists in the client, because we may support KubeJS to add shapes.
 //completed.Maybe?
 public class SimpleminerClient implements ClientModInitializer {
@@ -41,6 +40,11 @@ public class SimpleminerClient implements ClientModInitializer {
     @Getter
     private static Set<BlockPos> renderBlocks;
 
+
+    @Setter
+    @Getter
+    @Nullable
+    private static UUID currentConfigScreenID;
     //private static final List<RenderEdge> renderEdges = new ArrayList<>();
 
     /*@Getter
