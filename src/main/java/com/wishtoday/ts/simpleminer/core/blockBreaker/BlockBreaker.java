@@ -69,7 +69,7 @@ public class BlockBreaker {
 
 
     //TODO: remove in publish version
-    private static final boolean DEBUG_MODE = true;
+    private static final boolean DEBUG_MODE = false;
 
     @CreateConstruction
     public BlockBreaker(ControllerManager pressManager
