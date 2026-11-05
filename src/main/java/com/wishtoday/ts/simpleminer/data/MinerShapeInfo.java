@@ -1,45 +1,37 @@
-package com.wishtoday.ts.simpleminer;
+package com.wishtoday.ts.simpleminer.data;
 
-import com.wishtoday.ts.simpleminer.config.IndividualConfig;
-import com.wishtoday.ts.simpleminer.undo.UndoHistory;
-import com.wishtoday.ts.simpleminer.undo.UndoStorage;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
-import lombok.*;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-
 @Setter
 @ToString
 @Getter
 @RequiredArgsConstructor
-public class PlayerMinerInfo {
+public class MinerShapeInfo {
     private int currentShape;
     private boolean isKeyPressed;
-    @NotNull
-    private PlayerEntity player;
     @Nullable
     private ShapeResult blockPoses;
     @Nullable
     private BlockPos currentBlockPos;
-    private IndividualConfig currentIndividualConfig;
     private Direction currentDirection;
+    @NotNull
+    private PlayerEntity player;
 
-    private final UndoHistory undoHistory;
-
-    public PlayerMinerInfo(int currentShape, boolean isKeyPressed, PlayerEntity player, IndividualConfig individualConfig) {
+    public MinerShapeInfo(int currentShape, boolean isKeyPressed, PlayerEntity player) {
         this.currentShape = currentShape;
         this.isKeyPressed = isKeyPressed;
         this.player = player;
-        this.undoHistory = new UndoHistory();
         this.blockPoses = null;
         this.currentBlockPos = null;
-        this.currentIndividualConfig = individualConfig;
-        this.currentDirection = Direction.UP;
+        this.currentDirection = null;
     }
-
 }

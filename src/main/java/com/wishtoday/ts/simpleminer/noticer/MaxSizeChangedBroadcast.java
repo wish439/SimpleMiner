@@ -1,11 +1,9 @@
 package com.wishtoday.ts.simpleminer.noticer;
 
 import com.wishtoday.simpleservices.services.annotation.Service;
-import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
-import com.wishtoday.ts.simpleminer.PressManager;
+import com.wishtoday.ts.simpleminer.ControllerManager;
+import com.wishtoday.ts.simpleminer.data.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
@@ -14,9 +12,9 @@ import java.util.List;
 
 @Service
 public class MaxSizeChangedBroadcast implements ServerConfigChangedBroadcaster{
-    private final PressManager pressManager;
+    private final ControllerManager pressManager;
 
-    public MaxSizeChangedBroadcast(PressManager pressManager) {
+    public MaxSizeChangedBroadcast(ControllerManager pressManager) {
         this.pressManager = pressManager;
     }
 

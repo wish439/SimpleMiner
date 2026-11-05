@@ -2,9 +2,9 @@ package com.wishtoday.ts.simpleminer.undo.network;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
+import com.wishtoday.ts.simpleminer.ControllerManager;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
-import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
-import com.wishtoday.ts.simpleminer.PressManager;
+import com.wishtoday.ts.simpleminer.data.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.io.PersistenceService;
 import com.wishtoday.ts.simpleminer.undo.*;
 import com.wishtoday.ts.simpleminer.network.ServerNetworkExtendFutures;
@@ -19,16 +19,15 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class UndoNetworkingRegistry implements ServerNetworkExtendFutures {
     private final UndoConductor undoConductor;
-    private final PressManager pressManager;
+    private final ControllerManager pressManager;
     private final PersistenceService persistence;
 
     @CreateConstruction
-    public UndoNetworkingRegistry(UndoConductor undoConductor, PressManager pressManager, PersistenceService persistence) {
+    public UndoNetworkingRegistry(UndoConductor undoConductor, ControllerManager pressManager, PersistenceService persistence) {
         this.undoConductor = undoConductor;
         this.pressManager = pressManager;
         this.persistence = persistence;

@@ -5,8 +5,8 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
-import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
-import com.wishtoday.ts.simpleminer.PressManager;
+import com.wishtoday.ts.simpleminer.data.PlayerMinerInfo;
+import com.wishtoday.ts.simpleminer.ControllerManager;
 import com.wishtoday.ts.simpleminer.config.ReloadableReloader;
 import com.wishtoday.ts.simpleminer.config.ConfigType;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
@@ -27,11 +27,11 @@ import static net.minecraft.server.command.CommandManager.literal;
 @Service
 public class MainCommand {
     private final ReloadableReloader reloader;
-    private final PressManager manager;
+    private final ControllerManager manager;
     private final ConfigSyncHandler handler;
 
     @CreateConstruction
-    public MainCommand(ReloadableReloader reloader, PressManager manager, ConfigSyncHandler handler) {
+    public MainCommand(ReloadableReloader reloader, ControllerManager manager, ConfigSyncHandler handler) {
         this.reloader = reloader;
         this.manager = manager;
         this.handler = handler;

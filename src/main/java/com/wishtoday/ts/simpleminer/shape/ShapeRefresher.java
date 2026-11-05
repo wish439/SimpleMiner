@@ -1,11 +1,12 @@
-package com.wishtoday.ts.simpleminer.core;
+package com.wishtoday.ts.simpleminer.shape;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
-import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
-import com.wishtoday.ts.simpleminer.PressManager;
+import com.wishtoday.ts.simpleminer.ControllerManager;
+import com.wishtoday.ts.simpleminer.config.IndividualConfig;
+import com.wishtoday.ts.simpleminer.data.MinerShapeInfo;
+import com.wishtoday.ts.simpleminer.lifecycle.Lifecycle;
 import com.wishtoday.ts.simpleminer.network.MineBlockSyncS2CPayload;
-import com.wishtoday.ts.simpleminer.shape.ShapeResult;
 import com.wishtoday.ts.simpleminer.utils.WorldUtils;
 import it.unimi.dsi.fastutil.longs.LongList;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -19,19 +20,20 @@ import net.minecraft.util.math.Vec3d;
 import java.util.*;
 
 @Service
-public class ShapeRefresher {
-    private final PressManager pressManager;
+public class ShapeRefresher implements Lifecycle {
+    private final ControllerManager pressManager;
     private final ShapeWalker walker;
     @CreateConstruction
-    public ShapeRefresher(PressManager pressManager, ShapeWalker walker) {
+    public ShapeRefresher(ControllerManager pressManager, ShapeWalker walker) {
         this.pressManager = pressManager;
         this.walker = walker;
     }
+    @Override
     public void onTick(MinecraftServer server) {
-        pressManager.filterPressesPlayerInfos().forEach(this::tryRefresh);
+        pressManager.filterPressesMinerShapeInfo().forEach(info -> this.tryRefresh(info, this.pressManager.getIndividualConfig(info)));
     }
 
-    private void tryRefresh(PlayerMinerInfo info) {
+    private void tryRefresh(MinerShapeInfo info, IndividualConfig config) {
         PlayerEntity player = info.getPlayer();
         BlockPos raycast = WorldUtils.raycast(player);
         Vec3d rotationVec = player.getRotationVec(1.0f);
@@ -40,19 +42,9 @@ public class ShapeRefresher {
         if (raycast == null) {
             return;
         }
-        if (info.getCurrentDirection() == null) {
-            this.refresh(info, raycast);
-            info.setCurrentDirection(facing);
-            return;
-        }
         if (!facing.equals(info.getCurrentDirection())) {
             this.refresh(info, raycast);
             info.setCurrentDirection(facing);
-            return;
-        }
-        if (info.getCurrentBlockPos() == null) {
-            this.refresh(info, raycast);
-            info.setCurrentBlockPos(raycast);
             return;
         }
 
@@ -62,7 +54,7 @@ public class ShapeRefresher {
         }
     }
 
-    public void refreshForce(PlayerMinerInfo info) {
+    public void refreshForce(MinerShapeInfo info) {
         BlockPos raycast = WorldUtils.raycast(info.getPlayer());
         if (raycast == null) {
             return;
@@ -70,10 +62,10 @@ public class ShapeRefresher {
         this.refresh(info, raycast);
     }
 
-    public void refresh(PlayerMinerInfo info, BlockPos raycast) {
+    public void refresh(MinerShapeInfo info, BlockPos raycast) {
         if (raycast == null) return;
         if (info == null) return;
-        ShapeResult shapeResult = this.walker.tryWalk(info, raycast);
+        ShapeResult shapeResult = this.walker.tryWalk(info, raycast, this.pressManager.getIndividualConfig(info));
         info.setBlockPoses(shapeResult);
         LongList list = shapeResult.getSortedBlockPoses();
         Set<BlockPos> collect = list.longStream().limit(256).mapToObj(BlockPos::fromLong).collect(HashSet::new, HashSet::add, HashSet::addAll);

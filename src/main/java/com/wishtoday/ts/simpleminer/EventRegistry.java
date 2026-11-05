@@ -6,12 +6,14 @@ import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.command.MainCommand;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.BlockBreaker;
-import com.wishtoday.ts.simpleminer.core.ShapeRefresher;
 import com.wishtoday.ts.simpleminer.core.rightClick.MinerRightHandler;
+import com.wishtoday.ts.simpleminer.data.PlayerMinerInfo;
+import com.wishtoday.ts.simpleminer.lifecycle.LifecycleRegistry;
 import com.wishtoday.ts.simpleminer.io.PersistenceService;
 import com.wishtoday.ts.simpleminer.network.shape.ShapeSyncer;
 import com.wishtoday.ts.simpleminer.shape.Shapes;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
@@ -21,32 +23,34 @@ import net.minecraft.util.ActionResult;
 
 @Service
 public class EventRegistry {
-    private final PressManager manager;
+    private final ControllerManager manager;
     private final ServerConfig serverConfig;
-    private final ShapeRefresher shapeRefresher;
     private final BlockBreaker blockBreaker;
     private final MinerRightHandler rightHandler;
     private final MainCommand mainCommand;
     private final PersistenceService persistence;
     private final ShapeSyncer shapeSyncer;
     private final Shapes shapes;
+    private final LifecycleRegistry lifecycleRegistry;
 
     @CreateConstruction
-    public EventRegistry(PressManager manager, ServerConfig serverConfig, BlockBreaker blockBreaker, ShapeRefresher shapeRefresher, MinerRightHandler rightHandler, MainCommand mainCommand, PersistenceService persistence, ShapeSyncer shapeSyncer, Shapes shapes) {
+    public EventRegistry(ControllerManager manager, ServerConfig serverConfig, BlockBreaker blockBreaker, MinerRightHandler rightHandler, MainCommand mainCommand, PersistenceService persistence, ShapeSyncer shapeSyncer, Shapes shapes, LifecycleRegistry initializer) {
         this.manager = manager;
         this.serverConfig = serverConfig;
         this.blockBreaker = blockBreaker;
-        this.shapeRefresher = shapeRefresher;
         this.rightHandler = rightHandler;
         this.mainCommand = mainCommand;
         this.persistence = persistence;
         this.shapeSyncer = shapeSyncer;
         this.shapes = shapes;
+        this.lifecycleRegistry = initializer;
     }
 
     @PostConstruct
     public void registerEvents() {
-        ServerTickEvents.START_SERVER_TICK.register(this.shapeRefresher::onTick);
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> this.lifecycleRegistry.accept(_a -> _a.onServerStarted(server)));
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> this.lifecycleRegistry.accept(_a -> _a.onServerEnd(server)));
+        ServerTickEvents.START_SERVER_TICK.register(server -> this.lifecycleRegistry.accept(_a -> _a.onTick(server)));
         PlayerBlockBreakEvents.BEFORE.register(this.blockBreaker::breakBlock);
         CommandRegistrationCallback.EVENT.register((dispatcher, dedicated, registrationEnvironment) -> {
             mainCommand.register(dispatcher, player -> serverConfig, player -> this.manager.getPlayerMinerInfo(player).getCurrentIndividualConfig());

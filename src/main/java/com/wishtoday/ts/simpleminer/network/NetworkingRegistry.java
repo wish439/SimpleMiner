@@ -5,7 +5,8 @@ import com.wishtoday.simpleservices.services.annotation.PostConstruct;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.*;
 import com.wishtoday.ts.simpleminer.config.sync.ConfigSyncHandler;
-import com.wishtoday.ts.simpleminer.core.ShapeRefresher;
+import com.wishtoday.ts.simpleminer.data.MinerShapeInfo;
+import com.wishtoday.ts.simpleminer.shape.ShapeRefresher;
 import com.wishtoday.ts.simpleminer.network.config.SyncConfigC2SPayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
@@ -13,14 +14,14 @@ import java.util.List;
 
 @Service
 public class NetworkingRegistry {
-    private final PressManager pressManager;
+    private final ControllerManager pressManager;
     private final List<ServerNetworkExtendFutures> futures;
     private final ShapeRefresher shapeRefresher;
     private final ConfigSyncHandler configSyncHandler;
 
 
     @CreateConstruction
-    public NetworkingRegistry(PressManager pressManager
+    public NetworkingRegistry(ControllerManager pressManager
             , List<ServerNetworkExtendFutures> futures
             , ShapeRefresher shapeRefresher
             , ConfigSyncHandler configSyncHandler) {
@@ -43,7 +44,7 @@ public class NetworkingRegistry {
         if (!payload.press()) {
             return;
         }
-        PlayerMinerInfo info = pressManager.getPressedPlayerMinerInfo(context.player());
+        MinerShapeInfo info = pressManager.getPressedMinerShapeInfo(context.player());
         if (info == null) return;
         this.shapeRefresher.refreshForce(info);
     }

@@ -2,27 +2,23 @@ package com.wishtoday.ts.simpleminer.core.blockBreaker;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
-import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
-import com.wishtoday.ts.simpleminer.PressManager;
+import com.wishtoday.ts.simpleminer.ControllerManager;
+import com.wishtoday.ts.simpleminer.config.IndividualConfig;
+import com.wishtoday.ts.simpleminer.data.MinerShapeInfo;
 import com.wishtoday.ts.simpleminer.core.ShapeAnalyzer;
-import com.wishtoday.ts.simpleminer.core.ShapeRefresher;
+import com.wishtoday.ts.simpleminer.shape.ShapeRefresher;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector.ItemCollectorRouter;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.singleBlockBreaker.SingleBlockBreakerRouter;
-import com.wishtoday.ts.simpleminer.mixin.Accessor.ExperienceDroppingBlockAccessor;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldExtension;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
 import it.unimi.dsi.fastutil.longs.*;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.ExperienceDroppingBlock;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.intprovider.IntProvider;
 import net.minecraft.world.World;
 
 import java.util.List;
@@ -34,9 +30,34 @@ import java.util.function.Consumer;
 //2.S2C updata packet should be a batch operation instead of every block one update packet.
 //eeee, this has already been done in vanilla.
 //3.This is first opinion's side effect: waiting palette completed, after do those side effects.
+
+
+
+
+//breaking: TEST-----collector: SAMPLE in 60,000, nano time
+//internal consuming4800
+//breaking 70280500
+//collecting 7895300
+
+//breaking: PUREAPI-----collector: PUREAPI in 60,000, nano time
+//internal consuming13569900
+//breaking 204292100
+//collecting 52875800
+
+//breaking: VANINNA-----collector: INTERCEPT(default config) in 60,000, nano time
+//A:gamemode: Creative
+//internal consuming39500
+//breaking 235838600
+//collecting 0
+
+//B:gamemode: survival
+//internal consuming3000
+//breaking 532839700
+//collecting 0 -----bug, can't be counted properly
+
 @Service
 public class BlockBreaker {
-    private final PressManager pressManager;
+    private final ControllerManager pressManager;
     private final ShapeRefresher shapeRefresher;
     private final ShapeAnalyzer shapeAnalyzer;
     private final List<BlockBreakerFeature> features;
@@ -46,8 +67,12 @@ public class BlockBreaker {
     private final ExhaustionConsumer exhaustionConsumer;
     private static final ThreadLocal<Boolean> blockBreaking = ThreadLocal.withInitial(() -> false);
 
+
+    //TODO: remove in publish version
+    private static final boolean DEBUG_MODE = true;
+
     @CreateConstruction
-    public BlockBreaker(PressManager pressManager
+    public BlockBreaker(ControllerManager pressManager
             , ShapeRefresher shapeRefresher
             , List<BlockBreakerFeature> features
             , ShapeAnalyzer shapeAnalyzer
@@ -75,16 +100,21 @@ public class BlockBreaker {
             return true;
         }
         ItemStack mainHandStack = player.getMainHandStack();
-        PlayerMinerInfo info = this.pressManager.getPressedPlayerMinerInfo(player);
+        MinerShapeInfo info = this.pressManager.getPressedMinerShapeInfo(player);
         if (info == null) return true;
+        IndividualConfig config = this.pressManager.getIndividualConfig(info);
         this.shapeRefresher.refresh(info, pos);
         ShapeResult shapeResult = info.getBlockPoses();
         if (shapeResult == null) return true;
-//        long a = System.nanoTime();
+        long a = System.nanoTime();
         LongList sortedBlockPoses = shapeResult.getSortedBlockPoses();
         LongOpenHashSet internal = this.blockBreaker.canControlUpdate() ? shapeAnalyzer.calcCompleteSurrounded(shapeResult.getBlockPoses()) : new LongOpenHashSet();
-        BlockBreakContext context = new BlockBreakContext(world, player, pos, state, blockEntity, info, shapeResult, mainHandStack);
-//        System.out.println("internal consuming" + (System.nanoTime() - a));
+        BlockBreakContext context = new BlockBreakContext(world, player, pos, state, blockEntity, info, config, shapeResult, mainHandStack);
+
+
+        if (DEBUG_MODE) {
+            System.out.println("internal consuming" + (System.nanoTime() - a));
+        }
 
         this.forEachFeatures(b -> b.beforeCycle(context));
 
@@ -92,8 +122,8 @@ public class BlockBreaker {
         BlockPos.Mutable mutable = new BlockPos.Mutable();
         CollectContext collectContext = new CollectContext(world, player, null, mainHandStack, null, null, false);
         ServerWorld serverWorld = (ServerWorld) world;
-//        long d = 0;
-//        long c = 0;
+        long d = 0;
+        long c = 0;
         MAINCYCLE:
         for (long blockPose : sortedBlockPoses) {
             mutable.set(blockPose);
@@ -123,11 +153,11 @@ public class BlockBreaker {
             }
 
             if (this.collector.shouldCollect(collectContext) && collectItem) {
-//                long _s = System.nanoTime();
+                long _s = System.nanoTime();
                 this.collector.collectItem(collectContext);
                 if (collectExperience)
                     this.collector.collectExperience(collectContext);
-//                c += System.nanoTime() - _s;
+                c += System.nanoTime() - _s;
             }
 
             boolean breakBlock = true;
@@ -141,12 +171,12 @@ public class BlockBreaker {
             boolean empty = mainHandStack.isEmpty();
 
             if (breakBlock) {
-//                long _s = System.nanoTime();
+                long _s = System.nanoTime();
                 boolean b = this.breakBlock(mutable, currentState, world, player, mainHandStack, !internal.contains(blockPose), canHarvest);
                 if (canHarvest && b) {
                     this.exhaustionConsumer.consume(player);
                 }
-//                d += System.nanoTime() - _s;
+                d += System.nanoTime() - _s;
             }
 
 
@@ -160,8 +190,10 @@ public class BlockBreaker {
                 }
             }
         }
-//        System.out.println("breaking " + d);
-//        System.out.println("collecting " + c);
+        if (DEBUG_MODE) {
+            System.out.println("breaking " + d);
+            System.out.println("collecting " + c);
+        }
         CollectedResult result = this.collector.finish();
         List<ItemStack> droppedStacks = this.dropper.dropStack(context.getWorld(), context.getOriginPos(), result.getMap());
 

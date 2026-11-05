@@ -167,7 +167,9 @@ public class ServerConfig {
                 .name(Text.translatable("simpleminer.config.blockBreakStrategy"))
                 .description(OptionDescription.of(Text.translatable("simpleminer.config.blockBreakStrategy.description")))
                 .binding("VANILLA", config::getBlockBreakStrategy, config::setBlockBreakStrategy)
-                .controller(s -> CyclingListControllerBuilder.create(s).values("PUREAPI", "VANILLA").formatValue(Text::of))
+                .controller(s -> CyclingListControllerBuilder.create(s).values("PUREAPI", "VANILLA",
+                        "TEST"
+                        ).formatValue(Text::of))
                 .build();
     }
 

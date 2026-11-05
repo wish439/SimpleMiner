@@ -4,14 +4,12 @@ import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.*;
 import com.wishtoday.ts.simpleminer.config.*;
-import com.wishtoday.ts.simpleminer.initializer.Initializer;
-import com.wishtoday.ts.simpleminer.io.PersistenceService;
+import com.wishtoday.ts.simpleminer.data.PlayerMinerInfo;
+import com.wishtoday.ts.simpleminer.lifecycle.Lifecycle;
 import com.wishtoday.ts.simpleminer.network.ShapeInfosSyncC2SPayload;
 import com.wishtoday.ts.simpleminer.network.config.OpenConfigS2CPayload;
 import com.wishtoday.ts.simpleminer.network.config.SyncConfigC2SPayload;
 import com.wishtoday.ts.simpleminer.network.config.SyncIndividualConfigS2CPayload;
-import com.wishtoday.ts.simpleminer.noticer.MaxSizeChangedBroadcast;
-import com.wishtoday.ts.simpleminer.network.shape.ShapeSyncer;
 import lombok.extern.log4j.Log4j2;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
@@ -21,27 +19,20 @@ import java.util.UUID;
 
 @Log4j2
 @Service
-public class ConfigSyncHandler implements Initializer {
-    private final PressManager pressManager;
+public class ConfigSyncHandler {
+    private final ControllerManager controllerManager;
     private final ServerConfig serverConfig;
     private final ConfigChangePublisher publisher;
-    private PendingGUISessionManager pendingGUIManager;
     @CreateConstruction
-    public ConfigSyncHandler(PressManager pressManager, ServerConfig serverConfig, ReloadableReloader reloader, PersistenceService persistence, MaxSizeChangedBroadcast maxSizeBroadcast, ShapeSyncer shapeSyncer, ConfigChangePublisher publisher) {
-        this.pressManager = pressManager;
+    public ConfigSyncHandler(ControllerManager pressManager, ServerConfig serverConfig, ConfigChangePublisher publisher) {
+        this.controllerManager = pressManager;
         this.serverConfig = serverConfig;
         this.publisher = publisher;
-        this.pendingGUIManager = new PendingGUISessionManager();
-    }
-
-    @Override
-    public void initOnServerStarted(MinecraftServer server) {
-        this.pendingGUIManager.initialize();
     }
 
     public void openGUITo(ConfigType type, ServerPlayerEntity player) {
-        Object config = type == ConfigType.SERVER ? this.serverConfig : this.pressManager.getPlayerMinerInfo(player).getCurrentIndividualConfig();
-        UUID uuid = this.pendingGUIManager.generateUUIDToPlayer(player);
+        Object config = type == ConfigType.SERVER ? this.serverConfig : this.controllerManager.getPlayerMinerInfo(player).getCurrentIndividualConfig();
+        UUID uuid = this.controllerManager.getSession(player).generateUUID();
         ServerPlayNetworking.send(player, new OpenConfigS2CPayload(type, uuid, config));
     }
 
@@ -53,8 +44,7 @@ public class ConfigSyncHandler implements Initializer {
     public void handleSyncConfigS2C(SyncConfigC2SPayload payload, ServerPlayNetworking.Context context) {
         UUID uuid = payload.uuid();
         ServerPlayerEntity player = context.player();
-        boolean b = this.pendingGUIManager.validateGUIDAndPlayer(uuid, player);
-        this.pendingGUIManager.removeGUID(uuid);
+        boolean b = this.controllerManager.getSession(player).consumeUUID(uuid);
         if (!b) {
             this.handleUUIDNotExists(player, uuid);
             return;
@@ -66,7 +56,7 @@ public class ConfigSyncHandler implements Initializer {
             this.serverConfig.setFromConfig(newServerConfig);
             return;
         }
-        PlayerMinerInfo info = pressManager.getPlayerMinerInfo(player);
+        PlayerMinerInfo info = controllerManager.getPlayerMinerInfo(player);
         if (info == null) return;
         IndividualConfig config = (IndividualConfig) payload.config();
         config.validateAndClamp();
@@ -76,7 +66,7 @@ public class ConfigSyncHandler implements Initializer {
     }
 
     public void handleShapeInfosSyncC2SPayload(ShapeInfosSyncC2SPayload payload, ServerPlayNetworking.Context context) {
-        PlayerMinerInfo info = this.pressManager.getPlayerMinerInfo(context.player());
+        PlayerMinerInfo info = this.controllerManager.getPlayerMinerInfo(context.player());
         if (info == null) return;
         IndividualConfig individualConfig = info.getCurrentIndividualConfig();
         int i = payload.shapeIndex();

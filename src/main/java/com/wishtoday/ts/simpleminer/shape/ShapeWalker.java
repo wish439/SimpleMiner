@@ -1,14 +1,11 @@
-package com.wishtoday.ts.simpleminer.core;
+package com.wishtoday.ts.simpleminer.shape;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
-import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
+import com.wishtoday.ts.simpleminer.config.IndividualConfig;
+import com.wishtoday.ts.simpleminer.data.MinerShapeInfo;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
 import com.wishtoday.ts.simpleminer.core.matcher.BlockMatcher;
-import com.wishtoday.ts.simpleminer.shape.Shape;
-import com.wishtoday.ts.simpleminer.shape.ShapeContext;
-import com.wishtoday.ts.simpleminer.shape.ShapeResult;
-import com.wishtoday.ts.simpleminer.shape.Shapes;
 import com.wishtoday.ts.simpleminer.utils.BlockSorter;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
@@ -31,14 +28,14 @@ public class ShapeWalker {
         this.matcher = blockMatcher;
     }
 
-    public ShapeResult tryWalk(PlayerMinerInfo info, BlockPos raycast) {
+    public ShapeResult tryWalk(MinerShapeInfo info, BlockPos raycast, IndividualConfig config) {
         PlayerEntity player = info.getPlayer();
         Shape shape = shapes.getFromIndex(info.getCurrentShape());
         int maxSize = serverConfig.getMaxSize();
-        int personalMaxSize = info.getCurrentIndividualConfig().getPersonalMaxSize();
+        int personalMaxSize = config.getPersonalMaxSize();
         int i = personalMaxSize == -1 ? maxSize : Math.min(maxSize, personalMaxSize);
 
-        ShapeContext shapeContext = this.getShapeContext(player, i, raycast, info);
+        ShapeContext shapeContext = this.getShapeContext(player, i, raycast, info, config);
 
         LongOpenHashSet blockPoses = shape.walk(shapeContext);
         return this.sortFromSet(blockPoses, player, i);
@@ -53,8 +50,8 @@ public class ShapeWalker {
         return new ShapeResult(blockPoses, list);
     }
 
-    private @NotNull ShapeContext getShapeContext(@NotNull PlayerEntity player, int maxSize, BlockPos raycast, PlayerMinerInfo info) {
+    private @NotNull ShapeContext getShapeContext(@NotNull PlayerEntity player, int maxSize, BlockPos raycast, MinerShapeInfo info, IndividualConfig config) {
         World world = player.getWorld();
-        return new ShapeContext(maxSize, player, raycast, world.getBlockState(raycast), world, info.getCurrentDirection(), this.matcher, info.getCurrentIndividualConfig());
+        return new ShapeContext(maxSize, player, raycast, world.getBlockState(raycast), world, info.getCurrentDirection(), this.matcher, config);
     }
 }

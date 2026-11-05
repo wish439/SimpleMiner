@@ -1,16 +1,15 @@
 package com.wishtoday.ts.simpleminer.undo.gui;
 
+import com.wishtoday.ts.simpleminer.ControllerManager;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
 import com.wishtoday.ts.simpleminer.undo.MaterialInfo;
-import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
-import com.wishtoday.ts.simpleminer.PressManager;
+import com.wishtoday.ts.simpleminer.data.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.undo.UndoStorage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.minecraft.entity.player.PlayerEntity;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.ToIntFunction;
@@ -75,7 +74,7 @@ public class UndoGuiStorageContext {
         return i - j;
     }
 
-    public void saveToStorage(PressManager pressManager, PlayerEntity player, UUID uuid) {
+    public void saveToStorage(ControllerManager pressManager, PlayerEntity player, UUID uuid) {
         if (pressManager == null) return;
         PlayerMinerInfo info = pressManager.getPlayerMinerInfo(player);
         if (info == null) return;

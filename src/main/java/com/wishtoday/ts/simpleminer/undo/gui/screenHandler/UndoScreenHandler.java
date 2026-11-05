@@ -1,8 +1,8 @@
 package com.wishtoday.ts.simpleminer.undo.gui.screenHandler;
 
+import com.wishtoday.ts.simpleminer.ControllerManager;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
 import com.wishtoday.ts.simpleminer.undo.MaterialInfo;
-import com.wishtoday.ts.simpleminer.PressManager;
 import com.wishtoday.ts.simpleminer.gui.MinerScreenHandlerTypes;
 import com.wishtoday.ts.simpleminer.gui.EmptyInventory;
 import com.wishtoday.ts.simpleminer.io.PersistenceService;
@@ -47,7 +47,7 @@ public class UndoScreenHandler extends ScreenHandler {
         this.persistence = persistence;
     }
 
-    public UndoScreenHandler(int syncId, PlayerInventory playerInventory, Map<ItemStackKey, MaterialInfo> undoMaterialInfoMap, PressManager pressManager, int completedCount, UUID uuid, PersistenceService persistence) {
+    public UndoScreenHandler(int syncId, PlayerInventory playerInventory, Map<ItemStackKey, MaterialInfo> undoMaterialInfoMap, ControllerManager pressManager, int completedCount, UUID uuid, PersistenceService persistence) {
         this(syncId, playerInventory, persistence);
         this.setUndoStorage(undoMaterialInfoMap);
         this.pressManager = pressManager;
@@ -58,7 +58,7 @@ public class UndoScreenHandler extends ScreenHandler {
     @Getter
     private UndoGuiStorageContext undoStorage;
     private final SubmitSlot submitSlot;
-    private PressManager pressManager;
+    private ControllerManager pressManager;
     private final PersistenceService persistence;
     @Setter
     @Getter

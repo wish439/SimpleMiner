@@ -5,8 +5,8 @@ import com.google.gson.GsonBuilder;
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.PostConstruct;
 import com.wishtoday.simpleservices.services.annotation.Service;
-import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
-import com.wishtoday.ts.simpleminer.PressManager;
+import com.wishtoday.ts.simpleminer.data.PlayerMinerInfo;
+import com.wishtoday.ts.simpleminer.ControllerManager;
 import com.wishtoday.ts.simpleminer.config.ReloadableReloader;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
@@ -75,7 +75,7 @@ public class PersistenceService {
     private final Gson gson;
 
     private final ServerConfig serverConfig;
-    private final PressManager pressManager;
+    private final ControllerManager pressManager;
 
     private final ReloadableReloader reloader;
 
@@ -95,7 +95,7 @@ public class PersistenceService {
     private final Map<UUID, Object> undoWriteLocks;
 
     @CreateConstruction
-    public PersistenceService(ServerConfig serverConfig, PressManager pressManager, ReloadableReloader reloader) {
+    public PersistenceService(ServerConfig serverConfig, ControllerManager pressManager, ReloadableReloader reloader) {
         this.reloader = reloader;
         this.ioExecutor = Executors.newVirtualThreadPerTaskExecutor();
         this.gson = new GsonBuilder().setPrettyPrinting().create();

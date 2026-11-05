@@ -2,17 +2,15 @@ package com.wishtoday.ts.simpleminer.core.rightClick;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
-import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
-import com.wishtoday.ts.simpleminer.PressManager;
+import com.wishtoday.ts.simpleminer.ControllerManager;
+import com.wishtoday.ts.simpleminer.data.MinerShapeInfo;
 import com.wishtoday.ts.simpleminer.core.ItemStackCollector;
 import com.wishtoday.ts.simpleminer.core.ShapeAnalyzer;
-import com.wishtoday.ts.simpleminer.core.ShapeRefresher;
-import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectedResult;
+import com.wishtoday.ts.simpleminer.shape.ShapeRefresher;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.ItemCollectorResult;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.ItemDropper;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
 import it.unimi.dsi.fastutil.longs.LongList;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -22,7 +20,7 @@ import net.minecraft.world.World;
 
 @Service
 public class MinerRightHandler {
-    private final PressManager pressManager;
+    private final ControllerManager pressManager;
     private final ShapeRefresher shapeRefresher;
     private final ShapeAnalyzer shapeAnalyzer;
     private final RightClickHandlerRouter rightHandler;
@@ -30,7 +28,7 @@ public class MinerRightHandler {
     private static final ThreadLocal<Boolean> handlingRightClick = ThreadLocal.withInitial(() -> false);
 
     @CreateConstruction
-    public MinerRightHandler(PressManager pressManager, ShapeRefresher shapeRefresher, ShapeAnalyzer shapeAnalyzer, RightClickHandlerRouter rightHandler, ItemDropper dropper) {
+    public MinerRightHandler(ControllerManager pressManager, ShapeRefresher shapeRefresher, ShapeAnalyzer shapeAnalyzer, RightClickHandlerRouter rightHandler, ItemDropper dropper) {
         this.pressManager = pressManager;
         this.shapeRefresher = shapeRefresher;
         this.shapeAnalyzer = shapeAnalyzer;
@@ -46,7 +44,7 @@ public class MinerRightHandler {
             return ActionResult.PASS;
         }
         BlockPos pos = hitResult.getBlockPos();
-        PlayerMinerInfo info = this.pressManager.getPressedPlayerMinerInfo(player);
+        MinerShapeInfo info = this.pressManager.getPressedMinerShapeInfo(player);
         if (info == null) return ActionResult.PASS;
         this.shapeRefresher.refresh(info, pos);
         ShapeResult shapeResult = info.getBlockPoses();

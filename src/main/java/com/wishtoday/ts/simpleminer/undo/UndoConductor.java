@@ -2,9 +2,9 @@ package com.wishtoday.ts.simpleminer.undo;
 
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
+import com.wishtoday.ts.simpleminer.ControllerManager;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
-import com.wishtoday.ts.simpleminer.PlayerMinerInfo;
-import com.wishtoday.ts.simpleminer.PressManager;
+import com.wishtoday.ts.simpleminer.data.PlayerMinerInfo;
 import com.wishtoday.ts.simpleminer.core.BlockStorage;
 import com.wishtoday.ts.simpleminer.io.PersistenceService;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldExtension;
@@ -27,15 +27,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class UndoConductor {
-    private final PressManager pressManager;
+    private final ControllerManager pressManager;
     private final PersistenceService persistence;
 
     @CreateConstruction
-    public UndoConductor(PressManager pressManager, PersistenceService persistence) {
+    public UndoConductor(ControllerManager pressManager, PersistenceService persistence) {
         this.pressManager = pressManager;
         this.persistence = persistence;
     }

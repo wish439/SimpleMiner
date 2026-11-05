@@ -3,16 +3,20 @@ package com.wishtoday.ts.simpleminer;
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
+import com.wishtoday.ts.simpleminer.data.GuiSession;
+import com.wishtoday.ts.simpleminer.data.MinerShapeInfo;
+import com.wishtoday.ts.simpleminer.data.PlayerMinerInfo;
+import com.wishtoday.ts.simpleminer.undo.UndoHistory;
 import net.minecraft.entity.player.PlayerEntity;
 
 import java.util.*;
 
 @Service
-public class PressManager {
+public class ControllerManager {
     private final Map<UUID, PlayerMinerInfo> playerMinerInfos;
     private final Set<UUID> pressedPlayer;
     @CreateConstruction
-    public PressManager() {
+    public ControllerManager() {
         this.playerMinerInfos = new HashMap<>();
         this.pressedPlayer = new HashSet<>();
     }
@@ -29,9 +33,10 @@ public class PressManager {
             this.pressedPlayer.add(player.getUuid());
         }
         if (playerMinerInfos.containsKey(player.getUuid())) {
-            PlayerMinerInfo info = this.playerMinerInfos.get(player.getUuid());
-            info.setKeyPressed(state);
-            info.setCurrentShape(index);
+            PlayerMinerInfo info = this.getPlayerMinerInfo(player);
+            MinerShapeInfo shapeInfo = info.getCurrentMinerShapeInfo();
+            shapeInfo.setKeyPressed(state);
+            shapeInfo.setCurrentShape(index);
             return info;
         }
         PlayerMinerInfo info = new PlayerMinerInfo(index, state, player, new IndividualConfig());
@@ -47,18 +52,42 @@ public class PressManager {
         return this.playerMinerInfos.get(player.getUuid());
     }
 
-    public PlayerMinerInfo getPressedPlayerMinerInfo(PlayerEntity player) {
-        PlayerMinerInfo info = this.playerMinerInfos.get(player.getUuid());
+    public MinerShapeInfo getMinerShapeInfo(PlayerEntity player) {
+        return this.playerMinerInfos.get(player.getUuid()).getCurrentMinerShapeInfo();
+    }
+
+    public MinerShapeInfo getMinerShapeInfo(UUID uuid) {
+        return this.playerMinerInfos.get(uuid).getCurrentMinerShapeInfo();
+    }
+
+    public IndividualConfig getIndividualConfig(PlayerEntity player) {
+        return this.playerMinerInfos.get(player.getUuid()).getCurrentIndividualConfig();
+    }
+
+    public IndividualConfig getIndividualConfig(MinerShapeInfo minerShapeInfo) {
+        return this.getIndividualConfig(minerShapeInfo.getPlayer());
+    }
+
+    public UndoHistory getUndoHistory(PlayerEntity player) {
+        return this.playerMinerInfos.get(player.getUuid()).getUndoHistory();
+    }
+
+    public MinerShapeInfo getPressedMinerShapeInfo(PlayerEntity player) {
+        MinerShapeInfo info = this.getMinerShapeInfo(player);
         if (info == null) return null;
         if (!info.isKeyPressed()) return null;
         return info;
+    }
+
+    public GuiSession getSession(PlayerEntity player) {
+        return this.getPlayerMinerInfo(player).getSession();
     }
 
     public Collection<PlayerMinerInfo> getPlayerMinerInfos() {
         return Collections.unmodifiableCollection(this.playerMinerInfos.values());
     }
 
-    public Collection<PlayerMinerInfo> filterPressesPlayerInfos() {
-        return this.pressedPlayer.stream().map(this.playerMinerInfos::get).filter(Objects::nonNull).toList();
+    public Collection<MinerShapeInfo> filterPressesMinerShapeInfo() {
+        return this.pressedPlayer.stream().map(this::getMinerShapeInfo).filter(Objects::nonNull).toList();
     }
 }

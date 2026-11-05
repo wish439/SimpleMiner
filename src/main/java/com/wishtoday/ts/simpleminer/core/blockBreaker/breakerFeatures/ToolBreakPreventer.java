@@ -26,7 +26,7 @@ public class ToolBreakPreventer implements BlockBreakerFeature {
     @Override
     public void beforeCycle(BlockBreakContext blockBreakContext) {
         this.reset();
-        if (!blockBreakContext.getInfo().getCurrentIndividualConfig().isToolPreventBroken()) {
+        if (!blockBreakContext.getConfig().isToolPreventBroken()) {
             return;
         }
         ToolComponent toolComponent = blockBreakContext.getMainHandStack().get(DataComponentTypes.TOOL);
@@ -38,7 +38,7 @@ public class ToolBreakPreventer implements BlockBreakerFeature {
 
     @Override
     public boolean allowBreak(BlockBreakContext blockBreakContext) {
-        if (!blockBreakContext.getInfo().getCurrentIndividualConfig().isToolPreventBroken()) {
+        if (!blockBreakContext.getConfig().isToolPreventBroken()) {
             return true;
         }
         ItemStack stack = blockBreakContext.getMainHandStack();
@@ -51,7 +51,7 @@ public class ToolBreakPreventer implements BlockBreakerFeature {
 
     @Override
     public boolean allowCollectItem(BlockBreakContext blockBreakContext, CollectContext collectContext) {
-        if (!blockBreakContext.getInfo().getCurrentIndividualConfig().isToolPreventBroken()) {
+        if (!blockBreakContext.getConfig().isToolPreventBroken()) {
             return true;
         }
         ItemStack stack = blockBreakContext.getMainHandStack();
@@ -64,7 +64,7 @@ public class ToolBreakPreventer implements BlockBreakerFeature {
 
     @Override
     public boolean afterBlockBreakAllowContinue(BlockBreakContext blockBreakContext) {
-        if (!blockBreakContext.getInfo().getCurrentIndividualConfig().isToolPreventBroken()) {
+        if (!blockBreakContext.getConfig().isToolPreventBroken()) {
             return true;
         }
         ItemStack stack = blockBreakContext.getMainHandStack();
