@@ -20,9 +20,9 @@ public class InterceptItemCollector implements DroppedCollector, MixinDependColl
     private final ExperienceCollector experienceCollector;
 
     @CreateConstruction
-    public InterceptItemCollector(ExperienceCollector experienceCollector) {
+    public InterceptItemCollector() {
         this.collector = new SimpleItemStackCollector();
-        this.experienceCollector = experienceCollector;
+        this.experienceCollector = new ExperienceCollector();
     }
 
     @Override
