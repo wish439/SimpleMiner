@@ -5,6 +5,7 @@ import com.wishtoday.simpleservices.services.annotation.Name;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
 import com.wishtoday.ts.simpleminer.core.ItemStackCollector;
+import com.wishtoday.ts.simpleminer.core.SimpleItemStackCollector;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectContext;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectedResult;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.ExperienceCollector;
@@ -28,17 +29,17 @@ import java.util.*;
 
 @Service
 @Name("SAMPLE")
-public class ExperimentalPureAPIItemCollector implements DroppedCollector {
+public class SampleItemCollector implements DroppedCollector, ExternalStorageAdvocatedCollector {
     private final ItemStackCollector stackCollector;
     private final ProbabilityItemTester tester;
     private final ExperienceCollector experienceCollector;
     //private final Map<BlockState, SampleEntry> samples;
 
     @CreateConstruction
-    public ExperimentalPureAPIItemCollector(ProbabilityItemTester tester, ExperienceCollector experienceCollector) {
+    public SampleItemCollector(ProbabilityItemTester tester, ExperienceCollector experienceCollector) {
         this.tester = tester;
         this.experienceCollector = experienceCollector;
-        this.stackCollector = new ItemStackCollector();
+        this.stackCollector = new SimpleItemStackCollector();
     }
 
     @Override
@@ -57,8 +58,34 @@ public class ExperimentalPureAPIItemCollector implements DroppedCollector {
     }
 
     @Override
+    public void collectItem(CollectContext context, ItemStackCollector collector) {
+        this.collectItemStack(context, collector);
+    }
+
+    @Override
+    public void collectExperience(CollectContext context, ExperienceCollector collector) {
+        BlockState currentState = context.getBlockState();
+        World world = context.getWorld();
+        if (!(world instanceof ServerWorld serverWorld)) return;
+        ItemStack mainHandStack = context.getHandStack();
+        if (currentState == null) return;
+        if (mainHandStack == null) return;
+        Block block = currentState.getBlock();
+        int base;
+        if (block instanceof ExperienceDroppingBlock e) {
+            ExperienceDroppingBlockAccessor accessor = (ExperienceDroppingBlockAccessor) e;
+            IntProvider experienceDropped = accessor.getExperienceDropped();
+            base = experienceDropped.get(serverWorld.getRandom());
+        } else {
+            base = 0;
+        }
+        int experience = EnchantmentHelper.getBlockExperience(serverWorld, mainHandStack, base);
+        collector.consumeExperience(experience);
+    }
+
+    @Override
     public void collectItem(CollectContext context) {
-        this.collectItemStack(context);
+        this.collectItem(context, this.stackCollector);
     }
 
     @Override
@@ -81,7 +108,7 @@ public class ExperimentalPureAPIItemCollector implements DroppedCollector {
                 && mixinName.startsWith("PUREAPI");
     }
 
-    private void collectItemStack(CollectContext context) {
+    private void collectItemStack(CollectContext context, ItemStackCollector collector) {
         World world = context.getWorld();
         BlockPos pos = context.getPos();
         BlockState blockState = context.getBlockState();
@@ -96,7 +123,7 @@ public class ExperimentalPureAPIItemCollector implements DroppedCollector {
         this.collectItemStack(world, player, blockState, blockEntity, context.getHandStack(), pos, map, b);
         this.tester.matchOneBlock(blockState, map);
         Object2IntMap.FastEntrySet<ItemStackKey> entries = map.object2IntEntrySet();
-        Object2IntOpenHashMap<ItemStackKey> collectorMap = this.stackCollector.getMap();
+        Object2IntOpenHashMap<ItemStackKey> collectorMap = collector.getMap();
         for (Object2IntMap.Entry<ItemStackKey> entry : entries) {
             collectorMap.addTo(entry.getKey(), entry.getIntValue());
         }
@@ -141,23 +168,7 @@ public class ExperimentalPureAPIItemCollector implements DroppedCollector {
 
     @Override
     public void collectExperience(CollectContext context) {
-        BlockState currentState = context.getBlockState();
-        World world = context.getWorld();
-        if (!(world instanceof ServerWorld serverWorld)) return;
-        ItemStack mainHandStack = context.getHandStack();
-        if (currentState == null) return;
-        if (mainHandStack == null) return;
-        Block block = currentState.getBlock();
-        int base;
-        if (block instanceof ExperienceDroppingBlock e) {
-            ExperienceDroppingBlockAccessor accessor = (ExperienceDroppingBlockAccessor) e;
-            IntProvider experienceDropped = accessor.getExperienceDropped();
-            base = experienceDropped.get(serverWorld.getRandom());
-        } else {
-            base = 0;
-        }
-        int experience = EnchantmentHelper.getBlockExperience(serverWorld, mainHandStack, base);
-        this.experienceCollector.consumeExperience(experience);
+        this.collectExperience(context, this.experienceCollector);
     }
 
 

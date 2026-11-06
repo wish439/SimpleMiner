@@ -4,6 +4,8 @@ import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Name;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
+import com.wishtoday.ts.simpleminer.core.ItemStackCollector;
+import com.wishtoday.ts.simpleminer.core.SimpleItemStackCollector;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.*;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.entity.Entity;
@@ -13,18 +15,19 @@ import net.minecraft.entity.ItemEntity;
 @Name("INTERCEPT")
 @Service
 public class InterceptItemCollector implements DroppedCollector, MixinDependCollector {
-    private final Object2IntOpenHashMap<ItemStackKey> map;
+    //private final Object2IntOpenHashMap<ItemStackKey> map;
+    private final ItemStackCollector collector;
     private final ExperienceCollector experienceCollector;
 
     @CreateConstruction
     public InterceptItemCollector(ExperienceCollector experienceCollector) {
+        this.collector = new SimpleItemStackCollector();
         this.experienceCollector = experienceCollector;
-        this.map = new Object2IntOpenHashMap<>();
     }
 
     @Override
     public void start() {
-        this.map.clear();
+        this.collector.clear();
         this.experienceCollector.initialize();
     }
 
@@ -73,12 +76,12 @@ public class InterceptItemCollector implements DroppedCollector, MixinDependColl
     public void collectItemFromMixin(CollectContext context, String mixinName) {
         Entity itemEntity = context.getEntity();
         if (!(itemEntity instanceof ItemEntity item)) return;
-        this.map.addTo(new ItemStackKey(item.getStack()), item.getStack().getCount());
+        this.collector.collectItemStack(item.getStack());
     }
 
     @Override
     public CollectedResult finish() {
-        return new CollectedResult(new Object2IntOpenHashMap<>(map), this.experienceCollector.getExperience());
+        return new CollectedResult(this.collector.getMap(), this.experienceCollector.getExperience());
     }
 
     @Override

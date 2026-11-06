@@ -38,6 +38,11 @@ import java.util.function.Consumer;
 //internal consuming4800
 //breaking 70280500
 //collecting 7895300
+//--------------------------------
+//after removed heightmap
+//internal consuming2200
+//breaking 57680100
+//collecting 6593200
 
 //breaking: PUREAPI-----collector: PUREAPI in 60,000, nano time
 //internal consuming13569900
@@ -69,7 +74,7 @@ public class BlockBreaker {
 
 
     //TODO: remove in publish version
-    private static final boolean DEBUG_MODE = false;
+    private static final boolean DEBUG_MODE = true;
 
     @CreateConstruction
     public BlockBreaker(ControllerManager pressManager

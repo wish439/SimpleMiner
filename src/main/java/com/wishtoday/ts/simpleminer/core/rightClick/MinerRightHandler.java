@@ -3,6 +3,7 @@ package com.wishtoday.ts.simpleminer.core.rightClick;
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ControllerManager;
+import com.wishtoday.ts.simpleminer.core.SimpleItemStackCollector;
 import com.wishtoday.ts.simpleminer.data.MinerShapeInfo;
 import com.wishtoday.ts.simpleminer.core.ItemStackCollector;
 import com.wishtoday.ts.simpleminer.core.ShapeAnalyzer;
@@ -53,7 +54,7 @@ public class MinerRightHandler {
         BlockPos.Mutable mutable = new BlockPos.Mutable();
         MutableBlockHitResult mutableBlockHitResult = new MutableBlockHitResult(hitResult.getPos(), hitResult.getSide(), hitResult.getBlockPos(), hitResult.isInsideBlock());
         boolean success = false;
-        ItemStackCollector collector = new ItemStackCollector();
+        ItemStackCollector collector = new SimpleItemStackCollector();
         for (long sortedBlockPose : sortedBlockPoses) {
             mutable.set(sortedBlockPose);
             mutableBlockHitResult.setBlockPos(mutable);

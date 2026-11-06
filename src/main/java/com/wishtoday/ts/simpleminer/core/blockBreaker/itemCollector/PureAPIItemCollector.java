@@ -5,6 +5,7 @@ import com.wishtoday.simpleservices.services.annotation.Name;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
 import com.wishtoday.ts.simpleminer.core.ItemStackCollector;
+import com.wishtoday.ts.simpleminer.core.SimpleItemStackCollector;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.BlockBreaker;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectContext;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectedResult;
@@ -28,7 +29,7 @@ import java.util.List;
 
 @Name("PUREAPI")
 @Service
-public class PureAPIItemCollector implements DroppedCollector {
+public class PureAPIItemCollector implements DroppedCollector, ExternalStorageAdvocatedCollector {
 
     private final ItemStackCollector stackCollector;
 
@@ -37,7 +38,7 @@ public class PureAPIItemCollector implements DroppedCollector {
     @CreateConstruction
     public PureAPIItemCollector(ExperienceCollector experienceCollector) {
         this.experienceCollector = experienceCollector;
-        this.stackCollector = new ItemStackCollector();
+        this.stackCollector = new SimpleItemStackCollector();
     }
 
     @Override
@@ -56,8 +57,34 @@ public class PureAPIItemCollector implements DroppedCollector {
     }
 
     @Override
+    public void collectItem(CollectContext context, ItemStackCollector collector) {
+        this.collectItemStack(context, collector);
+    }
+
+    @Override
+    public void collectExperience(CollectContext context, ExperienceCollector collector) {
+        BlockState currentState = context.getBlockState();
+        World world = context.getWorld();
+        if (!(world instanceof ServerWorld serverWorld)) return;
+        ItemStack mainHandStack = context.getHandStack();
+        if (currentState == null) return;
+        if (mainHandStack == null) return;
+        Block block = currentState.getBlock();
+        int base;
+        if (block instanceof ExperienceDroppingBlock e) {
+            ExperienceDroppingBlockAccessor accessor = (ExperienceDroppingBlockAccessor) e;
+            IntProvider experienceDropped = accessor.getExperienceDropped();
+            base = experienceDropped.get(serverWorld.getRandom());
+        } else {
+            base = 0;
+        }
+        int experience = EnchantmentHelper.getBlockExperience(serverWorld, mainHandStack, base);
+        collector.consumeExperience(experience);
+    }
+
+    @Override
     public void collectItem(CollectContext context) {
-        this.collectItemStack(context);
+        this.collectItem(context, this.stackCollector);
     }
 
     @Override
@@ -78,33 +105,17 @@ public class PureAPIItemCollector implements DroppedCollector {
 
     @Override
     public void collectExperience(CollectContext context) {
-        BlockState currentState = context.getBlockState();
-        World world = context.getWorld();
-        if (!(world instanceof ServerWorld serverWorld)) return;
-        ItemStack mainHandStack = context.getHandStack();
-        if (currentState == null) return;
-        if (mainHandStack == null) return;
-        Block block = currentState.getBlock();
-        int base;
-        if (block instanceof ExperienceDroppingBlock e) {
-            ExperienceDroppingBlockAccessor accessor = (ExperienceDroppingBlockAccessor) e;
-            IntProvider experienceDropped = accessor.getExperienceDropped();
-            base = experienceDropped.get(serverWorld.getRandom());
-        } else {
-            base = 0;
-        }
-        int experience = EnchantmentHelper.getBlockExperience(serverWorld, mainHandStack, base);
-        this.experienceCollector.consumeExperience(experience);
+        this.collectExperience(context, this.experienceCollector);
     }
 
-    public void collectItemStack(CollectContext context) {
+    public void collectItemStack(CollectContext context, ItemStackCollector collector) {
         World world = context.getWorld();
         PlayerEntity player = context.getPlayer();
         BlockPos pos = context.getPos();
         boolean b = context.isCanHarvest();
         BlockState state = context.getBlockState();
         BlockEntity blockEntity = world.getBlockEntity(pos);
-        this.collectItemStack(world, player, state, blockEntity, context.getHandStack(), pos, this.stackCollector.getMap(), b);
+        this.collectItemStack(world, player, state, blockEntity, context.getHandStack(), pos, collector.getMap(), b);
     }
 
     private void collectItemStack(World world, PlayerEntity player, BlockState currentBlockState, BlockEntity entity, ItemStack stack, BlockPos pos, Object2IntOpenHashMap<ItemStackKey> map, boolean toolFit) {

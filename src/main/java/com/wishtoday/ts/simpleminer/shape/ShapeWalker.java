@@ -3,6 +3,7 @@ package com.wishtoday.ts.simpleminer.shape;
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.LazySectionBlockMappings;
 import com.wishtoday.ts.simpleminer.data.MinerShapeInfo;
 import com.wishtoday.ts.simpleminer.config.ServerConfig;
 import com.wishtoday.ts.simpleminer.core.matcher.BlockMatcher;
@@ -47,7 +48,9 @@ public class ShapeWalker {
         if (list.size() > maxSize) {
             list = list.subList(0, maxSize);
         }
-        return new ShapeResult(blockPoses, list);
+        return new ShapeResult(blockPoses, list
+                //currently.
+                , new LazySectionBlockMappings(blockPoses));
     }
 
     private @NotNull ShapeContext getShapeContext(@NotNull PlayerEntity player, int maxSize, BlockPos raycast, MinerShapeInfo info, IndividualConfig config) {
