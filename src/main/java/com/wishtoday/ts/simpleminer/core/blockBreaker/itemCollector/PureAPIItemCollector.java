@@ -36,8 +36,8 @@ public class PureAPIItemCollector implements DroppedCollector, ExternalStorageAd
     private final ExperienceCollector experienceCollector;
 
     @CreateConstruction
-    public PureAPIItemCollector(ExperienceCollector experienceCollector) {
-        this.experienceCollector = experienceCollector;
+    public PureAPIItemCollector() {
+        this.experienceCollector = new ExperienceCollector();
         this.stackCollector = new SimpleItemStackCollector();
     }
 

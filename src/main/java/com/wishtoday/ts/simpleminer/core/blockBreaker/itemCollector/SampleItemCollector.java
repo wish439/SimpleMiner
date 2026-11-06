@@ -36,9 +36,9 @@ public class SampleItemCollector implements DroppedCollector, ExternalStorageAdv
     //private final Map<BlockState, SampleEntry> samples;
 
     @CreateConstruction
-    public SampleItemCollector(ProbabilityItemTester tester, ExperienceCollector experienceCollector) {
+    public SampleItemCollector(ProbabilityItemTester tester) {
         this.tester = tester;
-        this.experienceCollector = experienceCollector;
+        this.experienceCollector = new ExperienceCollector();
         this.stackCollector = new SimpleItemStackCollector();
     }
 
