@@ -25,11 +25,11 @@ public class TickScheduler {
         nextTick.clear();
     }
 
-    public void scheduleNextTick() {
-        this.nextTick.add(this.currentTick.poll());
+    public void scheduleNextTick(Task t) {
+        this.nextTick.add(t);
     }
 
-    public void scheduleCurrentTick() {
-        this.currentTick.add(this.currentTick.poll());
+    public void scheduleCurrentTick(Task task) {
+        this.currentTick.add(task);
     }
 }
