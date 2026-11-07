@@ -50,7 +50,7 @@ public class ShapeWalker {
         }
         return new ShapeResult(blockPoses, list
                 //currently.
-                , new LazySectionBlockMappings(blockPoses));
+                , new LazySectionBlockMappings(list));
     }
 
     private @NotNull ShapeContext getShapeContext(@NotNull PlayerEntity player, int maxSize, BlockPos raycast, MinerShapeInfo info, IndividualConfig config) {

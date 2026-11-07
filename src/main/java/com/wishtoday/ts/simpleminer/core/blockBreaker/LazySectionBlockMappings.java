@@ -8,6 +8,7 @@ import net.minecraft.util.math.ChunkSectionPos;
 
 public class LazySectionBlockMappings implements ChunkSectionBlockMappings {
     private final LongCollection blockPoses;
+    private ChunkSection2BlockMapping mapping;
 
     public LazySectionBlockMappings(LongCollection blockPoses) {
         this.blockPoses = blockPoses;
@@ -15,7 +16,10 @@ public class LazySectionBlockMappings implements ChunkSectionBlockMappings {
 
     @Override
     public ChunkSection2BlockMapping getMapping() {
-        return this.computeMapping();
+        if (this.mapping == null) {
+            this.mapping = this.computeMapping();
+        }
+        return this.mapping;
     }
 
     private ChunkSection2BlockMapping computeMapping() {
