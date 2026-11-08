@@ -63,7 +63,7 @@ public class FragmentMiningTask implements Task {
         if (GlobalCondition.isBlockBreaking()) {
             return;
         }
-        LongList longList = sortedBlockPoses.subList(currentIndex, Math.min(currentIndex + fragmentSize, sortedBlockPoses.size() - 1));
+        LongList longList = sortedBlockPoses.subList(currentIndex, Math.min(currentIndex + fragmentSize, sortedBlockPoses.size()));
 
         ItemStack mainHandStack = player.getMainHandStack();
         SimpleItemStackCollector itemStackCollector = new SimpleItemStackCollector();
