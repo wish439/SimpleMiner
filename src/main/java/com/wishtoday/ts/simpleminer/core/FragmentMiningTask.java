@@ -57,7 +57,7 @@ public class FragmentMiningTask implements Task {
 
     @Override
     public void run() {
-        if (this.currentIndex > this.sortedBlockPoses.size()) {
+        if (this.currentIndex >= this.sortedBlockPoses.size()) {
             return;
         }
         if (GlobalCondition.isBlockBreaking()) {
@@ -107,7 +107,6 @@ public class FragmentMiningTask implements Task {
         if (experienceCollector.getExperience() > 0) {
             ExperienceOrbEntity experienceOrbEntity = new ExperienceOrbEntity(world, initialPos.getX() + 0.5D, initialPos.getY() + 0.5D, initialPos.getZ() + 0.5D, experienceCollector.getExperience());
             (serverWorld).spawnEntityAndPassengers(experienceOrbEntity);
-            return;
         }
 
         scheduler.scheduleNextTick(new FragmentMiningTask(this.collector, dropper, blockBreaker, exhaustionConsumer, player, world, initialPos, sortedBlockPoses, this.fragmentSize, this.currentIndex + this.fragmentSize, scheduler));
