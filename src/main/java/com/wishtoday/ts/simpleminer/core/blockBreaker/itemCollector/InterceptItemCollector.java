@@ -3,6 +3,7 @@ package com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector;
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Name;
 import com.wishtoday.simpleservices.services.annotation.Service;
+import com.wishtoday.ts.simpleminer.GlobalCondition;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
 import com.wishtoday.ts.simpleminer.core.ItemStackCollector;
 import com.wishtoday.ts.simpleminer.core.SimpleItemStackCollector;
@@ -49,7 +50,7 @@ public class InterceptItemCollector implements DroppedCollector, MixinDependColl
                 && context.getHandStack() == null
                 && context.getPlayer() == null
                 && mixinName.startsWith("INTERCEPT")
-                && BlockBreaker.getBlockBreaking();
+                && GlobalCondition.isBlockBreaking();
     }
 
     @Override
@@ -60,7 +61,7 @@ public class InterceptItemCollector implements DroppedCollector, MixinDependColl
                 && context.getHandStack() == null
                 && context.getPlayer() == null
                 && mixinName.startsWith("INTERCEPT")
-                && BlockBreaker.getBlockBreaking();
+                && GlobalCondition.isBlockBreaking();
     }
 
     @Override

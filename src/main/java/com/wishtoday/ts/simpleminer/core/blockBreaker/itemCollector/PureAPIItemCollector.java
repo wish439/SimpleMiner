@@ -3,6 +3,7 @@ package com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector;
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Name;
 import com.wishtoday.simpleservices.services.annotation.Service;
+import com.wishtoday.ts.simpleminer.GlobalCondition;
 import com.wishtoday.ts.simpleminer.ItemStackKey;
 import com.wishtoday.ts.simpleminer.core.ItemStackCollector;
 import com.wishtoday.ts.simpleminer.core.SimpleItemStackCollector;
@@ -99,7 +100,7 @@ public class PureAPIItemCollector implements DroppedCollector, ExternalStorageAd
                 && context.getWorld() != null
                 && context.getHandStack() == null
                 && context.getEntity() == null
-                && BlockBreaker.getBlockBreaking()
+                && GlobalCondition.isBlockBreaking()
                 && mixinName.startsWith("PUREAPI");
     }
 

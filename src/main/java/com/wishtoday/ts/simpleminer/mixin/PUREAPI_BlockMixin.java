@@ -3,6 +3,7 @@ package com.wishtoday.ts.simpleminer.mixin;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.wishtoday.simpleservices.services.Container;
 import com.wishtoday.simpleservices.services.annotation.ServiceField;
+import com.wishtoday.ts.simpleminer.GlobalCondition;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.BlockBreaker;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectContext;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector.ItemCollectorRouter;
@@ -40,6 +41,6 @@ public class PUREAPI_BlockMixin {
 
     @WrapWithCondition(method = "afterBreak", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;addExhaustion(F)V"))
     public boolean afterBreak2(PlayerEntity instance, float exhaustion) {
-        return !BlockBreaker.getBlockBreaking();
+        return !GlobalCondition.isBlockBreaking();
     }
 }

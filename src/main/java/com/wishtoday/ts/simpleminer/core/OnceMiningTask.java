@@ -41,6 +41,10 @@ public class OnceMiningTask implements Task {
     private final BlockEntity blockEntity;
     private static final ThreadLocal<Boolean> blockBreaking = ThreadLocal.withInitial(() -> false);
 
+    public static boolean isBlockBreaking() {
+        return blockBreaking.get();
+    }
+
     private static final boolean DEBUG_MODE = true;
 
     public OnceMiningTask(MinerShapeInfo info
