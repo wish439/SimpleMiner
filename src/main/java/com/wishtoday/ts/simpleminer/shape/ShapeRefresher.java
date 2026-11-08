@@ -10,6 +10,7 @@ import com.wishtoday.ts.simpleminer.network.MineBlockSyncS2CPayload;
 import com.wishtoday.ts.simpleminer.utils.WorldUtils;
 import it.unimi.dsi.fastutil.longs.LongList;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -63,9 +64,13 @@ public class ShapeRefresher implements Lifecycle {
     }
 
     public void refresh(MinerShapeInfo info, BlockPos raycast) {
+        this.refresh(info, raycast, info.getPlayer().getWorld().getBlockState(raycast));
+    }
+
+    public void refresh(MinerShapeInfo info, BlockPos raycast, BlockState state) {
         if (raycast == null) return;
         if (info == null) return;
-        ShapeResult shapeResult = this.walker.tryWalk(info, raycast, this.pressManager.getIndividualConfig(info));
+        ShapeResult shapeResult = this.walker.tryWalk(info, raycast, state, this.pressManager.getIndividualConfig(info));
         info.setBlockPoses(shapeResult);
         LongList list = shapeResult.getSortedBlockPoses();
         Set<BlockPos> collect = list.longStream().limit(256).mapToObj(BlockPos::fromLong).collect(HashSet::new, HashSet::add, HashSet::addAll);

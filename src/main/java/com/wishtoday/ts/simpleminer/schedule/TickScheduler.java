@@ -1,12 +1,14 @@
 package com.wishtoday.ts.simpleminer.schedule;
 
 import com.wishtoday.simpleservices.services.annotation.Service;
+import com.wishtoday.ts.simpleminer.lifecycle.Lifecycle;
+import net.minecraft.server.MinecraftServer;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 
 @Service
-public class TickScheduler {
+public class TickScheduler implements Lifecycle {
     private final Deque<Task> currentTick;
     private final Deque<Task> nextTick;
 
@@ -31,5 +33,16 @@ public class TickScheduler {
 
     public void scheduleCurrentTick(Task task) {
         this.currentTick.add(task);
+    }
+
+    @Override
+    public void onTick(MinecraftServer server) {
+        this.tick();
+    }
+
+    @Override
+    public void onServerEnd(MinecraftServer server) {
+        this.currentTick.clear();
+        this.nextTick.clear();
     }
 }

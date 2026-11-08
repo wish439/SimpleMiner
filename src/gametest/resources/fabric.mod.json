@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "simpleminer-test",
+  "version": "1.0.0",
+  "name": "Example mod",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-gametest": [
+      "com.wishtoday.ts.simpleminer.AGameTest"
+    ]
+  }
+}

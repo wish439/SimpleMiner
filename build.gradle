@@ -127,3 +127,11 @@ publishing {
         // retrieving dependencies.
     }
 }
+fabricApi {
+    configureTests {
+        createSourceSet = true // 自动创建 src/gametest 源集
+        modId = "simpleminer-gametest" // 为测试模组指定一个ID
+        enableGameTests = true // 启用服务器端GameTest
+        // enableClientGameTests = true // 如果需要客户端测试，可开启此项
+    }
+}

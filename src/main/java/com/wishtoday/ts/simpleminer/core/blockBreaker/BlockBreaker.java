@@ -4,8 +4,10 @@ import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ControllerManager;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
+import com.wishtoday.ts.simpleminer.core.OnceMiningTask;
 import com.wishtoday.ts.simpleminer.data.MinerShapeInfo;
 import com.wishtoday.ts.simpleminer.core.ShapeAnalyzer;
+import com.wishtoday.ts.simpleminer.schedule.TickScheduler;
 import com.wishtoday.ts.simpleminer.shape.ShapeRefresher;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector.ItemCollectorRouter;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.singleBlockBreaker.SingleBlockBreakerRouter;
@@ -70,6 +72,7 @@ public class BlockBreaker {
     private final ItemDropper dropper;
     private final SingleBlockBreakerRouter blockBreaker;
     private final ExhaustionConsumer exhaustionConsumer;
+    private final TickScheduler scheduler;
     private static final ThreadLocal<Boolean> blockBreaking = ThreadLocal.withInitial(() -> false);
 
 
@@ -82,7 +85,7 @@ public class BlockBreaker {
             , List<BlockBreakerFeature> features
             , ShapeAnalyzer shapeAnalyzer
             , ItemCollectorRouter collector
-            , ItemDropper dropper, SingleBlockBreakerRouter blockBreaker, ExhaustionConsumer exhaustionConsumer
+            , ItemDropper dropper, SingleBlockBreakerRouter blockBreaker, ExhaustionConsumer exhaustionConsumer, TickScheduler scheduler
     ) {
         this.pressManager = pressManager;
         this.shapeRefresher = shapeRefresher;
@@ -92,6 +95,7 @@ public class BlockBreaker {
         this.dropper = dropper;
         this.blockBreaker = blockBreaker;
         this.exhaustionConsumer = exhaustionConsumer;
+        this.scheduler = scheduler;
     }
 
     public static boolean getBlockBreaking() {
@@ -111,11 +115,20 @@ public class BlockBreaker {
         this.shapeRefresher.refresh(info, pos);
         ShapeResult shapeResult = info.getBlockPoses();
         if (shapeResult == null) return true;
+        //Test
+        if (true) {
+            this.scheduler.scheduleCurrentTick(new OnceMiningTask(
+                    info, config, shapeResult
+                    , features, shapeAnalyzer, collector
+                    , dropper, blockBreaker
+                    , exhaustionConsumer, player, world
+                    , pos, state, blockEntity));
+            return false;
+        }
         long a = System.nanoTime();
         LongList sortedBlockPoses = shapeResult.getSortedBlockPoses();
         LongOpenHashSet internal = this.blockBreaker.canControlUpdate() ? shapeAnalyzer.calcCompleteSurrounded(shapeResult.getBlockPoses()) : new LongOpenHashSet();
         BlockBreakContext context = new BlockBreakContext(world, player, pos, state, blockEntity, info, config, shapeResult, mainHandStack);
-
 
         if (DEBUG_MODE) {
             System.out.println("internal consuming" + (System.nanoTime() - a));

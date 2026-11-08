@@ -11,6 +11,7 @@ import com.wishtoday.ts.simpleminer.utils.BlockSorter;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -29,14 +30,14 @@ public class ShapeWalker {
         this.matcher = blockMatcher;
     }
 
-    public ShapeResult tryWalk(MinerShapeInfo info, BlockPos raycast, IndividualConfig config) {
+    public ShapeResult tryWalk(MinerShapeInfo info, BlockPos raycast, BlockState state, IndividualConfig config) {
         PlayerEntity player = info.getPlayer();
         Shape shape = shapes.getFromIndex(info.getCurrentShape());
         int maxSize = serverConfig.getMaxSize();
         int personalMaxSize = config.getPersonalMaxSize();
         int i = personalMaxSize == -1 ? maxSize : Math.min(maxSize, personalMaxSize);
 
-        ShapeContext shapeContext = this.getShapeContext(player, i, raycast, info, config);
+        ShapeContext shapeContext = this.getShapeContext(player, i, raycast, state, info, config);
 
         LongOpenHashSet blockPoses = shape.walk(shapeContext);
         return this.sortFromSet(blockPoses, player, i);
@@ -53,8 +54,8 @@ public class ShapeWalker {
                 , new LazySectionBlockMappings(list));
     }
 
-    private @NotNull ShapeContext getShapeContext(@NotNull PlayerEntity player, int maxSize, BlockPos raycast, MinerShapeInfo info, IndividualConfig config) {
+    private @NotNull ShapeContext getShapeContext(@NotNull PlayerEntity player, int maxSize, BlockPos raycast, BlockState state, MinerShapeInfo info, IndividualConfig config) {
         World world = player.getWorld();
-        return new ShapeContext(maxSize, player, raycast, world.getBlockState(raycast), world, info.getCurrentDirection(), this.matcher, config);
+        return new ShapeContext(maxSize, player, raycast, state, world, info.getCurrentDirection(), this.matcher, config);
     }
 }
