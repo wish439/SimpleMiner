@@ -4,7 +4,9 @@ import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ControllerManager;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
+import com.wishtoday.ts.simpleminer.core.FragmentMiningTask;
 import com.wishtoday.ts.simpleminer.core.OnceMiningTask;
+import com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector.ExternalStorageAdvocatedCollectorRouter;
 import com.wishtoday.ts.simpleminer.data.MinerShapeInfo;
 import com.wishtoday.ts.simpleminer.core.ShapeAnalyzer;
 import com.wishtoday.ts.simpleminer.schedule.TickScheduler;
@@ -73,6 +75,7 @@ public class BlockBreaker {
     private final SingleBlockBreakerRouter blockBreaker;
     private final ExhaustionConsumer exhaustionConsumer;
     private final TickScheduler scheduler;
+    private final ExternalStorageAdvocatedCollectorRouter externalStorageAdvocatedCollectorRouter;
     private static final ThreadLocal<Boolean> blockBreaking = ThreadLocal.withInitial(() -> false);
 
 
@@ -85,7 +88,7 @@ public class BlockBreaker {
             , List<BlockBreakerFeature> features
             , ShapeAnalyzer shapeAnalyzer
             , ItemCollectorRouter collector
-            , ItemDropper dropper, SingleBlockBreakerRouter blockBreaker, ExhaustionConsumer exhaustionConsumer, TickScheduler scheduler
+            , ItemDropper dropper, SingleBlockBreakerRouter blockBreaker, ExhaustionConsumer exhaustionConsumer, TickScheduler scheduler, ExternalStorageAdvocatedCollectorRouter externalStorageAdvocatedCollectorRouter
     ) {
         this.pressManager = pressManager;
         this.shapeRefresher = shapeRefresher;
@@ -96,6 +99,7 @@ public class BlockBreaker {
         this.blockBreaker = blockBreaker;
         this.exhaustionConsumer = exhaustionConsumer;
         this.scheduler = scheduler;
+        this.externalStorageAdvocatedCollectorRouter = externalStorageAdvocatedCollectorRouter;
     }
 
     public static boolean getBlockBreaking() {
@@ -115,6 +119,11 @@ public class BlockBreaker {
         this.shapeRefresher.refresh(info, pos);
         ShapeResult shapeResult = info.getBlockPoses();
         if (shapeResult == null) return true;
+        if (true) {
+            FragmentMiningTask task = new FragmentMiningTask(externalStorageAdvocatedCollectorRouter, dropper, blockBreaker, exhaustionConsumer, player, world, pos, shapeResult.getSortedBlockPoses(), 10 * 1000, 0, scheduler);
+            this.scheduler.scheduleCurrentTick(task);
+            return false;
+        }
         //Test
         if (true) {
             this.scheduler.scheduleCurrentTick(new OnceMiningTask(
