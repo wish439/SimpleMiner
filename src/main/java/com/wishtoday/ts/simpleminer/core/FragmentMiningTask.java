@@ -101,7 +101,7 @@ public class FragmentMiningTask implements Task {
             return;
         }
         if (first) {
-            this.features.forEach(feature -> feature.beforeBlockBreak(context));
+            this.features.forEach(feature -> feature.beforeBreakCandidate(context));
         }
         LongList longList = sortedBlockPoses.subList(currentIndex, Math.min(currentIndex + fragmentSize, sortedBlockPoses.size()));
 
@@ -120,6 +120,7 @@ public class FragmentMiningTask implements Task {
             context.setCurrentState(currentState);
             context.setCurrentPos(mutable);
 
+            this.features.forEach(feature -> feature.beforeBlockBreak(context));
             collectContext.setPos(mutable);
             boolean canHarvest = player.canHarvest(currentState);
             collectContext.setCanHarvest(canHarvest);
@@ -141,7 +142,9 @@ public class FragmentMiningTask implements Task {
 
             if (this.collector.shouldCollect(collectContext) && collectItem) {
                 this.collector.collectItem(collectContext, itemStackCollector);
-                this.collector.collectExperience(collectContext, experienceCollector);
+                if (collectExperience) {
+                    this.collector.collectExperience(collectContext, experienceCollector);
+                }
             }
 
             boolean empty = mainHandStack.isEmpty();
