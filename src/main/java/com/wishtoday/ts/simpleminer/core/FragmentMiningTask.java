@@ -53,7 +53,7 @@ public class FragmentMiningTask implements Task {
     ) {
         this(collector, dropper, blockBreaker, exhaustionConsumer, player
                 , world, initialPos, sortedBlockPoses, fragmentSize, currentIndex,
-                scheduler, features, false, context, new SimpleItemStackCollector(), new ExperienceCollector());
+                scheduler, features, true, context, new SimpleItemStackCollector(), new ExperienceCollector());
     }
 
     private FragmentMiningTask(ExternalStorageAdvocatedCollectorRouter collector
