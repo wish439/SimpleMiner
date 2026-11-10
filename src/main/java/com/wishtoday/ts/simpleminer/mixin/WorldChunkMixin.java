@@ -1,5 +1,6 @@
 package com.wishtoday.ts.simpleminer.mixin;
 
+import com.wishtoday.ts.simpleminer.mixinInterface.ChunkSectionTestExtension;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldChunkExtension;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldChunkTestExtension;
 import net.minecraft.block.Block;
@@ -97,6 +98,70 @@ public abstract class WorldChunkMixin extends Chunk implements WorldChunkExtensi
             int k = i & 15;
             int l = pos.getZ() & 15;
             BlockState blockState = chunkSection.setBlockState(j, k, l, state);
+            if (blockState == state) {
+                return null;
+            } else {
+                Block block = state.getBlock();
+                //((Heightmap)this.heightmaps.get(Heightmap.Type.MOTION_BLOCKING)).trackUpdate(j, i, l, state);
+                //((Heightmap)this.heightmaps.get(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES)).trackUpdate(j, i, l, state);
+                //((Heightmap)this.heightmaps.get(Heightmap.Type.OCEAN_FLOOR)).trackUpdate(j, i, l, state);
+                //((Heightmap)this.heightmaps.get(Heightmap.Type.WORLD_SURFACE)).trackUpdate(j, i, l, state);
+
+                if (ChunkLightProvider.needsLightUpdate(this, pos, blockState, state)) {
+                    Profiler profiler = this.world.getProfiler();
+                    profiler.push("updateSkyLightSources");
+                    this.chunkSkyLight.isSkyLightAccessible(this, j, i, l);
+                    profiler.swap("queueCheckLight");
+                    //this.world.getChunkManager().getLightingProvider().checkBlock(pos);
+                    profiler.pop();
+                }
+
+                boolean bl3 = blockState.hasBlockEntity();
+                if (!this.world.isClient) {
+                    blockState.onStateReplaced(this.world, pos, state, moved);
+                } else if (!blockState.isOf(block) && bl3) {
+                    this.removeBlockEntity(pos);
+                }
+
+                if (!chunkSection.getBlockState(j, k, l).isOf(block)) {
+                    return null;
+                } else {
+                    if (!this.world.isClient) {
+                        state.onBlockAdded(this.world, pos, blockState, moved);
+                    }
+
+                    if (state.hasBlockEntity()) {
+                        BlockEntity blockEntity = this.getBlockEntity(pos, WorldChunk.CreationType.CHECK);
+                        if (blockEntity == null) {
+                            blockEntity = ((BlockEntityProvider)block).createBlockEntity(pos, state);
+                            if (blockEntity != null) {
+                                this.addBlockEntity(blockEntity);
+                            }
+                        } else {
+                            blockEntity.setCachedState(state);
+                            this.updateTicker(blockEntity);
+                        }
+                    }
+
+                    this.needsSaving = true;
+                    return blockState;
+                }
+            }
+        }
+    }
+
+    @Override
+    public BlockState simpleminer$setToAir(BlockPos pos, BlockState state, BlockState current, boolean moved) {
+        int i = pos.getY();
+        ChunkSection chunkSection = this.getSection(this.getSectionIndex(i));
+        boolean bl = chunkSection.isEmpty();
+        if (bl && state.isAir()) {
+            return null;
+        } else {
+            int j = pos.getX() & 15;
+            int k = i & 15;
+            int l = pos.getZ() & 15;
+            BlockState blockState = ((ChunkSectionTestExtension)chunkSection).simpleminer$setBlockState(j, k, l, state, current, true);
             if (blockState == state) {
                 return null;
             } else {

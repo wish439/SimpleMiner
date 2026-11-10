@@ -3,6 +3,7 @@ package com.wishtoday.ts.simpleminer.core.blockBreaker;
 import com.wishtoday.simpleservices.services.annotation.CreateConstruction;
 import com.wishtoday.simpleservices.services.annotation.Service;
 import com.wishtoday.ts.simpleminer.ControllerManager;
+import com.wishtoday.ts.simpleminer.GlobalCondition;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.core.FragmentMiningTask;
 import com.wishtoday.ts.simpleminer.core.OnceMiningTask;
@@ -47,6 +48,29 @@ import java.util.function.Consumer;
 //internal consuming2200
 //breaking 57680100
 //collecting 6593200
+//------------------------------------------------------
+//after removed paletted swap--five
+//internal consuming1200
+//breaking 50671800
+//collecting 7298800
+
+//internal consuming1300
+//breaking 49767300
+//collecting 7317600
+
+//internal consuming1300
+//breaking 43299500
+//collecting 6330600
+
+//internal consuming1500
+//breaking 46565400
+//collecting 6802000
+
+//internal consuming2000
+//breaking 46720300
+//collecting 6828200
+
+//------------------------------------
 
 //breaking: PUREAPI-----collector: PUREAPI in 60,000, nano time
 //internal consuming13569900
@@ -109,7 +133,7 @@ public class BlockBreaker {
     //TODO:Try to parallel the work of the analyzer with the block breaking。
     //TODO:set the default update strength of the block breaking to false, and complete other updates(side effects) after the analyzer completes
     public boolean breakBlock(World world, PlayerEntity player, BlockPos pos, BlockState state, BlockEntity blockEntity) {
-        if (blockBreaking.get()) {
+        if (GlobalCondition.isBlockBreaking()) {
             return true;
         }
         ItemStack mainHandStack = player.getMainHandStack();
@@ -119,7 +143,7 @@ public class BlockBreaker {
         this.shapeRefresher.refresh(info, pos);
         ShapeResult shapeResult = info.getBlockPoses();
         if (shapeResult == null) return true;
-        if (true) {
+        if (false) {
             FragmentMiningTask task = new FragmentMiningTask(externalStorageAdvocatedCollectorRouter, dropper, blockBreaker, exhaustionConsumer, player, world, pos, shapeResult.getSortedBlockPoses(), 10 * 1000, 0, scheduler);
             this.scheduler.scheduleCurrentTick(task);
             return false;

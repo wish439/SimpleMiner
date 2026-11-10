@@ -18,7 +18,7 @@ public class TestSingleBlockBreaker implements SingleBlockBreaker {
     public boolean breakBlock(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update, boolean canHarvest) {
         //Block block = state.getBlock();
         //block.onBreak(world, pos, state, player);
-        boolean b = ((WorldTestExtension)world).simpleminer$setBlockStateWithOutLightUpdate(pos, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS);
+        boolean b = ((WorldTestExtension)world).simpleminer$setToAir(pos, Blocks.AIR.getDefaultState(), state, Block.NOTIFY_LISTENERS);
         /*if (b) {
             block.onBroken(world, pos, state);
         }*/

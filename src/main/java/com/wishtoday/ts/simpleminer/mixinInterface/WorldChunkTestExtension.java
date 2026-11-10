@@ -5,4 +5,5 @@ import net.minecraft.util.math.BlockPos;
 
 public interface WorldChunkTestExtension {
     BlockState simpleminer$setBlockState(BlockPos pos, BlockState state, boolean moved);
+    BlockState simpleminer$setToAir(BlockPos pos, BlockState state, BlockState current, boolean moved);
 }
