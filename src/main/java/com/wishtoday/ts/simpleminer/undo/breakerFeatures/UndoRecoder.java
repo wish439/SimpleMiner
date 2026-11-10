@@ -51,7 +51,7 @@ public class UndoRecoder implements BlockBreakerFeature {
     }
 
     @Override
-    public void afterCycle(BlockBreakContext blockBreakContext, List<ItemStack> droppedStacks, Object2IntOpenHashMap<ItemStackKey> droppedItemsWithCount) {
+    public void afterBrokenCandidate(BlockBreakContext blockBreakContext, List<ItemStack> droppedStacks, Object2IntOpenHashMap<ItemStackKey> droppedItemsWithCount) {
         if (!config.isAllowUndo()) return;
         Long2ObjectLinkedOpenHashMap<BlockStorage> copy = new Long2ObjectLinkedOpenHashMap<>(this.map);
         PlayerEntity player = blockBreakContext.getPlayer();

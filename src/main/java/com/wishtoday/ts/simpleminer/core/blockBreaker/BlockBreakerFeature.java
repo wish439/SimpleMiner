@@ -7,7 +7,7 @@ import net.minecraft.item.ItemStack;
 import java.util.List;
 
 public interface BlockBreakerFeature {
-    default void beforeCycle(BlockBreakContext blockBreakContext) {
+    default void beforeBreakCandidate(BlockBreakContext blockBreakContext) {
 
     }
 
@@ -23,8 +23,8 @@ public interface BlockBreakerFeature {
         return true;
     }
 
-    default void afterCycle(BlockBreakContext blockBreakContext, List<ItemStack> droppedStacks, Object2IntOpenHashMap<ItemStackKey> droppedItemsWithCount
-                            //, Object2IntOpenCustomHashMap<ItemStack> containerItemWithCount
+    default void afterBrokenCandidate(BlockBreakContext blockBreakContext, List<ItemStack> droppedStacks, Object2IntOpenHashMap<ItemStackKey> droppedItemsWithCount
+                                      //, Object2IntOpenCustomHashMap<ItemStack> containerItemWithCount
     ) {
     }
     default boolean allowCollectItem(BlockBreakContext blockBreakContext, CollectContext collectContext) {

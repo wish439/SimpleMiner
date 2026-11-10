@@ -1,6 +1,5 @@
 package com.wishtoday.ts.simpleminer.core;
 
-import com.wishtoday.ts.simpleminer.ControllerManager;
 import com.wishtoday.ts.simpleminer.config.IndividualConfig;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.*;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector.ItemCollectorRouter;
@@ -8,7 +7,6 @@ import com.wishtoday.ts.simpleminer.core.blockBreaker.singleBlockBreaker.SingleB
 import com.wishtoday.ts.simpleminer.data.MinerShapeInfo;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldExtension;
 import com.wishtoday.ts.simpleminer.schedule.Task;
-import com.wishtoday.ts.simpleminer.shape.ShapeRefresher;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
 import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -95,7 +93,7 @@ public class OnceMiningTask implements Task {
             System.out.println("internal consuming" + (System.nanoTime() - a));
         }
 
-        this.forEachFeatures(b -> b.beforeCycle(context));
+        this.forEachFeatures(b -> b.beforeBreakCandidate(context));
 
         this.collector.start();
         BlockPos.Mutable mutable = new BlockPos.Mutable();
@@ -176,7 +174,7 @@ public class OnceMiningTask implements Task {
         CollectedResult result = this.collector.finish();
         List<ItemStack> droppedStacks = this.dropper.dropStack(context.getWorld(), context.getOriginPos(), result.getMap());
 
-        this.forEachFeatures(b -> b.afterCycle(context, droppedStacks, result.getMap()));
+        this.forEachFeatures(b -> b.afterBrokenCandidate(context, droppedStacks, result.getMap()));
 
         if (result.getExperience() <= 0) {
             return;

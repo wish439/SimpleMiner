@@ -24,7 +24,7 @@ public class ToolBreakPreventer implements BlockBreakerFeature {
     }
 
     @Override
-    public void beforeCycle(BlockBreakContext blockBreakContext) {
+    public void beforeBreakCandidate(BlockBreakContext blockBreakContext) {
         this.reset();
         if (!blockBreakContext.getConfig().isToolPreventBroken()) {
             return;

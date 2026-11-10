@@ -18,4 +18,8 @@ public class ExperienceCollector {
     public void consumeExperience(int i) {
         this.experience += i;
     }
+
+    public void append(ExperienceCollector collector) {
+        this.experience += collector.getExperience();
+    }
 }

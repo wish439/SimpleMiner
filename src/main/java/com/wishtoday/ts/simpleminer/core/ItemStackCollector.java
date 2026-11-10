@@ -10,4 +10,5 @@ public interface ItemStackCollector {
     void collectItemStack(ItemStack stack);
     ItemCollectorResult toResult();
     Object2IntOpenHashMap<ItemStackKey> getMap();
+    void append(ItemStackCollector collector);
 }

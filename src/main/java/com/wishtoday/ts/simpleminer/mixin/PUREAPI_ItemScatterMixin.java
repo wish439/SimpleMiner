@@ -1,10 +1,6 @@
 package com.wishtoday.ts.simpleminer.mixin;
 
 import com.wishtoday.simpleservices.services.Container;
-import com.wishtoday.simpleservices.services.ServiceFieldType;
-import com.wishtoday.simpleservices.services.annotation.ServiceClass;
-import com.wishtoday.simpleservices.services.annotation.ServiceField;
-import com.wishtoday.ts.simpleminer.core.blockBreaker.BlockBreaker;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectContext;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector.ItemCollectorRouter;
 import net.minecraft.block.BlockState;
@@ -21,9 +17,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //TODO: need fix @ServiceClass
+//......not fix, but remove
 @Mixin(ItemScatterer.class)
 public class PUREAPI_ItemScatterMixin {
-    @ServiceField
     private static ItemCollectorRouter router;
     @Unique
     private static final CollectContext CONTEXT = new CollectContext();

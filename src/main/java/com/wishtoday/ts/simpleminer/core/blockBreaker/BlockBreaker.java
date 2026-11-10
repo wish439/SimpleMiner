@@ -143,8 +143,9 @@ public class BlockBreaker {
         this.shapeRefresher.refresh(info, pos);
         ShapeResult shapeResult = info.getBlockPoses();
         if (shapeResult == null) return true;
+        BlockBreakContext context = new BlockBreakContext(world, player, pos, state, blockEntity, info, config, shapeResult, mainHandStack);
         if (false) {
-            FragmentMiningTask task = new FragmentMiningTask(externalStorageAdvocatedCollectorRouter, dropper, blockBreaker, exhaustionConsumer, player, world, pos, shapeResult.getSortedBlockPoses(), 10 * 1000, 0, scheduler);
+            FragmentMiningTask task = new FragmentMiningTask(externalStorageAdvocatedCollectorRouter, dropper, blockBreaker, exhaustionConsumer, player, world, pos, shapeResult.getSortedBlockPoses(), 10 * 1000, 0, scheduler, features, context);
             this.scheduler.scheduleCurrentTick(task);
             return false;
         }
@@ -161,13 +162,13 @@ public class BlockBreaker {
         long a = System.nanoTime();
         LongList sortedBlockPoses = shapeResult.getSortedBlockPoses();
         LongOpenHashSet internal = this.blockBreaker.canControlUpdate() ? shapeAnalyzer.calcCompleteSurrounded(shapeResult.getBlockPoses()) : new LongOpenHashSet();
-        BlockBreakContext context = new BlockBreakContext(world, player, pos, state, blockEntity, info, config, shapeResult, mainHandStack);
+        //BlockBreakContext context = new BlockBreakContext(world, player, pos, state, blockEntity, info, config, shapeResult, mainHandStack);
 
         if (DEBUG_MODE) {
             System.out.println("internal consuming" + (System.nanoTime() - a));
         }
 
-        this.forEachFeatures(b -> b.beforeCycle(context));
+        this.forEachFeatures(b -> b.beforeBreakCandidate(context));
 
         this.collector.start();
         BlockPos.Mutable mutable = new BlockPos.Mutable();
@@ -248,7 +249,7 @@ public class BlockBreaker {
         CollectedResult result = this.collector.finish();
         List<ItemStack> droppedStacks = this.dropper.dropStack(context.getWorld(), context.getOriginPos(), result.getMap());
 
-        this.forEachFeatures(b -> b.afterCycle(context, droppedStacks, result.getMap()));
+        this.forEachFeatures(b -> b.afterBrokenCandidate(context, droppedStacks, result.getMap()));
 
         if (result.getExperience() <= 0) {
             return false;

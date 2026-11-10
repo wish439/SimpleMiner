@@ -16,6 +16,8 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+import java.util.List;
+
 //TODO: Let it have full functionality.
 public class FragmentMiningTask implements Task {
     private final ExternalStorageAdvocatedCollectorRouter collector;
@@ -29,6 +31,11 @@ public class FragmentMiningTask implements Task {
     private final int fragmentSize;
     private final int currentIndex;
     private final TickScheduler scheduler;
+    private final List<BlockBreakerFeature> features;
+    private boolean first;
+    private final BlockBreakContext context;
+    private final ItemStackCollector collectorStack;
+    private final ExperienceCollector collectorExperience;
 
     public FragmentMiningTask(ExternalStorageAdvocatedCollectorRouter collector
             , ItemDropper dropper
@@ -41,6 +48,30 @@ public class FragmentMiningTask implements Task {
             , int fragmentSize
             , int currentIndex
             , TickScheduler scheduler
+            , List<BlockBreakerFeature> features
+            , BlockBreakContext context
+    ) {
+        this(collector, dropper, blockBreaker, exhaustionConsumer, player
+                , world, initialPos, sortedBlockPoses, fragmentSize, currentIndex,
+                scheduler, features, false, context, new SimpleItemStackCollector(), new ExperienceCollector());
+    }
+
+    private FragmentMiningTask(ExternalStorageAdvocatedCollectorRouter collector
+            , ItemDropper dropper
+            , SingleBlockBreakerRouter blockBreaker
+            , ExhaustionConsumer exhaustionConsumer
+            , PlayerEntity player
+            , World world
+            , BlockPos initialPos
+            , LongList sortedBlockPoses
+            , int fragmentSize
+            , int currentIndex
+            , TickScheduler scheduler
+            , List<BlockBreakerFeature> features
+            , boolean first
+            , BlockBreakContext context
+            , ItemStackCollector collectorStack
+            , ExperienceCollector collectorExperience
     ) {
         this.collector = collector;
         this.dropper = dropper;
@@ -53,15 +84,24 @@ public class FragmentMiningTask implements Task {
         this.fragmentSize = fragmentSize;
         this.currentIndex = currentIndex;
         this.scheduler = scheduler;
+        this.features = features;
+        this.first = first;
+        this.context = context;
+        this.collectorStack = collectorStack;
+        this.collectorExperience = collectorExperience;
     }
 
     @Override
     public void run() {
         if (this.currentIndex >= this.sortedBlockPoses.size()) {
+            this.onEnd();
             return;
         }
         if (GlobalCondition.isBlockBreaking()) {
             return;
+        }
+        if (first) {
+            this.features.forEach(feature -> feature.beforeBlockBreak(context));
         }
         LongList longList = sortedBlockPoses.subList(currentIndex, Math.min(currentIndex + fragmentSize, sortedBlockPoses.size()));
 
@@ -77,39 +117,77 @@ public class FragmentMiningTask implements Task {
             mutable.set(blockPose);
             BlockState currentState = ((WorldExtension) world).simpleMiner$getBlockState(blockPose);
             collectContext.setBlockState(currentState);
-
+            context.setCurrentState(currentState);
+            context.setCurrentPos(mutable);
 
             collectContext.setPos(mutable);
             boolean canHarvest = player.canHarvest(currentState);
             collectContext.setCanHarvest(canHarvest);
 
-            if (this.collector.shouldCollect(collectContext)) {
+            boolean collectItem = true;
+            boolean collectExperience = true;
+            for (BlockBreakerFeature feature : this.features) {
+                if (!feature.allowCollectItem(context, collectContext)) {
+                    collectItem = false;
+                    break;
+                }
+            }
+            for (BlockBreakerFeature feature : this.features) {
+                if (!feature.allowCollectExperience(context, collectContext)) {
+                    collectExperience = false;
+                    break;
+                }
+            }
+
+            if (this.collector.shouldCollect(collectContext) && collectItem) {
                 this.collector.collectItem(collectContext, itemStackCollector);
                 this.collector.collectExperience(collectContext, experienceCollector);
             }
 
-
             boolean empty = mainHandStack.isEmpty();
+            boolean breakBlock = true;
 
-            boolean b = this.breakBlock(mutable, currentState, world, player, mainHandStack, true, canHarvest);
-            if (canHarvest && b) {
-                this.exhaustionConsumer.consume(player);
+            for (BlockBreakerFeature feature : this.features) {
+                if (!feature.allowBreak(context)) {
+                    breakBlock = false;
+                }
+            }
+
+            if (breakBlock) {
+                boolean b = this.breakBlock(mutable, currentState, world, player, mainHandStack, true, canHarvest);
+                if (canHarvest && b) {
+                    this.exhaustionConsumer.consume(player);
+                }
             }
 
 
             if (!empty && player.getMainHandStack().isEmpty()) {
-                break;
+                this.onEnd();
+                return;
+            }
+
+            for (BlockBreakerFeature feature : this.features) {
+                if (!feature.afterBlockBreakAllowContinue(context)) {
+                    this.onEnd();
+                    return;
+                }
             }
         }
-        this.dropper.dropStack(world, initialPos, itemStackCollector.getMap());
+        this.collectorStack.append(itemStackCollector);
+        //this.dropper.dropStack(world, initialPos, itemStackCollector.getMap());
 
+        scheduler.scheduleNextTick(new FragmentMiningTask(this.collector, dropper, blockBreaker, exhaustionConsumer, player, world, initialPos, sortedBlockPoses, this.fragmentSize, this.currentIndex + this.fragmentSize, scheduler, features, false, this.context, this.collectorStack, this.collectorExperience));
+    }
 
-        if (experienceCollector.getExperience() > 0) {
-            ExperienceOrbEntity experienceOrbEntity = new ExperienceOrbEntity(world, initialPos.getX() + 0.5D, initialPos.getY() + 0.5D, initialPos.getZ() + 0.5D, experienceCollector.getExperience());
-            (serverWorld).spawnEntityAndPassengers(experienceOrbEntity);
+    private void onEnd() {
+        List<ItemStack> droppedStacks = this.dropper.dropStack(context.getWorld(), this.initialPos, this.collectorStack.getMap());
+        if (this.collectorExperience.getExperience() > 0) {
+            ExperienceOrbEntity experienceOrbEntity = new ExperienceOrbEntity(world, initialPos.getX() + 0.5D, initialPos.getY() + 0.5D, initialPos.getZ() + 0.5D, this.collectorExperience.getExperience());
+            ((ServerWorld) context.getWorld()).spawnEntityAndPassengers(experienceOrbEntity);
         }
-
-        scheduler.scheduleNextTick(new FragmentMiningTask(this.collector, dropper, blockBreaker, exhaustionConsumer, player, world, initialPos, sortedBlockPoses, this.fragmentSize, this.currentIndex + this.fragmentSize, scheduler));
+        for (BlockBreakerFeature feature : this.features) {
+            feature.afterBrokenCandidate(this.context, droppedStacks, this.collectorStack.getMap());
+        }
     }
 
     private boolean breakBlock(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update, boolean canHarvest) {

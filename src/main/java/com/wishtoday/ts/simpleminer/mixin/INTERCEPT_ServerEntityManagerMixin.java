@@ -1,7 +1,6 @@
 package com.wishtoday.ts.simpleminer.mixin;
 
 import com.wishtoday.simpleservices.services.Container;
-import com.wishtoday.simpleservices.services.annotation.ServiceField;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectContext;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector.DroppedCollector;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector.ItemCollectorRouter;
@@ -18,7 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerEntityManager.class)
 public class INTERCEPT_ServerEntityManagerMixin {
-    @ServiceField
     private ItemCollectorRouter router;
 
     @Unique

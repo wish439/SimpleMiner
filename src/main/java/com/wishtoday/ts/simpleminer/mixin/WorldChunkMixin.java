@@ -161,8 +161,8 @@ public abstract class WorldChunkMixin extends Chunk implements WorldChunkExtensi
             int j = pos.getX() & 15;
             int k = i & 15;
             int l = pos.getZ() & 15;
-            BlockState blockState = ((ChunkSectionTestExtension)chunkSection).simpleminer$setBlockState(j, k, l, state, current, true);
-            if (blockState == state) {
+            ((ChunkSectionTestExtension)chunkSection).simpleminer$setBlockState(j, k, l, state, current, true);
+            if (current == state) {
                 return null;
             } else {
                 Block block = state.getBlock();
@@ -171,7 +171,7 @@ public abstract class WorldChunkMixin extends Chunk implements WorldChunkExtensi
                 //((Heightmap)this.heightmaps.get(Heightmap.Type.OCEAN_FLOOR)).trackUpdate(j, i, l, state);
                 //((Heightmap)this.heightmaps.get(Heightmap.Type.WORLD_SURFACE)).trackUpdate(j, i, l, state);
 
-                if (ChunkLightProvider.needsLightUpdate(this, pos, blockState, state)) {
+                if (ChunkLightProvider.needsLightUpdate(this, pos, current, state)) {
                     Profiler profiler = this.world.getProfiler();
                     profiler.push("updateSkyLightSources");
                     this.chunkSkyLight.isSkyLightAccessible(this, j, i, l);
@@ -180,10 +180,10 @@ public abstract class WorldChunkMixin extends Chunk implements WorldChunkExtensi
                     profiler.pop();
                 }
 
-                boolean bl3 = blockState.hasBlockEntity();
+                boolean bl3 = current.hasBlockEntity();
                 if (!this.world.isClient) {
-                    blockState.onStateReplaced(this.world, pos, state, moved);
-                } else if (!blockState.isOf(block) && bl3) {
+                    current.onStateReplaced(this.world, pos, state, moved);
+                } else if (!current.isOf(block) && bl3) {
                     this.removeBlockEntity(pos);
                 }
 
@@ -191,7 +191,7 @@ public abstract class WorldChunkMixin extends Chunk implements WorldChunkExtensi
                     return null;
                 } else {
                     if (!this.world.isClient) {
-                        state.onBlockAdded(this.world, pos, blockState, moved);
+                        state.onBlockAdded(this.world, pos, current, moved);
                     }
 
                     if (state.hasBlockEntity()) {
@@ -208,7 +208,7 @@ public abstract class WorldChunkMixin extends Chunk implements WorldChunkExtensi
                     }
 
                     this.needsSaving = true;
-                    return blockState;
+                    return current;
                 }
             }
         }

@@ -2,9 +2,7 @@ package com.wishtoday.ts.simpleminer.mixin;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.wishtoday.simpleservices.services.Container;
-import com.wishtoday.simpleservices.services.annotation.ServiceField;
 import com.wishtoday.ts.simpleminer.GlobalCondition;
-import com.wishtoday.ts.simpleminer.core.blockBreaker.BlockBreaker;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.CollectContext;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector.ItemCollectorRouter;
 import net.minecraft.block.Block;
@@ -21,7 +19,6 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(Block.class)
 public class PUREAPI_BlockMixin {
-    @ServiceField
     private ItemCollectorRouter router;
     @Unique
     private static final CollectContext CONTEXT = new CollectContext();

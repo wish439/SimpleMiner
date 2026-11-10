@@ -14,12 +14,12 @@ import java.util.List;
 public class DebugBlockBreakerFeature implements BlockBreakerFeature {
     private long startTime;
     @Override
-    public void beforeCycle(BlockBreakContext blockBreakContext) {
+    public void beforeBreakCandidate(BlockBreakContext blockBreakContext) {
         this.startTime = System.currentTimeMillis();
     }
 
     @Override
-    public void afterCycle(BlockBreakContext blockBreakContext, List<ItemStack> droppedStacks, Object2IntOpenHashMap<ItemStackKey> droppedItemsWithCount) {
+    public void afterBrokenCandidate(BlockBreakContext blockBreakContext, List<ItemStack> droppedStacks, Object2IntOpenHashMap<ItemStackKey> droppedItemsWithCount) {
         PlayerEntity player = blockBreakContext.getPlayer();
         player.sendMessage(Text.of("本次总连锁" + blockBreakContext.getShapeResult().getSortedBlockPoses().size() + "方块，耗时" + (System.currentTimeMillis() - this.startTime) + "ms"));
     }

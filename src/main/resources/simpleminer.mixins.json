@@ -26,6 +26,5 @@
   },
   "overwrites": {
     "requireAnnotations": true
-  },
-  "plugin": "com.wishtoday.ts.simpleminer.MixinExtension"
+  }
 }
