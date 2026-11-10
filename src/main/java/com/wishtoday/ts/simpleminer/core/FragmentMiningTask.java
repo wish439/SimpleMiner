@@ -174,6 +174,7 @@ public class FragmentMiningTask implements Task {
             }
         }
         this.collectorStack.append(itemStackCollector);
+        this.collectorExperience.append(experienceCollector);
         //this.dropper.dropStack(world, initialPos, itemStackCollector.getMap());
 
         scheduler.scheduleNextTick(new FragmentMiningTask(this.collector, dropper, blockBreaker, exhaustionConsumer, player, world, initialPos, sortedBlockPoses, this.fragmentSize, this.currentIndex + this.fragmentSize, scheduler, features, false, this.context, this.collectorStack, this.collectorExperience));
