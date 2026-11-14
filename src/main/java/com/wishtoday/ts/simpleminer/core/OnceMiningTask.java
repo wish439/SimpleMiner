@@ -96,6 +96,8 @@ public class OnceMiningTask implements Task {
         NanoTimerAccumulator blockAdded = new NanoTimerAccumulator();
         NanoTimerAccumulator all = new NanoTimerAccumulator();
         NanoTimerAccumulator set = new NanoTimerAccumulator();
+        NanoTimerAccumulator noForceState = new NanoTimerAccumulator();
+        NanoTimerAccumulator blockChanged = new NanoTimerAccumulator();
 
         if (DEBUG_MODE) {
             System.out.println("internal consuming" + (System.nanoTime() - a));
@@ -159,7 +161,7 @@ public class OnceMiningTask implements Task {
                 long _s = System.nanoTime();
                 boolean b;
                 if (DEBUG_MODE) {
-                    b = this.breakBlockDebug(mutable, currentState, world, player, mainHandStack, !internal.contains(blockPose), canHarvest, setBlock, removeBlockEntity, blockAdded, all, set);
+                    b = this.breakBlockDebug(mutable, currentState, world, player, mainHandStack, !internal.contains(blockPose), canHarvest, setBlock, removeBlockEntity, blockAdded, all, set, noForceState, blockChanged);
                 } else b = this.breakBlock(mutable, currentState, world, player, mainHandStack, !internal.contains(blockPose), canHarvest);
                 if (canHarvest && b) {
                     this.exhaustionConsumer.consume(player);
@@ -185,6 +187,8 @@ public class OnceMiningTask implements Task {
             System.out.println("setBlock: " + setBlock);
             System.out.println("removeBlockEntity: " + removeBlockEntity);
             System.out.println("blockAdded: " + blockAdded);
+            System.out.println("noForceState: " + noForceState);
+            System.out.println("blockChanged: " + blockChanged);
 
             System.out.println("all: " + all);
             System.out.println("set: " + set);
@@ -216,10 +220,10 @@ public class OnceMiningTask implements Task {
         }
     }
 
-    private boolean breakBlockDebug(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update, boolean canHarvest, NanoTimerAccumulator setBlock, NanoTimerAccumulator removeBlockEntity, NanoTimerAccumulator blockAdded, NanoTimerAccumulator all, NanoTimerAccumulator set) {
+    private boolean breakBlockDebug(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update, boolean canHarvest, NanoTimerAccumulator setBlock, NanoTimerAccumulator removeBlockEntity, NanoTimerAccumulator blockAdded, NanoTimerAccumulator all, NanoTimerAccumulator set, NanoTimerAccumulator noForceState, NanoTimerAccumulator blockChanged) {
         try {
             blockBreaking.set(true);
-            return this.blockBreaker.breakBlockDebug(pos, state, world, player, mainHandStack, update, canHarvest, setBlock, removeBlockEntity, blockAdded, all, set);
+            return this.blockBreaker.breakBlockDebug(pos, state, world, player, mainHandStack, update, canHarvest, setBlock, removeBlockEntity, blockAdded, all, set, noForceState, blockChanged);
         } finally {
             blockBreaking.set(false);
         }

@@ -107,7 +107,7 @@ public abstract class WorldMixin implements WorldExtension, WorldAccess, WorldTe
     }
 
     @Override
-    public boolean simpleminer$setToAir(BlockPos pos, BlockState state, BlockState current, int flags, NanoTimerAccumulator setBlock, NanoTimerAccumulator removeBlockEntity, NanoTimerAccumulator blockAdded) {
+    public boolean simpleminer$setToAir(BlockPos pos, BlockState state, BlockState current, int flags, NanoTimerAccumulator setBlock, NanoTimerAccumulator removeBlockEntity, NanoTimerAccumulator blockAdded, NanoTimerAccumulator noForceState, NanoTimerAccumulator blockChanged) {
         int maxUpdateDepth = 512;
         if (this.isOutOfHeightLimit(pos)) {
             return false;
@@ -139,14 +139,18 @@ public abstract class WorldMixin implements WorldExtension, WorldAccess, WorldTe
                         }
                     }
 
+                    noForceState.visitStart();
                     if ((flags & Block.FORCE_STATE) == 0 && maxUpdateDepth > 0) {
                         int i = flags & ~(Block.SKIP_DROPS | Block.NOTIFY_NEIGHBORS);
                         blockState.prepare(this, pos, i, maxUpdateDepth - 1);
                         state.updateNeighbors(this, pos, i, maxUpdateDepth - 1);
                         state.prepare(this, pos, i, maxUpdateDepth - 1);
                     }
+                    noForceState.visitEnd();
 
+                    blockChanged.visitStart();
                     this.onBlockChanged(pos, blockState, blockState2);
+                    blockChanged.visitEnd();
                 }
 
                 return true;

@@ -83,6 +83,19 @@ import java.util.function.Consumer;
 //set: 60171321
 //all - set: 50134581
 
+//again
+//internal consuming5600
+//breaking 122452200
+//collecting 3888600
+//setBlock: 4991800
+//removeBlockEntity: 3801100
+//blockAdded: 1551800
+//noForceState: 21750300
+//blockChanged: 2077500
+//all: 117627800
+//set: 68468200
+//all - set: 49159600
+
 //breaking: PUREAPI-----collector: PUREAPI in 60,000, nano time
 //internal consuming13569900
 //breaking 204292100
