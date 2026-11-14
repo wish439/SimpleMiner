@@ -84,17 +84,19 @@ import java.util.function.Consumer;
 //all - set: 50134581
 
 //again
-//internal consuming5600
-//breaking 122452200
-//collecting 3888600
-//setBlock: 4991800
-//removeBlockEntity: 3801100
-//blockAdded: 1551800
-//noForceState: 21750300
-//blockChanged: 2077500
-//all: 117627800
-//set: 68468200
-//all - set: 49159600
+//internal consuming900
+//breaking 123726495
+//collecting 3657383
+//setBlock: 4803737
+//removeBlockEntity: 3839775
+//blockAdded: 1531093
+//noForceState: 21202868
+//blockChanged: 1795965
+//insideSet: 20013510
+//syncToClient: 12033527
+//all: 119237552
+//set: 71082036
+//all - set: 48155516
 
 //breaking: PUREAPI-----collector: PUREAPI in 60,000, nano time
 //internal consuming13569900

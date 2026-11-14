@@ -6,5 +6,5 @@ import net.minecraft.util.math.BlockPos;
 
 public interface WorldTestExtension {
     boolean simpleminer$setBlockStateWithOutLightUpdate(BlockPos pos, BlockState state, int flag);
-    boolean simpleminer$setToAir(BlockPos pos, BlockState state, BlockState current, int flag, NanoTimerAccumulator setBlock, NanoTimerAccumulator removeBlockEntity, NanoTimerAccumulator blockAdded, NanoTimerAccumulator noForceState, NanoTimerAccumulator blockChanged);
+    boolean simpleminer$setToAir(BlockPos pos, BlockState state, BlockState current, int flag, NanoTimerAccumulator setBlock, NanoTimerAccumulator removeBlockEntity, NanoTimerAccumulator blockAdded, NanoTimerAccumulator noForceState, NanoTimerAccumulator blockChanged, NanoTimerAccumulator insideSet, NanoTimerAccumulator syncToClient);
 }

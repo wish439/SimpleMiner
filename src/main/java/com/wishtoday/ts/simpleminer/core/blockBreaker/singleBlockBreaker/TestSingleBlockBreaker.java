@@ -35,14 +35,14 @@ public class TestSingleBlockBreaker implements SingleBlockBreaker {
     }
 
     @Override
-    public boolean breakBlockDebug(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update, boolean canHarvest, NanoTimerAccumulator setBlock, NanoTimerAccumulator removeBlockEntity, NanoTimerAccumulator blockAdded, NanoTimerAccumulator all, NanoTimerAccumulator set, NanoTimerAccumulator noForceState, NanoTimerAccumulator blockChanged) {
+    public boolean breakBlockDebug(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update, boolean canHarvest, NanoTimerAccumulator setBlock, NanoTimerAccumulator removeBlockEntity, NanoTimerAccumulator blockAdded, NanoTimerAccumulator all, NanoTimerAccumulator set, NanoTimerAccumulator noForceState, NanoTimerAccumulator blockChanged, NanoTimerAccumulator insideSet, NanoTimerAccumulator syncToClient) {
         NanoTimerCounter _all = new NanoTimerCounter();
         _all.startTimer();
         Block block = state.getBlock();
         block.onBreak(world, pos, state, player);
         NanoTimerCounter _set = new NanoTimerCounter();
         _set.startTimer();
-        boolean b = ((WorldTestExtension)world).simpleminer$setToAir(pos, Blocks.AIR.getDefaultState(), state, Block.NOTIFY_LISTENERS, setBlock, removeBlockEntity, blockAdded, noForceState, blockChanged);
+        boolean b = ((WorldTestExtension)world).simpleminer$setToAir(pos, Blocks.AIR.getDefaultState(), state, Block.NOTIFY_LISTENERS, setBlock, removeBlockEntity, blockAdded, noForceState, blockChanged, insideSet,  syncToClient);
         _set.endTimer();
         if (b) {
             block.onBroken(world, pos, state);

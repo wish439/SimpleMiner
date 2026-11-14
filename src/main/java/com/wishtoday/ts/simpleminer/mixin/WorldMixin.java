@@ -107,7 +107,7 @@ public abstract class WorldMixin implements WorldExtension, WorldAccess, WorldTe
     }
 
     @Override
-    public boolean simpleminer$setToAir(BlockPos pos, BlockState state, BlockState current, int flags, NanoTimerAccumulator setBlock, NanoTimerAccumulator removeBlockEntity, NanoTimerAccumulator blockAdded, NanoTimerAccumulator noForceState, NanoTimerAccumulator blockChanged) {
+    public boolean simpleminer$setToAir(BlockPos pos, BlockState state, BlockState current, int flags, NanoTimerAccumulator setBlock, NanoTimerAccumulator removeBlockEntity, NanoTimerAccumulator blockAdded, NanoTimerAccumulator noForceState, NanoTimerAccumulator blockChanged, NanoTimerAccumulator insideSet, NanoTimerAccumulator syncToClient) {
         int maxUpdateDepth = 512;
         if (this.isOutOfHeightLimit(pos)) {
             return false;
@@ -116,7 +116,9 @@ public abstract class WorldMixin implements WorldExtension, WorldAccess, WorldTe
         } else {
             WorldChunk worldChunk = this.getWorldChunk(pos);
             Block block = state.getBlock();
+            insideSet.visitStart();
             BlockState blockState = ((WorldChunkTestExtension)worldChunk).simpleminer$setToAir(pos, state, current, (flags & Block.MOVED) != 0, setBlock, removeBlockEntity, blockAdded);
+            insideSet.visitEnd();
             if (blockState == null) {
                 return false;
             } else {
@@ -126,11 +128,13 @@ public abstract class WorldMixin implements WorldExtension, WorldAccess, WorldTe
                         this.scheduleBlockRerenderIfNeeded(pos, blockState, blockState2);
                     }
 
+                    syncToClient.visitStart();
                     if ((flags & Block.NOTIFY_LISTENERS) != 0
                             && (!this.isClient || (flags & Block.NO_REDRAW) == 0)
                             && (this.isClient || worldChunk.getLevelType() != null && worldChunk.getLevelType().isAfter(ChunkLevelType.BLOCK_TICKING))) {
                         this.updateListeners(pos, blockState, state, flags);
                     }
+                    syncToClient.visitEnd();
 
                     if ((flags & Block.NOTIFY_NEIGHBORS) != 0) {
                         this.updateNeighbors(pos, blockState.getBlock());
