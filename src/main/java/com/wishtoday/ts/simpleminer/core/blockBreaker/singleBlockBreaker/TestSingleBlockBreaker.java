@@ -2,6 +2,8 @@ package com.wishtoday.ts.simpleminer.core.blockBreaker.singleBlockBreaker;
 
 import com.wishtoday.simpleservices.services.annotation.Name;
 import com.wishtoday.simpleservices.services.annotation.Service;
+import com.wishtoday.ts.simpleminer.debug.NanoTimerAccumulator;
+import com.wishtoday.ts.simpleminer.debug.NanoTimerCounter;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldTestExtension;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -18,16 +20,45 @@ public class TestSingleBlockBreaker implements SingleBlockBreaker {
     public boolean breakBlock(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update, boolean canHarvest) {
         //Block block = state.getBlock();
         //block.onBreak(world, pos, state, player);
-        boolean b = ((WorldTestExtension)world).simpleminer$setToAir(pos, Blocks.AIR.getDefaultState(), state, Block.NOTIFY_LISTENERS);
+        //boolean b = ((WorldTestExtension)world).simpleminer$setToAir(pos, Blocks.AIR.getDefaultState(), state, Block.NOTIFY_LISTENERS, setBlock, removeBlockEntity, blockAdded);
         /*if (b) {
             block.onBroken(world, pos, state);
-        }*/
-        /*if (!player.isCreative()) {
+        }
+        if (!player.isCreative()) {
             mainHandStack.postMine(world, state, pos, player);
             if (b && canHarvest) {
                 block.afterBreak(world, player, pos, state, world.getBlockEntity(pos), mainHandStack.copy());
             }
         }*/
+
+        return true;
+    }
+
+    @Override
+    public boolean breakBlockDebug(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update, boolean canHarvest, NanoTimerAccumulator setBlock, NanoTimerAccumulator removeBlockEntity, NanoTimerAccumulator blockAdded, NanoTimerAccumulator all, NanoTimerAccumulator set) {
+        NanoTimerCounter _all = new NanoTimerCounter();
+        _all.startTimer();
+        Block block = state.getBlock();
+        block.onBreak(world, pos, state, player);
+        NanoTimerCounter _set = new NanoTimerCounter();
+        _set.startTimer();
+        boolean b = ((WorldTestExtension)world).simpleminer$setToAir(pos, Blocks.AIR.getDefaultState(), state, Block.NOTIFY_LISTENERS, setBlock, removeBlockEntity, blockAdded);
+        _set.endTimer();
+        if (b) {
+            block.onBroken(world, pos, state);
+        }
+        if (!player.isCreative()) {
+            mainHandStack.postMine(world, state, pos, player);
+            if (b && canHarvest) {
+                block.afterBreak(world, player, pos, state, world.getBlockEntity(pos), mainHandStack.copy());
+            }
+        }
+        _all.endTimer();
+
+
+        all.consume(_all.getElapsedTime());
+        set.consume(_set.getElapsedTime());
+
         return b;
     }
 

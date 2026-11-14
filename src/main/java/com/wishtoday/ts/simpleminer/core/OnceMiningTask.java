@@ -5,6 +5,7 @@ import com.wishtoday.ts.simpleminer.core.blockBreaker.*;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.itemCollector.ItemCollectorRouter;
 import com.wishtoday.ts.simpleminer.core.blockBreaker.singleBlockBreaker.SingleBlockBreakerRouter;
 import com.wishtoday.ts.simpleminer.data.MinerShapeInfo;
+import com.wishtoday.ts.simpleminer.debug.NanoTimerAccumulator;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldExtension;
 import com.wishtoday.ts.simpleminer.schedule.Task;
 import com.wishtoday.ts.simpleminer.shape.ShapeResult;
@@ -43,6 +44,7 @@ public class OnceMiningTask implements Task {
         return blockBreaking.get();
     }
 
+    //This should be removed.
     private static final boolean DEBUG_MODE = true;
 
     public OnceMiningTask(MinerShapeInfo info
@@ -88,6 +90,12 @@ public class OnceMiningTask implements Task {
         LongOpenHashSet internal = this.blockBreaker.canControlUpdate() ? shapeAnalyzer.calcCompleteSurrounded(shapeResult.getBlockPoses()) : new LongOpenHashSet();
         BlockBreakContext context = new BlockBreakContext(world, player, initialPos, this.initialState, blockEntity, info, config, shapeResult, mainHandStack);
 
+
+        NanoTimerAccumulator setBlock = new NanoTimerAccumulator();
+        NanoTimerAccumulator removeBlockEntity = new NanoTimerAccumulator();
+        NanoTimerAccumulator blockAdded = new NanoTimerAccumulator();
+        NanoTimerAccumulator all = new NanoTimerAccumulator();
+        NanoTimerAccumulator set = new NanoTimerAccumulator();
 
         if (DEBUG_MODE) {
             System.out.println("internal consuming" + (System.nanoTime() - a));
@@ -149,7 +157,10 @@ public class OnceMiningTask implements Task {
 
             if (breakBlock) {
                 long _s = System.nanoTime();
-                boolean b = this.breakBlock(mutable, currentState, world, player, mainHandStack, !internal.contains(blockPose), canHarvest);
+                boolean b;
+                if (DEBUG_MODE) {
+                    b = this.breakBlockDebug(mutable, currentState, world, player, mainHandStack, !internal.contains(blockPose), canHarvest, setBlock, removeBlockEntity, blockAdded, all, set);
+                } else b = this.breakBlock(mutable, currentState, world, player, mainHandStack, !internal.contains(blockPose), canHarvest);
                 if (canHarvest && b) {
                     this.exhaustionConsumer.consume(player);
                 }
@@ -170,6 +181,14 @@ public class OnceMiningTask implements Task {
         if (DEBUG_MODE) {
             System.out.println("breaking " + d);
             System.out.println("collecting " + c);
+
+            System.out.println("setBlock: " + setBlock);
+            System.out.println("removeBlockEntity: " + removeBlockEntity);
+            System.out.println("blockAdded: " + blockAdded);
+
+            System.out.println("all: " + all);
+            System.out.println("set: " + set);
+            System.out.println("all - set: " + (all.getAccumulated() - set.getAccumulated()));
         }
         CollectedResult result = this.collector.finish();
         List<ItemStack> droppedStacks = this.dropper.dropStack(context.getWorld(), context.getOriginPos(), result.getMap());
@@ -192,6 +211,15 @@ public class OnceMiningTask implements Task {
         try {
             blockBreaking.set(true);
             return this.blockBreaker.breakBlock(pos, state, world, player, mainHandStack, update, canHarvest);
+        } finally {
+            blockBreaking.set(false);
+        }
+    }
+
+    private boolean breakBlockDebug(BlockPos pos, BlockState state, World world, PlayerEntity player, ItemStack mainHandStack, boolean update, boolean canHarvest, NanoTimerAccumulator setBlock, NanoTimerAccumulator removeBlockEntity, NanoTimerAccumulator blockAdded, NanoTimerAccumulator all, NanoTimerAccumulator set) {
+        try {
+            blockBreaking.set(true);
+            return this.blockBreaker.breakBlockDebug(pos, state, world, player, mainHandStack, update, canHarvest, setBlock, removeBlockEntity, blockAdded, all, set);
         } finally {
             blockBreaking.set(false);
         }

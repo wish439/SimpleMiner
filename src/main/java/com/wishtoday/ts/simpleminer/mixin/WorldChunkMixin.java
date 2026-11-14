@@ -1,5 +1,6 @@
 package com.wishtoday.ts.simpleminer.mixin;
 
+import com.wishtoday.ts.simpleminer.debug.NanoTimerAccumulator;
 import com.wishtoday.ts.simpleminer.mixinInterface.ChunkSectionTestExtension;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldChunkExtension;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldChunkTestExtension;
@@ -151,7 +152,7 @@ public abstract class WorldChunkMixin extends Chunk implements WorldChunkExtensi
     }
 
     @Override
-    public BlockState simpleminer$setToAir(BlockPos pos, BlockState state, BlockState current, boolean moved) {
+    public BlockState simpleminer$setToAir(BlockPos pos, BlockState state, BlockState current, boolean moved, NanoTimerAccumulator setBlock, NanoTimerAccumulator removeBlockEntity, NanoTimerAccumulator blockAdded) {
         int i = pos.getY();
         ChunkSection chunkSection = this.getSection(this.getSectionIndex(i));
         boolean bl = chunkSection.isEmpty();
@@ -161,7 +162,9 @@ public abstract class WorldChunkMixin extends Chunk implements WorldChunkExtensi
             int j = pos.getX() & 15;
             int k = i & 15;
             int l = pos.getZ() & 15;
+            setBlock.visitStart();
             ((ChunkSectionTestExtension)chunkSection).simpleminer$setBlockState(j, k, l, state, current, true);
+            setBlock.visitEnd();
             if (current == state) {
                 return null;
             } else {
@@ -180,19 +183,23 @@ public abstract class WorldChunkMixin extends Chunk implements WorldChunkExtensi
                     profiler.pop();
                 }
 
+                removeBlockEntity.visitStart();
                 boolean bl3 = current.hasBlockEntity();
                 if (!this.world.isClient) {
                     current.onStateReplaced(this.world, pos, state, moved);
                 } else if (!current.isOf(block) && bl3) {
                     this.removeBlockEntity(pos);
                 }
+                removeBlockEntity.visitEnd();
 
                 if (!chunkSection.getBlockState(j, k, l).isOf(block)) {
                     return null;
                 } else {
+                    blockAdded.visitStart();
                     if (!this.world.isClient) {
                         state.onBlockAdded(this.world, pos, current, moved);
                     }
+                    blockAdded.visitEnd();
 
                     if (state.hasBlockEntity()) {
                         BlockEntity blockEntity = this.getBlockEntity(pos, WorldChunk.CreationType.CHECK);

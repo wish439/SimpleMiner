@@ -1,5 +1,6 @@
 package com.wishtoday.ts.simpleminer.mixin;
 
+import com.wishtoday.ts.simpleminer.debug.NanoTimerAccumulator;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldChunkExtension;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldChunkTestExtension;
 import com.wishtoday.ts.simpleminer.mixinInterface.WorldExtension;
@@ -106,7 +107,7 @@ public abstract class WorldMixin implements WorldExtension, WorldAccess, WorldTe
     }
 
     @Override
-    public boolean simpleminer$setToAir(BlockPos pos, BlockState state, BlockState current, int flags) {
+    public boolean simpleminer$setToAir(BlockPos pos, BlockState state, BlockState current, int flags, NanoTimerAccumulator setBlock, NanoTimerAccumulator removeBlockEntity, NanoTimerAccumulator blockAdded) {
         int maxUpdateDepth = 512;
         if (this.isOutOfHeightLimit(pos)) {
             return false;
@@ -115,7 +116,7 @@ public abstract class WorldMixin implements WorldExtension, WorldAccess, WorldTe
         } else {
             WorldChunk worldChunk = this.getWorldChunk(pos);
             Block block = state.getBlock();
-            BlockState blockState = ((WorldChunkTestExtension)worldChunk).simpleminer$setToAir(pos, state, current, (flags & Block.MOVED) != 0);
+            BlockState blockState = ((WorldChunkTestExtension)worldChunk).simpleminer$setToAir(pos, state, current, (flags & Block.MOVED) != 0, setBlock, removeBlockEntity, blockAdded);
             if (blockState == null) {
                 return false;
             } else {

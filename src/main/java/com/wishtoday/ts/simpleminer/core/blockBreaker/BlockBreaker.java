@@ -72,6 +72,17 @@ import java.util.function.Consumer;
 
 //------------------------------------
 
+//better test:
+//internal consuming1800
+//breaking 114912289
+//collecting 3868337
+//setBlock: 5047560
+//removeBlockEntity: 3781924
+//blockAdded: 1531486
+//all: 110305902
+//set: 60171321
+//all - set: 50134581
+
 //breaking: PUREAPI-----collector: PUREAPI in 60,000, nano time
 //internal consuming13569900
 //breaking 204292100
